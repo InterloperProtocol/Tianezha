@@ -187,30 +187,13 @@ export function LivestreamClient() {
           <p className="eyebrow">Livestream Panel</p>
           <h1>Public stream, public chart, payment-gated control.</h1>
           <p className="hero-summary">
-            The livestream room pairs a public video feed with a live chart, crypto
-            news, and a payment panel that grants temporary control over the shared
-            device. Standard requests queue normally; priority requests take over.
+            Keep the chart, news, and video embed aligned across the top, then
+            handle shared device access from the control surface below.
           </p>
           <div className="hero-badges">
-            <span>Stream + chart + payment control</span>
+            <span>Equal chart, news, and video panels</span>
             <span>Standard: {state?.standardPriceSol ?? "0.001"} SOL</span>
             <span>Priority: {state?.priorityPriceSol ?? "0.01"} SOL</span>
-          </div>
-        </div>
-        <div className="hero-actions">
-          <div className="toast-banner">
-            <strong>No wallet connect on this page</strong>
-            <p>
-              Queue access is still server-verified. You only generate a memo, pay from
-              any wallet, and paste the confirmed signature back in.
-            </p>
-          </div>
-          <div className="toast-banner">
-            <strong>Public device rules</strong>
-            <p>
-              Cooldowns and payment windows keep public control orderly while the
-              shared device queue stays visible to everyone.
-            </p>
           </div>
         </div>
       </section>
@@ -219,137 +202,139 @@ export function LivestreamClient() {
       {error ? <p className="error-banner">{error}</p> : null}
 
       <section className="dashboard-grid dashboard-grid-triple">
-        <div className="dashboard-column">
-          <MediaEmbedPanel
-            title="Public stream"
-            description="This panel uses NEXT_PUBLIC_LIVESTREAM_EMBED_URL when configured, but you can also preview another embed locally while building."
-            defaultUrl={state?.embedUrl || ""}
-            storageKey="goonclaw-livestream-media"
-          />
-          <NewsPanel
-            title={`${chartSnapshot?.symbol ?? "Solana"} stream news`}
-            defaultCategory="solana"
-          />
-        </div>
+        <PriceChart
+          contractAddress={focusContractAddress}
+          onSnapshotChange={setChartSnapshot}
+        />
+        <NewsPanel
+          title={`${chartSnapshot?.symbol ?? "Solana"} news`}
+          defaultCategory="solana"
+        />
+        <MediaEmbedPanel
+          title="Video embed"
+          description="This panel uses NEXT_PUBLIC_LIVESTREAM_EMBED_URL when configured, but you can also preview another embed locally while building."
+          defaultUrl={state?.embedUrl || ""}
+          storageKey="goonclaw-livestream-media"
+        />
+      </section>
 
-        <div className="dashboard-column">
-          <PriceChart
-            contractAddress={focusContractAddress}
-            onSnapshotChange={setChartSnapshot}
-          />
-        </div>
+      <section className="dashboard-grid">
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Device Control</p>
+              <h2>Request shared control</h2>
+            </div>
+          </div>
 
-        <div className="dashboard-column">
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Payment Control</p>
-                <h2>Generate a queue request</h2>
+          <p className="hero-summary compact">
+            Generate a memo, pay from any Solana wallet, then paste the confirmed
+            signature to unlock a control slot.
+          </p>
+
+          <label className="field">
+            <span>Contract address</span>
+            <input
+              value={contractAddress}
+              onChange={(event) => setContractAddress(event.target.value)}
+              placeholder="Enter a Solana contract address"
+            />
+          </label>
+
+          <div className="field-grid">
+            <button
+              className={
+                tier === "standard"
+                  ? "button button-primary"
+                  : "button button-ghost"
+              }
+              onClick={() => setTier("standard")}
+              type="button"
+            >
+              Standard
+            </button>
+            <button
+              className={
+                tier === "priority"
+                  ? "button button-danger"
+                  : "button button-ghost"
+              }
+              onClick={() => setTier("priority")}
+              type="button"
+            >
+              Priority
+            </button>
+          </div>
+
+          <div className="button-row">
+            <button
+              className="button button-secondary"
+              disabled={loading === "request"}
+              onClick={() => void createRequest()}
+            >
+              {loading === "request" ? "Generating..." : "Generate memo"}
+            </button>
+          </div>
+
+          {checkout ? (
+            <div className="checkout-card">
+              <div className="panel-header">
+                <div>
+                  <p className="eyebrow">Payment details</p>
+                  <h2>
+                    {checkout.tier === "priority" ? "Priority" : "Standard"} request
+                  </h2>
+                </div>
+                <div className="source-pill">
+                  <span className="status-dot" />
+                  {checkout.status}
+                </div>
               </div>
-            </div>
 
-            <label className="field">
-              <span>Contract address</span>
-              <input
-                value={contractAddress}
-                onChange={(event) => setContractAddress(event.target.value)}
-                placeholder="Enter a Solana contract address"
-              />
-            </label>
-
-            <div className="field-grid">
-              <button
-                className={
-                  tier === "standard"
-                    ? "button button-primary"
-                    : "button button-ghost"
-                }
-                onClick={() => setTier("standard")}
-                type="button"
-              >
-                Standard
-              </button>
-              <button
-                className={
-                  tier === "priority"
-                    ? "button button-danger"
-                    : "button button-ghost"
-                }
-                onClick={() => setTier("priority")}
-                type="button"
-              >
-                Priority
-              </button>
-            </div>
-
-            <div className="button-row">
-              <button
-                className="button button-secondary"
-                disabled={loading === "request"}
-                onClick={() => void createRequest()}
-              >
-                {loading === "request" ? "Generating..." : "Generate memo"}
-              </button>
-            </div>
-
-            {checkout ? (
-              <div className="checkout-card">
-                <div className="panel-header">
+              <div className="history-list">
+                <div className="history-item">
                   <div>
-                    <p className="eyebrow">Payment details</p>
-                    <h2>
-                      {checkout.tier === "priority" ? "Priority" : "Standard"} request
-                    </h2>
+                    <span>Amount</span>
+                    <strong>{checkoutPrice} SOL</strong>
                   </div>
-                  <div className="source-pill">
-                    <span className="status-dot" />
-                    {checkout.status}
+                  <div>
+                    <span>Memo</span>
+                    <strong>{checkout.memo}</strong>
                   </div>
                 </div>
-
-                <div className="history-list">
-                  <div className="history-item">
-                    <div>
-                      <span>Amount</span>
-                      <strong>{checkoutPrice} SOL</strong>
-                    </div>
-                    <div>
-                      <span>Memo</span>
-                      <strong>{checkout.memo}</strong>
-                    </div>
+                <div className="history-item">
+                  <div>
+                    <span>Treasury</span>
+                    <strong>{shorten(state?.treasuryWallet)}</strong>
                   </div>
-                  <div className="history-item">
-                    <div>
-                      <span>Treasury</span>
-                      <strong>{shorten(state?.treasuryWallet)}</strong>
-                    </div>
-                    <div>
-                      <span>Payment window</span>
-                      <strong>{state?.paymentWindowSeconds ?? 900} sec</strong>
-                    </div>
+                  <div>
+                    <span>Payment window</span>
+                    <strong>{state?.paymentWindowSeconds ?? 900} sec</strong>
                   </div>
                 </div>
-
-                <label className="field">
-                  <span>Transaction signature</span>
-                  <input
-                    value={signature}
-                    onChange={(event) => setSignature(event.target.value)}
-                    placeholder="Paste the confirmed Solana signature"
-                  />
-                </label>
-
-                <button
-                  className="button button-primary"
-                  disabled={loading === "verify" || !signature.trim()}
-                  onClick={() => void verifyPayment()}
-                >
-                  {loading === "verify" ? "Verifying..." : "Verify payment"}
-                </button>
               </div>
-            ) : null}
-          </section>
 
+              <label className="field">
+                <span>Transaction signature</span>
+                <input
+                  value={signature}
+                  onChange={(event) => setSignature(event.target.value)}
+                  placeholder="Paste the confirmed Solana signature"
+                />
+              </label>
+
+              <button
+                className="button button-primary"
+                disabled={loading === "verify" || !signature.trim()}
+                onClick={() => void verifyPayment()}
+              >
+                {loading === "verify" ? "Verifying..." : "Verify payment"}
+              </button>
+            </div>
+          ) : null}
+        </section>
+
+        <div className="dashboard-column">
           <section className="panel">
             <div className="panel-header">
               <div>

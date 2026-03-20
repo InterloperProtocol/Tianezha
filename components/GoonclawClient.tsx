@@ -276,22 +276,13 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
           <p className="eyebrow">Personal Panel</p>
           <h1>GoonClaw private control room.</h1>
           <p className="hero-summary">
-            Run a personal device session with a live token chart, your own
-            video or stream embed, and a Solana news lane beside the controls.
+            Keep the chart, news, and video embed aligned across the top, then
+            run your device session from the control surface below.
           </p>
           <div className="hero-badges">
-            <span>Chart + video + device control</span>
+            <span>Equal chart, news, and video panels</span>
             <span>Autoblow, Handy, and REST devices</span>
             <span>Saved device profiles</span>
-          </div>
-        </div>
-        <div className="hero-actions">
-          <div className="toast-banner">
-            <strong>Personal surface</strong>
-            <p>
-              Paste any video or stream URL on this page and keep the device control
-              panel beside it while chart motion runs.
-            </p>
           </div>
         </div>
       </section>
@@ -300,116 +291,111 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
       {error ? <p className="error-banner">{error}</p> : null}
 
       <section className="dashboard-grid dashboard-grid-triple">
-        <div className="dashboard-column">
-          <PriceChart
-            contractAddress={contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS}
-            onSnapshotChange={setChartSnapshot}
-          />
-          <NewsPanel
-            title={`${chartSnapshot?.symbol ?? "Solana"} news lane`}
-            defaultCategory="solana"
-          />
-        </div>
+        <PriceChart
+          contractAddress={contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS}
+          onSnapshotChange={setChartSnapshot}
+        />
+        <NewsPanel
+          title={`${chartSnapshot?.symbol ?? "Solana"} news`}
+          defaultCategory="solana"
+        />
+        <MediaEmbedPanel
+          title="Video or stream embed"
+          description="Paste any YouTube, Twitch, Vimeo, direct MP4, HLS, or iframe-ready stream URL. Your last media source is stored locally in the browser."
+          defaultUrl={defaultMediaUrl}
+          storageKey="goonclaw-personal-media"
+        />
+      </section>
 
-        <div className="dashboard-column">
-          <MediaEmbedPanel
-            title="Video or stream embed"
-            description="Paste any YouTube, Twitch, Vimeo, direct MP4, HLS, or iframe-ready stream URL. Your last media source is stored locally in the browser."
-            defaultUrl={defaultMediaUrl}
-            storageKey="goonclaw-personal-media"
-          />
-        </div>
-
-        <div className="dashboard-column">
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Device Control</p>
-                <h2>Run a private session</h2>
-              </div>
+      <section className="dashboard-grid">
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Device Control</p>
+              <h2>Run a private session</h2>
             </div>
+          </div>
 
+          <label className="field">
+            <span>Contract address</span>
+            <input
+              value={contractAddress}
+              onChange={(event) => setContractAddress(event.target.value)}
+              placeholder="Enter a Solana contract address"
+            />
+          </label>
+
+          <div className="field-grid">
             <label className="field">
-              <span>Contract address</span>
+              <span>Motion mode</span>
+              <select
+                value={mode}
+                onChange={(event) => setMode(event.target.value as SessionMode)}
+              >
+                <option value="live">Live engine</option>
+                <option value="script">Generated script</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Selected device</span>
               <input
-                value={contractAddress}
-                onChange={(event) => setContractAddress(event.target.value)}
-                placeholder="Enter a Solana contract address"
+                value={selectedDevice?.label || "No device selected"}
+                readOnly
               />
             </label>
+          </div>
 
-            <div className="field-grid">
-              <label className="field">
-                <span>Motion mode</span>
-                <select
-                  value={mode}
-                  onChange={(event) =>
-                    setMode(event.target.value as SessionMode)
-                  }
-                >
-                  <option value="live">Live engine</option>
-                  <option value="script">Generated script</option>
-                </select>
-              </label>
-              <label className="field">
-                <span>Selected device</span>
-                <input
-                  value={selectedDevice?.label || "No device selected"}
-                  readOnly
-                />
-              </label>
-            </div>
-
-            <div className="button-row">
-              <button
-                className="button button-primary"
-                disabled={!selectedDeviceId || loading === "session"}
-                onClick={() => void startSession()}
-              >
-                {loading === "session" ? "Starting..." : "Start sync"}
-              </button>
-              {activeSession ? (
-                <button
-                  className="button button-danger"
-                  disabled={loading === `stop:${activeSession.id}`}
-                  onClick={() => void stopSession(activeSession.id)}
-                >
-                  Stop active session
-                </button>
-              ) : null}
-            </div>
-
+          <div className="button-row">
+            <button
+              className="button button-primary"
+              disabled={!selectedDeviceId || loading === "session"}
+              onClick={() => void startSession()}
+            >
+              {loading === "session" ? "Starting..." : "Start sync"}
+            </button>
             {activeSession ? (
-              <div className="session-card">
-                <div>
-                  <span>Status</span>
-                  <strong>{activeSession.status}</strong>
-                </div>
-                <div>
-                  <span>Mode</span>
-                  <strong>{activeSession.mode}</strong>
-                </div>
-                <div>
-                  <span>Device</span>
-                  <strong>{selectedDevice?.label || activeSession.deviceType}</strong>
-                </div>
-                <div>
-                  <span>5m move</span>
-                  <strong>
-                    {activeSession.snapshot
-                      ? `${activeSession.snapshot.change5mPct.toFixed(2)}%`
-                      : "Waiting"}
-                  </strong>
-                </div>
-              </div>
-            ) : (
-              <p className="empty-state">
-                No active session. Save a device and start a run to drive it from the
-                chart.
-              </p>
-            )}
-          </section>
+              <button
+                className="button button-danger"
+                disabled={loading === `stop:${activeSession.id}`}
+                onClick={() => void stopSession(activeSession.id)}
+              >
+                Stop active session
+              </button>
+            ) : null}
+          </div>
 
+          {activeSession ? (
+            <div className="session-card">
+              <div>
+                <span>Status</span>
+                <strong>{activeSession.status}</strong>
+              </div>
+              <div>
+                <span>Mode</span>
+                <strong>{activeSession.mode}</strong>
+              </div>
+              <div>
+                <span>Device</span>
+                <strong>{selectedDevice?.label || activeSession.deviceType}</strong>
+              </div>
+              <div>
+                <span>5m move</span>
+                <strong>
+                  {activeSession.snapshot
+                    ? `${activeSession.snapshot.change5mPct.toFixed(2)}%`
+                    : "Waiting"}
+                </strong>
+              </div>
+            </div>
+          ) : (
+            <p className="empty-state">
+              No active session. Save a device and start a run to drive it from
+              the chart.
+            </p>
+          )}
+        </section>
+
+        <div className="dashboard-column">
           <section className="panel">
             <div className="panel-header">
               <div>
@@ -486,9 +472,7 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
                   <span>Label</span>
                   <input
                     value={deviceForm.label}
-                    onChange={(event) =>
-                      updateDeviceForm("label", event.target.value)
-                    }
+                    onChange={(event) => updateDeviceForm("label", event.target.value)}
                     placeholder="Bedroom device"
                   />
                 </label>

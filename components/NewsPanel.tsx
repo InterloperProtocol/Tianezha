@@ -77,7 +77,7 @@ export function NewsPanel({
   }, [category]);
 
   return (
-    <section className="panel">
+    <section className="panel news-panel">
       <div className="panel-header">
         <div>
           <p className="eyebrow">{eyebrow}</p>
