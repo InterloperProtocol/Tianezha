@@ -32,6 +32,14 @@ env:
     availability:
       - RUNTIME
 
+  - variable: TREASURY_WALLET
+    value: "784GuK5UrT9KsTvUexXmq1G9pLgckUFscth5DEwQGVbZ"
+    availability:
+      - RUNTIME
+
+  - variable: PAYLOAD_SECRET
+    secret: PAYLOAD_SECRET
+
   - variable: APP_SESSION_SECRET
     secret: goonclaw-app-session-secret
 
