@@ -156,7 +156,7 @@ export function TrenchesPanel({
           </div>
 
           {pulse.tokens.length ? (
-            <div className="token-pulse-list">
+            <div className="token-pulse-list scroll-feed">
               {pulse.tokens.map((token) => (
                 <article key={token.address} className="token-pulse-item">
                   <div className="token-pulse-main">

@@ -183,6 +183,19 @@ export function NewsPanel({
       ) : null}
 
       <div className="news-controls">
+        {feed?.sources.length ? (
+          <div className="history-list compact-scroll-feed news-default-feeds">
+            {feed.sources.map((source) => (
+              <div key={source} className="history-item">
+                <div>
+                  <span>Default feed</span>
+                  <strong>{source}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <div className="news-tabs">
           {categories.map((item) => (
             <button

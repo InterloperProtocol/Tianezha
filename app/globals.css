@@ -367,6 +367,17 @@ textarea {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.dashboard-grid-feed-row {
+  align-items: stretch;
+}
+
+.dashboard-grid-feed-row > .panel {
+  min-height: min(52vh, 34rem);
+  max-height: min(52vh, 34rem);
+  height: 100%;
+  overflow: hidden;
+}
+
 .gate-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -551,7 +562,8 @@ textarea {
 
 .chart-panel,
 .news-panel,
-.media-panel {
+.media-panel,
+.trenches-panel {
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -701,6 +713,11 @@ textarea {
   border-top: 1px solid rgba(242, 161, 74, 0.12);
 }
 
+.news-default-feeds {
+  margin-top: auto;
+  margin-bottom: 0.9rem;
+}
+
 .news-controls .media-toolbar {
   margin-bottom: 0;
 }
@@ -810,6 +827,8 @@ textarea {
 
 .token-pulse-list {
   margin-top: 0.2rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .token-pulse-item {

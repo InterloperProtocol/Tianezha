@@ -41,6 +41,20 @@ type PublicStreamResponse = {
   publicUrl: string | null;
 };
 
+type LivestreamState = {
+  current: {
+    contractAddress: string;
+    tier: "standard" | "priority";
+    status: string;
+    expiresAt?: string;
+    payerWallet?: string;
+  } | null;
+  queue: Array<{ id: string }>;
+  deviceAvailable: boolean;
+  standardPriceSol: string;
+  priorityPriceSol: string;
+};
+
 const DEFAULT_CONTRACT_ADDRESS = DEFAULT_PUMP_TOKEN_MINT;
 const SHARED_CONTRACT_ADDRESS_STORAGE_KEY = "goonclaw-shared-contract-address";
 
@@ -67,6 +81,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
   const [deviceForm, setDeviceForm] = useState<DeviceFormState>(initialDeviceState);
   const [devices, setDevices] = useState<SanitizedDeviceProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
+  const [livestreamState, setLivestreamState] = useState<LivestreamState | null>(null);
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
   const [publicStream, setPublicStream] = useState<PublicStreamProfile | null>(null);
   const [publicStreamUrl, setPublicStreamUrl] = useState<string | null>(null);
@@ -90,6 +105,33 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     () => devices.find((device) => device.id === selectedDeviceId) ?? null,
     [devices, selectedDeviceId],
   );
+  const hasSyncedDevice = devices.length > 0;
+  const purchasedSession = livestreamState?.current ?? null;
+  const focusContractAddress = useMemo(() => {
+    if (activeSession?.contractAddress) {
+      return activeSession.contractAddress;
+    }
+
+    if (isTokenControlPage) {
+      return (
+        purchasedSession?.contractAddress ||
+        contractAddress.trim() ||
+        DEFAULT_CONTRACT_ADDRESS
+      );
+    }
+
+    if (!hasSyncedDevice && purchasedSession?.contractAddress) {
+      return purchasedSession.contractAddress;
+    }
+
+    return contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS;
+  }, [
+    activeSession?.contractAddress,
+    contractAddress,
+    hasSyncedDevice,
+    isTokenControlPage,
+    purchasedSession?.contractAddress,
+  ]);
 
   const lastActivityLabel = useMemo(() => {
     const latest = activeSession?.updatedAt ?? sessions[0]?.updatedAt;
@@ -100,7 +142,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     });
   }, [activeSession?.updatedAt, sessions]);
 
-  async function refreshDevices() {
+  async function refreshDevices(preferredDeviceId?: string) {
     const response = await fetch("/api/devices");
     if (!response.ok) return;
 
@@ -108,7 +150,17 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       items: SanitizedDeviceProfile[];
     };
     setDevices(payload.items);
-    setSelectedDeviceId((current) => current || payload.items[0]?.id || "");
+    setSelectedDeviceId((current) => {
+      if (preferredDeviceId && payload.items.some((item) => item.id === preferredDeviceId)) {
+        return preferredDeviceId;
+      }
+
+      if (current && payload.items.some((item) => item.id === current)) {
+        return current;
+      }
+
+      return payload.items[0]?.id || "";
+    });
   }
 
   async function refreshSessions() {
@@ -117,6 +169,14 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
 
     const payload = (await response.json()) as { items: SessionRecord[] };
     setSessions(payload.items);
+  }
+
+  async function refreshLivestreamState() {
+    const response = await fetch("/api/livestream/status");
+    if (!response.ok) return;
+
+    const payload = (await response.json()) as LivestreamState;
+    setLivestreamState(payload);
   }
 
   const refreshPublicStream = useCallback(async () => {
@@ -148,8 +208,10 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     void refreshDevices();
     void refreshSessions();
     void refreshPublicStream();
+    void refreshLivestreamState();
     const interval = window.setInterval(() => {
       void refreshSessions();
+      void refreshLivestreamState();
     }, 4_000);
     return () => window.clearInterval(interval);
   }, [refreshPublicStream]);
@@ -217,6 +279,26 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     setDeviceForm((current) => ({ ...current, [key]: value }));
   }
 
+  function validateDeviceForm() {
+    if (!deviceForm.label.trim()) {
+      return "Give this device a label first.";
+    }
+
+    if (deviceForm.type === "autoblow" && !deviceForm.deviceToken.trim()) {
+      return "Autoblow needs a device token.";
+    }
+
+    if (deviceForm.type === "handy" && !deviceForm.connectionKey.trim()) {
+      return "Handy needs a connection key.";
+    }
+
+    if (deviceForm.type === "rest" && !deviceForm.endpointUrl.trim()) {
+      return "REST devices need an endpoint URL.";
+    }
+
+    return null;
+  }
+
   function buildCredentials(): DeviceCredentials {
     if (deviceForm.type === "autoblow") {
       return { deviceToken: deviceForm.deviceToken.trim() };
@@ -238,6 +320,13 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     setNotice(null);
     setError(null);
 
+    const validationError = validateDeviceForm();
+    if (validationError) {
+      setError(validationError);
+      setLoading(null);
+      return;
+    }
+
     try {
       const response = await fetch("/api/devices", {
         method: "POST",
@@ -248,14 +337,17 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           credentials: buildCredentials(),
         }),
       });
-      const payload = (await response.json()) as { error?: string };
+      const payload = (await response.json()) as {
+        error?: string;
+        item?: SanitizedDeviceProfile;
+      };
       if (!response.ok) {
         throw new Error(payload.error || "Couldn't save setup");
       }
 
       setDeviceForm(initialDeviceState);
       setNotice("Setup saved and ready to use.");
-      await refreshDevices();
+      await refreshDevices(payload.item?.id);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -490,29 +582,28 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       {error ? <p className="error-banner">{error}</p> : null}
 
       <section className="dashboard-grid dashboard-grid-triple">
-        <PriceChart contractAddress={contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS} />
-        <NewsPanel
-          title="Monitoring the Situation"
-          defaultCategory="solana"
+        <PriceChart contractAddress={focusContractAddress} />
+        <PublicChatPanel
+          eyebrow="Agent"
+          title="GoonClaw agent chatbot"
+          description="Use the lightweight assistant for fast questions and simple prompts while you keep the dashboard live."
         />
         <MediaEmbedPanel
           title="Video or stream"
-          description="Paste a video or stream link to keep the right media beside the chart while you work."
           defaultUrl={publicStream?.mediaUrl || defaultMediaUrl}
           storageKey="goonclaw-personal-media"
           onActiveUrlChange={setPublicMediaUrl}
         />
       </section>
 
-      <section className="dashboard-grid dashboard-grid-secondary">
-        <PublicChatPanel
-          eyebrow="Agent"
-          title="GoonClaw agent chatbot"
-          description="Use the lightweight assistant for fast questions and simple prompts while you keep the dashboard live."
-        />
+      <section className="dashboard-grid dashboard-grid-secondary dashboard-grid-feed-row">
         <TrenchesPanel
           eyebrow="Monitoring the Trenches"
           title="Monitoring the Trenches"
+        />
+        <NewsPanel
+          title="Monitoring the Situation"
+          defaultCategory="solana"
         />
       </section>
 
@@ -782,10 +873,31 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                 Keep token control here. MyGoonClaw and any guest-facing stream page mirror this contract focus automatically once your streamer profile is live.
               </p>
 
+              {livestreamState ? (
+                <dl className="detail-list compact">
+                  <div className="detail">
+                    <dt>Purchasable sync</dt>
+                    <dd>
+                      {livestreamState.current
+                        ? `${livestreamState.current.tier} sync live on ${livestreamState.current.contractAddress}`
+                        : "No paid sync is active right now."}
+                    </dd>
+                  </div>
+                  <div className="detail">
+                    <dt>Room status</dt>
+                    <dd>
+                      {livestreamState.deviceAvailable
+                        ? `Available. Standard ${livestreamState.standardPriceSol} SOL, priority ${livestreamState.priorityPriceSol} SOL.`
+                        : "The public room is busy or offline right now."}
+                    </dd>
+                  </div>
+                </dl>
+              ) : null}
+
               <dl className="detail-list compact">
                 <div className="detail">
                   <dt>Current token</dt>
-                  <dd>{contractAddress}</dd>
+                  <dd>{focusContractAddress}</dd>
                 </div>
                 <div className="detail">
                   <dt>Streamer page</dt>

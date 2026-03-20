@@ -41,7 +41,8 @@ export function PublicChatPanel({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [remainingMessages, setRemainingMessages] = useState<number>(FALLBACK_LIMIT);
+  const [remainingMessages, setRemainingMessages] =
+    useState<number>(FALLBACK_LIMIT);
   const [resetAt, setResetAt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export function PublicChatPanel({
 
   const helperCopy = useMemo(() => {
     if (remainingMessages <= 0) {
-      return `You’ve hit the daily cap. Fresh messages open again around ${formatResetTime(resetAt)}.`;
+      return `You've hit the daily cap. Fresh messages open again around ${formatResetTime(resetAt)}.`;
     }
 
     return `${remainingMessages} message${remainingMessages === 1 ? "" : "s"} left in the current 24-hour window.`;
@@ -170,13 +171,14 @@ export function PublicChatPanel({
         </div>
         <div className="source-pill">
           <span className="status-dot" />
-          Standalone
+          Vertex AI Gemini
         </div>
       </div>
 
       <p className="hero-summary compact">{description}</p>
 
       <div className="route-badges">
+        <StatusBadge tone="accent">Vertex AI Gemini</StatusBadge>
         <StatusBadge tone="accent">20 messages / 24h</StatusBadge>
         <StatusBadge tone="neutral">No admin access</StatusBadge>
         <StatusBadge tone="success">General-purpose only</StatusBadge>
@@ -184,7 +186,11 @@ export function PublicChatPanel({
 
       <div className="chat-meta">
         <span>{helperCopy}</span>
-        <button className="button button-ghost small" onClick={resetConversation} type="button">
+        <button
+          className="button button-ghost small"
+          onClick={resetConversation}
+          type="button"
+        >
           Clear chat
         </button>
       </div>
@@ -195,7 +201,9 @@ export function PublicChatPanel({
             <article
               key={`${message.role}-${index}`}
               className={
-                message.role === "assistant" ? "chat-bubble assistant" : "chat-bubble user"
+                message.role === "assistant"
+                  ? "chat-bubble assistant"
+                  : "chat-bubble user"
               }
             >
               <span>{message.role === "assistant" ? "Chatbot" : "You"}</span>

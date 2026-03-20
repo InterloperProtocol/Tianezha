@@ -249,9 +249,9 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       16,
     ),
     PAYLOAD_SECRET: resolveValue(
-      raw.PAYLOAD_SECRET,
-      raw.APP_SESSION_SECRET || "goonclaw-dev-payload-secret",
-      isProduction,
+      raw.PAYLOAD_SECRET?.trim() || raw.APP_SESSION_SECRET?.trim(),
+      "goonclaw-dev-payload-secret",
+      false,
       "PAYLOAD_SECRET",
       16,
     ),

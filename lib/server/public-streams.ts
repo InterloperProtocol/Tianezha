@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import {
+  PUBLIC_LIVESTREAM_OWNER_ID,
+} from "@/lib/server/runtime-constants";
+import {
   getPublicStreamProfile,
   getPublicStreamProfileBySlug,
   listDevices,
@@ -99,13 +102,20 @@ export async function listActivePublicStreams() {
       continue;
     }
 
-    const activeSession = sessions.find((session) => session.wallet === profile.guestId);
+    const devices = await listDevices(profile.guestId);
+    const hasPersonalDevices = devices.length > 0;
+    const activeSession =
+      sessions.find((session) => session.wallet === profile.guestId) ??
+      (!hasPersonalDevices
+        ? sessions.find((session) => session.wallet === PUBLIC_LIVESTREAM_OWNER_ID) ?? null
+        : null);
     if (!activeSession) {
       continue;
     }
 
-    const devices = await listDevices(profile.guestId);
-    const activeDevice = devices.find((device) => device.id === activeSession.deviceId);
+    const activeDevice = activeSession.wallet === profile.guestId
+      ? devices.find((device) => device.id === activeSession.deviceId)
+      : null;
 
     summaries.push({
       profile,
@@ -141,13 +151,22 @@ export async function getPublicStreamPageState(
     listSessions(profile.guestId),
     listDevices(profile.guestId),
   ]);
-  const activeSession =
+  const ownActiveSession =
     sessions.find(
       (session) => session.status === "active" || session.status === "starting",
     ) ?? null;
-  const activeDevice = activeSession
-    ? devices.find((device) => device.id === activeSession.deviceId)
-    : null;
+  const hasPersonalDevices = devices.length > 0;
+  const purchasedActiveSession =
+    !ownActiveSession && !hasPersonalDevices
+      ? (await listRecoverableSessions()).find(
+          (session) => session.wallet === PUBLIC_LIVESTREAM_OWNER_ID,
+        ) ?? null
+      : null;
+  const activeSession = ownActiveSession ?? purchasedActiveSession;
+  const activeDevice =
+    activeSession && activeSession.wallet === profile.guestId
+      ? devices.find((device) => device.id === activeSession.deviceId)
+      : null;
 
   return {
     profile,

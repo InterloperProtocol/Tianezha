@@ -20,6 +20,7 @@ type ResolvedMedia =
     };
 
 type MediaHistory = Record<string, string[]>;
+const ALL_MEDIA_HISTORY_KEY = "__all__";
 
 function normalizeProviderKey(value: string) {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -69,7 +70,7 @@ export function MediaEmbedPanel({
   const [resolved, setResolved] = useState<ResolvedMedia | null>(null);
   const [resolving, setResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
-  const [providerHistoryCount, setProviderHistoryCount] = useState(0);
+  const [savedHistoryCount, setSavedHistoryCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const historyStorageKey = `${storageKey}:history`;
 
@@ -176,23 +177,29 @@ export function MediaEmbedPanel({
 
   useEffect(() => {
     if (typeof window === "undefined" || readOnly || !resolved || !activeUrl.trim()) {
-      setProviderHistoryCount(0);
+      setSavedHistoryCount(0);
       return;
     }
 
     const providerKey = normalizeProviderKey(resolved.provider);
     const history = readHistory();
     const providerHistory = history[providerKey] ?? [];
+    const allHistory = history[ALL_MEDIA_HISTORY_KEY] ?? [];
     const nextProviderHistory = [
       activeUrl.trim(),
       ...providerHistory.filter((item) => item !== activeUrl.trim()),
     ].slice(0, 24);
+    const nextAllHistory = [
+      activeUrl.trim(),
+      ...allHistory.filter((item) => item !== activeUrl.trim()),
+    ].slice(0, 48);
 
     writeHistory({
       ...history,
       [providerKey]: nextProviderHistory,
+      [ALL_MEDIA_HISTORY_KEY]: nextAllHistory,
     });
-    setProviderHistoryCount(nextProviderHistory.length);
+    setSavedHistoryCount(nextAllHistory.length);
   }, [activeUrl, readHistory, readOnly, resolved, writeHistory]);
 
   useEffect(() => {
@@ -286,27 +293,20 @@ export function MediaEmbedPanel({
     setActiveUrl("");
     setResolved(null);
     setResolveError(null);
-    setProviderHistoryCount(0);
+    setSavedHistoryCount(0);
     if (typeof window !== "undefined" && !readOnly) {
       window.localStorage.removeItem(storageKey);
     }
   }
 
-  function playRandomFromProvider() {
-    if (!resolved) {
-      return;
-    }
-
-    const providerKey = normalizeProviderKey(resolved.provider);
+  function playRandomMedia() {
     const history = readHistory();
-    const choices = (history[providerKey] ?? []).filter(
+    const choices = (history[ALL_MEDIA_HISTORY_KEY] ?? []).filter(
       (item) => item !== activeUrl.trim(),
     );
 
     if (!choices.length) {
-      setResolveError(
-        `Add more ${resolved.provider} links first, then randomize within that platform.`,
-      );
+      setResolveError("Load at least two saved videos before using random playback.");
       return;
     }
 
@@ -352,22 +352,17 @@ export function MediaEmbedPanel({
               placeholder="Paste a YouTube, Twitch, Vimeo, or direct video link"
             />
           </label>
-          <p className="inline-note">
-            Paste a link and we&apos;ll try to load the cleanest playable version
-            available. Random playback cycles through links you&apos;ve already
-            opened from the same provider.
-          </p>
           <div className="button-row">
             <button className="button button-primary small" onClick={applyUrl} type="button">
               Load video
             </button>
             <button
               className="button button-secondary small"
-              disabled={!resolved || providerHistoryCount < 2}
-              onClick={playRandomFromProvider}
+              disabled={savedHistoryCount < 2}
+              onClick={playRandomMedia}
               type="button"
             >
-              {resolved ? `Play random ${resolved.provider}` : "Play random media"}
+              Play random video
             </button>
             <button className="button button-ghost small" onClick={clearUrl} type="button">
               Clear
