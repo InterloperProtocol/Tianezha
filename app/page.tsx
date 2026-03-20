@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import { AgentOpsPanel } from "@/components/AgentOpsPanel";
-import { FaqPanel } from "@/components/FaqPanel";
 import { HomeEligibilityCta } from "@/components/HomeEligibilityCta";
 import { SiteNav } from "@/components/SiteNav";
 import { getPublicEnv } from "@/lib/env";
@@ -28,26 +26,17 @@ export default function Home() {
           <h1>Personal and livestream token control, now under one name.</h1>
           <p className="hero-summary">
             GoonClaw combines a private control room, a public livestream panel,
-            chart sync, crypto news, and a manual eligibility claim flow. The guest
-            window stays open until {freeUntilLabel}; after that, LaunchONomics
-            can score wallets that traded {config.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL}.
+            chart sync, crypto news, and wallet review tools. The guest window
+            stays open until {freeUntilLabel}.
           </p>
           <div className="hero-badges">
             <span>Personal room at /goonclaw</span>
             <span>Public livestream queue at /livestream</span>
-            <span>OpenClaw + Pump + Vertex AI Gemini</span>
+            <span>Eligibility review at /eligibility</span>
             <span>API-only Autoblow, Handy, and REST support</span>
           </div>
         </div>
         <div className="hero-actions">
-          <div className="toast-banner">
-            <strong>Agent policy</strong>
-            <p>
-              Subscription cNFTs are now handled as a manual eligibility claim.
-              A person checks the wallet, then clicks the receive button. Buybacks
-              and the Google-hosted agent runtime stay in place separately.
-            </p>
-          </div>
           <div className="button-row">
             <Link className="button button-secondary" href="/eligibility">
               Check Eligibility
@@ -103,15 +92,6 @@ export default function Home() {
               </Link>
             </div>
           </section>
-        </div>
-      </section>
-
-      <section className="dashboard-grid dashboard-grid-secondary">
-        <div className="dashboard-column">
-          <AgentOpsPanel />
-        </div>
-        <div className="dashboard-column">
-          <FaqPanel />
         </div>
       </section>
     </div>

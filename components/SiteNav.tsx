@@ -8,6 +8,7 @@ const items = [
   { href: "/eligibility", label: "Eligibility" },
   { href: "/goonclaw", label: "Personal" },
   { href: "/livestream", label: "Livestream" },
+  { href: "/agent", label: "Agent" },
 ];
 
 export function SiteNav() {
@@ -17,7 +18,7 @@ export function SiteNav() {
     <nav className="site-nav panel">
       <div>
         <p className="eyebrow">GoonClaw</p>
-        <strong>Tokenized agent control surfaces</strong>
+        <strong>Private and public control surfaces</strong>
       </div>
       <div className="nav-links">
         {items.map((item) => (

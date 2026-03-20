@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { AgentOpsPanel } from "@/components/AgentOpsPanel";
-import { FaqPanel } from "@/components/FaqPanel";
 import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
@@ -210,9 +208,8 @@ export function LivestreamClient() {
           <div className="toast-banner">
             <strong>Public device rules</strong>
             <p>
-              Cooldowns protect the queue, and the same tokenized-agent revenue model
-              can fund buybacks behind the scenes while subscription cNFTs are reviewed
-              and sent manually from the eligibility page.
+              Cooldowns and payment windows keep public control orderly while the
+              shared device queue stays visible to everyone.
             </p>
           </div>
         </div>
@@ -240,7 +237,6 @@ export function LivestreamClient() {
             contractAddress={focusContractAddress}
             onSnapshotChange={setChartSnapshot}
           />
-          <AgentOpsPanel />
         </div>
 
         <div className="dashboard-column">
@@ -454,12 +450,6 @@ export function LivestreamClient() {
               </p>
             )}
           </section>
-        </div>
-      </section>
-
-      <section className="dashboard-grid dashboard-grid-secondary">
-        <div className="dashboard-column wide">
-          <FaqPanel />
         </div>
       </section>
     </div>

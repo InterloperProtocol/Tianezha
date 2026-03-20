@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { AgentOpsPanel } from "@/components/AgentOpsPanel";
-import { FaqPanel } from "@/components/FaqPanel";
 import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
@@ -19,8 +17,6 @@ import {
 } from "@/lib/types";
 
 type Props = {
-  freeAccessUntil: string;
-  accessTokenSymbol: string;
   defaultMediaUrl: string;
 };
 
@@ -46,11 +42,7 @@ const initialDeviceState: DeviceFormState = {
   authHeaderName: "Authorization",
 };
 
-export function GoonclawClient({
-  freeAccessUntil,
-  accessTokenSymbol,
-  defaultMediaUrl,
-}: Props) {
+export function GoonclawClient({ defaultMediaUrl }: Props) {
   const [deviceForm, setDeviceForm] = useState<DeviceFormState>(initialDeviceState);
   const [devices, setDevices] = useState<SanitizedDeviceProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
@@ -276,16 +268,6 @@ export function GoonclawClient({
     }
   }
 
-  const freeUntilLabel = new Date(freeAccessUntil).toLocaleString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "UTC",
-    timeZoneName: "short",
-  });
-
   return (
     <div className="app-shell">
       <SiteNav />
@@ -294,15 +276,13 @@ export function GoonclawClient({
           <p className="eyebrow">Personal Panel</p>
           <h1>GoonClaw private control room.</h1>
           <p className="hero-summary">
-            Run a personal device session with a live token chart, your own video or
-            stream embed, and a Solana news lane beside the controls. The guest window
-            is open until {freeUntilLabel}, then LaunchONomics can score wallets that
-            traded {accessTokenSymbol}.
+            Run a personal device session with a live token chart, your own
+            video or stream embed, and a Solana news lane beside the controls.
           </p>
           <div className="hero-badges">
             <span>Chart + video + device control</span>
             <span>Autoblow, Handy, and REST devices</span>
-            <span>OpenClaw + Pump + Vertex AI Gemini</span>
+            <span>Saved device profiles</span>
           </div>
         </div>
         <div className="hero-actions">
@@ -311,14 +291,6 @@ export function GoonclawClient({
             <p>
               Paste any video or stream URL on this page and keep the device control
               panel beside it while chart motion runs.
-            </p>
-          </div>
-          <div className="toast-banner">
-            <strong>Agent model</strong>
-            <p>
-              Subscription cNFTs now use a manual eligibility-and-claim flow. The
-              hosted model target stays on Vertex AI Gemini beside the buyback and
-              reserve policy.
             </p>
           </div>
         </div>
@@ -346,7 +318,6 @@ export function GoonclawClient({
             defaultUrl={defaultMediaUrl}
             storageKey="goonclaw-personal-media"
           />
-          <AgentOpsPanel />
         </div>
 
         <div className="dashboard-column">
@@ -637,12 +608,6 @@ export function GoonclawClient({
               </p>
             )}
           </section>
-        </div>
-      </section>
-
-      <section className="dashboard-grid dashboard-grid-secondary">
-        <div className="dashboard-column wide">
-          <FaqPanel />
         </div>
       </section>
     </div>
