@@ -1,14 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  CandlestickSeries,
-  ColorType,
-  HistogramSeries,
-  IChartApi,
-  UTCTimestamp,
-  createChart,
-} from "lightweight-charts";
+import { useEffect, useMemo, useState } from "react";
 
 import { ChartSnapshot } from "@/lib/types";
 import { formatCompact, formatUsd } from "@/lib/utils";
@@ -18,18 +10,26 @@ type Props = {
   onSnapshotChange?: (snapshot: ChartSnapshot | null) => void;
 };
 
-type SeriesHandle = {
-  setData: (data: Array<Record<string, unknown>>) => void;
-  priceScale?: () => {
-    applyOptions: (options: Record<string, unknown>) => void;
-  };
-};
+function buildDexScreenerEmbedUrl(pairUrl: string | undefined, contractAddress: string) {
+  const fallbackUrl = `https://dexscreener.com/solana/${contractAddress}`;
+
+  try {
+    const url = new URL(pairUrl || fallbackUrl);
+    url.searchParams.set("embed", "1");
+    url.searchParams.set("theme", "dark");
+    url.searchParams.set("chartTheme", "dark");
+    url.searchParams.set("chartStyle", "0");
+    url.searchParams.set("chartType", "usd");
+    url.searchParams.set("interval", "15");
+    url.searchParams.set("loadChartSettings", "0");
+    url.searchParams.set("chartLeftToolbar", "0");
+    return url.toString();
+  } catch {
+    return `${fallbackUrl}?embed=1&theme=dark&chartTheme=dark&chartStyle=0&chartType=usd&interval=15&loadChartSettings=0&chartLeftToolbar=0`;
+  }
+}
 
 export function PriceChart({ contractAddress, onSnapshotChange }: Props) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const candleSeriesRef = useRef<SeriesHandle | null>(null);
-  const volumeSeriesRef = useRef<SeriesHandle | null>(null);
   const [snapshot, setSnapshot] = useState<ChartSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,98 +71,10 @@ export function PriceChart({ contractAddress, onSnapshotChange }: Props) {
     onSnapshotChange?.(snapshot);
   }, [onSnapshotChange, snapshot]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const chart = createChart(containerRef.current, {
-      autoSize: true,
-      layout: {
-        background: { color: "transparent", type: ColorType.Solid },
-        textColor: "#fefce8",
-      },
-      grid: {
-        vertLines: { color: "rgba(245, 158, 11, 0.08)" },
-        horzLines: { color: "rgba(245, 158, 11, 0.08)" },
-      },
-      rightPriceScale: {
-        borderColor: "rgba(245, 158, 11, 0.22)",
-      },
-      timeScale: {
-        borderColor: "rgba(245, 158, 11, 0.22)",
-        timeVisible: true,
-      },
-    });
-
-    const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#facc15",
-      downColor: "#ef4444",
-      wickUpColor: "#facc15",
-      wickDownColor: "#ef4444",
-      borderVisible: false,
-    });
-    const volumeSeries = chart.addSeries(HistogramSeries, {
-      priceScaleId: "",
-      color: "rgba(56, 189, 248, 0.35)",
-    });
-    volumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.82,
-        bottom: 0,
-      },
-    });
-    chartRef.current = chart;
-    candleSeriesRef.current = candleSeries as unknown as SeriesHandle;
-    volumeSeriesRef.current = volumeSeries as unknown as SeriesHandle;
-
-    return () => {
-      candleSeriesRef.current = null;
-      volumeSeriesRef.current = null;
-      chartRef.current = null;
-      try {
-        chart.remove();
-      } catch {
-        // lightweight-charts can throw during teardown if the canvas is already disposed.
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (
-      !snapshot ||
-      !chartRef.current ||
-      !candleSeriesRef.current ||
-      !volumeSeriesRef.current
-    ) {
-      return;
-    }
-
-    candleSeriesRef.current.setData(
-      snapshot.candles.map((candle) => ({
-        time: candle.time as UTCTimestamp,
-        open: candle.open,
-        high: candle.high,
-        low: candle.low,
-        close: candle.close,
-      })),
-    );
-
-    volumeSeriesRef.current.setData(
-      snapshot.candles.map((candle) => ({
-        time: candle.time as UTCTimestamp,
-        value: candle.volume,
-        color:
-          candle.close >= candle.open
-            ? "rgba(250, 204, 21, 0.28)"
-            : "rgba(239, 68, 68, 0.28)",
-      })),
-    );
-
-    try {
-      chartRef.current.timeScale().fitContent();
-    } catch {
-      // Ignore racey fit calls during rapid unmount/remount.
-    }
-  }, [snapshot]);
+  const embedUrl = useMemo(
+    () => buildDexScreenerEmbedUrl(snapshot?.pairUrl, contractAddress),
+    [contractAddress, snapshot?.pairUrl],
+  );
 
   return (
     <section className="panel chart-panel">
@@ -176,7 +88,7 @@ export function PriceChart({ contractAddress, onSnapshotChange }: Props) {
         {snapshot ? (
           <div className="source-pill">
             <span className="status-dot" />
-            {snapshot.source}
+            dexscreener
           </div>
         ) : null}
       </div>
@@ -203,7 +115,16 @@ export function PriceChart({ contractAddress, onSnapshotChange }: Props) {
         </div>
       ) : null}
       {error ? <p className="error-banner">{error}</p> : null}
-      <div className="chart-surface" ref={containerRef} />
+      <div className="chart-surface">
+        <iframe
+          key={embedUrl}
+          className="chart-frame"
+          src={embedUrl}
+          title={`DexScreener chart for ${contractAddress}`}
+          loading="lazy"
+          allowFullScreen
+        />
+      </div>
       {snapshot ? (
         <a
           className="chart-link"
