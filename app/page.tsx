@@ -6,6 +6,8 @@ import { HomeEligibilityCta } from "@/components/HomeEligibilityCta";
 import { SiteNav } from "@/components/SiteNav";
 import { getPublicEnv } from "@/lib/env";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   const config = getPublicEnv();
   const freeUntilLabel = new Date(config.NEXT_PUBLIC_FREE_ACCESS_UNTIL).toLocaleString(

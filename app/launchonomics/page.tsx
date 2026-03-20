@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { LaunchonomicsClient } from "@/components/LaunchonomicsClient";
 import { getPublicEnv } from "@/lib/env";
 
+export const dynamic = "force-dynamic";
+
 export default function LaunchonomicsPage() {
   const config = getPublicEnv();
 
