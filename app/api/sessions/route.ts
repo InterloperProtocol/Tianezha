@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import { listSessions } from "@/lib/server/repository";
 import { dispatchSessionStart, dispatchSessionStop } from "@/lib/server/worker-client";
 import { SessionStartInput } from "@/lib/types";
@@ -8,6 +9,7 @@ import { SessionStartInput } from "@/lib/types";
 export async function GET() {
   try {
     const session = await getOrCreateGuestSession();
+    await assertGuestEnabled(session.id);
     const items = await listSessions(session.id);
     return NextResponse.json({ items });
   } catch (error) {
@@ -24,6 +26,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getOrCreateGuestSession();
+    await assertGuestEnabled(session.id);
 
     const body = (await request.json()) as Omit<SessionStartInput, "wallet">;
     if (!body.contractAddress || !body.deviceId || !body.mode) {

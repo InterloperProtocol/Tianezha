@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import {
   getLivestreamState,
   verifyLivestreamRequestPayment,
@@ -8,6 +9,7 @@ import {
 
 export async function POST(request: Request) {
   const guestSession = await getOrCreateGuestSession();
+  await assertGuestEnabled(guestSession.id);
   const body = (await request.json()) as {
     requestId?: string;
     signature?: string;

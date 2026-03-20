@@ -1,7 +1,7 @@
-import { LivestreamClient } from "@/components/LivestreamClient";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default function LivestreamPage() {
-  return <LivestreamClient />;
+  redirect("/goonclaw");
 }

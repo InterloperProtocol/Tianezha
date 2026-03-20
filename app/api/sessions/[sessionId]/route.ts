@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import { getSession } from "@/lib/server/repository";
 import { dispatchSessionStop } from "@/lib/server/worker-client";
 
@@ -9,6 +10,20 @@ export async function GET(
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
   const session = await getOrCreateGuestSession();
+  const denied = await assertGuestEnabled(session.id)
+    .then(() => null)
+    .catch((error) =>
+      NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "This user has been disabled by the admin.",
+        },
+        { status: 403 },
+      ),
+    );
+  if (denied) return denied;
 
   const { sessionId } = await params;
   const record = await getSession(sessionId);
@@ -24,6 +39,20 @@ export async function DELETE(
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
   const session = await getOrCreateGuestSession();
+  const denied = await assertGuestEnabled(session.id)
+    .then(() => null)
+    .catch((error) =>
+      NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "This user has been disabled by the admin.",
+        },
+        { status: 403 },
+      ),
+    );
+  if (denied) return denied;
 
   const { sessionId } = await params;
   const record = await getSession(sessionId);

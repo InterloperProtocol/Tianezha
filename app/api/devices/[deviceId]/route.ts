@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { encryptJson } from "@/lib/server/crypto";
 import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import { deleteDevice, getDevice, upsertDevice } from "@/lib/server/repository";
 import { DeviceCredentials } from "@/lib/types";
 import { nowIso } from "@/lib/utils";
@@ -11,6 +12,20 @@ export async function PATCH(
   { params }: { params: Promise<{ deviceId: string }> },
 ) {
   const session = await getOrCreateGuestSession();
+  const denied = await assertGuestEnabled(session.id)
+    .then(() => null)
+    .catch((error) =>
+      NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "This user has been disabled by the admin.",
+        },
+        { status: 403 },
+      ),
+    );
+  if (denied) return denied;
 
   const { deviceId } = await params;
   const existing = await getDevice(session.id, deviceId);
@@ -41,6 +56,20 @@ export async function DELETE(
   { params }: { params: Promise<{ deviceId: string }> },
 ) {
   const session = await getOrCreateGuestSession();
+  const denied = await assertGuestEnabled(session.id)
+    .then(() => null)
+    .catch((error) =>
+      NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "This user has been disabled by the admin.",
+        },
+        { status: 403 },
+      ),
+    );
+  if (denied) return denied;
 
   const { deviceId } = await params;
   const deleted = await deleteDevice(session.id, deviceId);

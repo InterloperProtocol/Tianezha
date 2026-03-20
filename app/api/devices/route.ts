@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { encryptJson } from "@/lib/server/crypto";
 import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import { listDevices, upsertDevice } from "@/lib/server/repository";
 import { DeviceCredentials, DeviceProfile, DeviceType } from "@/lib/types";
 import { nowIso } from "@/lib/utils";
@@ -22,6 +23,7 @@ function supports(type: DeviceType) {
 export async function GET() {
   try {
     const session = await getOrCreateGuestSession();
+    await assertGuestEnabled(session.id);
     const devices = await listDevices(session.id);
     return NextResponse.json({ items: devices });
   } catch (error) {
@@ -38,6 +40,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getOrCreateGuestSession();
+    await assertGuestEnabled(session.id);
 
     const body = (await request.json()) as {
       type?: DeviceType;

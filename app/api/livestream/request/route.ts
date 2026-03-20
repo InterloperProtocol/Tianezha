@@ -1,11 +1,26 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import { createLivestreamRequest, getLivestreamState } from "@/lib/server/livestream";
 import { LivestreamTier } from "@/lib/types";
 
 export async function POST(request: Request) {
   const guestSession = await getOrCreateGuestSession();
+  const denied = await assertGuestEnabled(guestSession.id)
+    .then(() => null)
+    .catch((error) =>
+      NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "This user has been disabled by the admin.",
+        },
+        { status: 403 },
+      ),
+    );
+  if (denied) return denied;
   const body = (await request.json()) as {
     contractAddress?: string;
     tier?: LivestreamTier;

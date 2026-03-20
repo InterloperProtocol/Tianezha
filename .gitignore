@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.data/
 .codex-temp/
 .codex-temp-*
 Refs/

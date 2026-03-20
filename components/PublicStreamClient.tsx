@@ -113,7 +113,7 @@ export function PublicStreamClient({
         />
         <MediaEmbedPanel
           title="Shared media"
-          description="This is the same media link the guest loaded in their personal panel."
+          description="This is the same media link the streamer loaded in MyGoonClaw."
           defaultUrl={state.profile.mediaUrl}
           storageKey={`public-stream-${state.profile.slug}`}
           readOnly
@@ -169,7 +169,7 @@ export function PublicStreamClient({
           </div>
 
           {state.recentSessions.length ? (
-            <div className="history-list">
+            <div className="history-list scroll-feed">
               {state.recentSessions.map((session) => (
                 <div key={session.id} className="history-item">
                   <div>

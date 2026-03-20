@@ -22,6 +22,7 @@ import {
 
 type Props = {
   defaultMediaUrl: string;
+  variant: "goonclaw" | "my-goonclaw";
 };
 
 type DeviceFormState = {
@@ -40,6 +41,7 @@ type PublicStreamResponse = {
 };
 
 const DEFAULT_CONTRACT_ADDRESS = DEFAULT_PUMP_TOKEN_MINT;
+const SHARED_CONTRACT_ADDRESS_STORAGE_KEY = "goonclaw-shared-contract-address";
 
 const initialDeviceState: DeviceFormState = {
   type: "autoblow",
@@ -51,7 +53,16 @@ const initialDeviceState: DeviceFormState = {
   authHeaderName: "Authorization",
 };
 
-export function GoonclawClient({ defaultMediaUrl }: Props) {
+function readStoredContractAddress() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return window.localStorage.getItem(SHARED_CONTRACT_ADDRESS_STORAGE_KEY)?.trim() || "";
+}
+
+export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
+  const isTokenControlPage = variant === "goonclaw";
   const [deviceForm, setDeviceForm] = useState<DeviceFormState>(initialDeviceState);
   const [devices, setDevices] = useState<SanitizedDeviceProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
@@ -109,6 +120,7 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
   }
 
   const refreshPublicStream = useCallback(async () => {
+    const storedContractAddress = readStoredContractAddress();
     const response = await fetch("/api/public-stream");
     if (!response.ok) return;
 
@@ -118,12 +130,17 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
 
     if (payload.item) {
       setPublicStreamSlug(payload.item.slug);
-      setContractAddress(payload.item.defaultContractAddress || DEFAULT_CONTRACT_ADDRESS);
+      setContractAddress(
+        payload.item.defaultContractAddress ||
+          storedContractAddress ||
+          DEFAULT_CONTRACT_ADDRESS,
+      );
       setPublicMediaUrl(payload.item.mediaUrl || defaultMediaUrl);
       return;
     }
 
     setPublicStreamSlug("");
+    setContractAddress(storedContractAddress || DEFAULT_CONTRACT_ADDRESS);
     setPublicMediaUrl(defaultMediaUrl);
   }, [defaultMediaUrl]);
 
@@ -136,6 +153,19 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
     }, 4_000);
     return () => window.clearInterval(interval);
   }, [refreshPublicStream]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const nextContractAddress =
+      contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS;
+    window.localStorage.setItem(
+      SHARED_CONTRACT_ADDRESS_STORAGE_KEY,
+      nextContractAddress,
+    );
+  }, [contractAddress]);
 
   useEffect(() => {
     if (!publicStream?.isPublic) {
@@ -400,14 +430,22 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
     <div className="app-shell">
       <SiteNav />
       <RouteHeader
-        eyebrow="Personal dashboard"
-        title="Keep your market view, media, and setup together."
-        summary="Follow the token, keep a video source nearby, and start a saved session with clear feedback at every step."
-        badges={[
-          "One-screen control",
-          "Saved setups",
-          "Live chart context",
-        ]}
+        eyebrow={isTokenControlPage ? "GoonClaw" : "MyGoonClaw"}
+        title={
+          isTokenControlPage
+            ? "Control the token view and push it across your guest sessions."
+            : "Run your streamer setup and keep your guest-facing panel in sync."
+        }
+        summary={
+          isTokenControlPage
+            ? "Use the same dashboard layout as MyGoonClaw, but keep token control here so the broadcast focus stays consistent everywhere."
+            : "Use the same session workspace as GoonClaw, then sign up as a streamer and make your guest-facing panel public when you are ready."
+        }
+        badges={
+          isTokenControlPage
+            ? ["Token control", "Saved setups", "Shared session workspace"]
+            : ["Streamer signup", "Saved setups", "Shared session workspace"]
+        }
         rail={
           <div className="rail-grid">
             <div className="rail-card">
@@ -416,9 +454,23 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
               <span>See your current session state before you start anything new.</span>
             </div>
             <div className="rail-card">
-              <p className="eyebrow">Selected setup</p>
-              <strong>{selectedDevice?.label || "Nothing selected yet"}</strong>
-              <span>{selectedDevice?.type || "Choose one of your saved setups below."}</span>
+              <p className="eyebrow">
+                {isTokenControlPage ? "Token focus" : "Streamer status"}
+              </p>
+              <strong>
+                {isTokenControlPage
+                  ? `${contractAddress.slice(0, 4)}...${contractAddress.slice(-4)}`
+                  : publicStream?.isPublic
+                    ? `@${publicStream.slug}`
+                    : "Private draft"}
+              </strong>
+              <span>
+                {isTokenControlPage
+                  ? "This token is the shared focus mirrored into MyGoonClaw."
+                  : publicStream?.isPublic
+                    ? "Your public guest page is live."
+                    : "Create your streamer page when you are ready."}
+              </span>
             </div>
             <div className="rail-card">
               <p className="eyebrow">Mode</p>
@@ -460,7 +512,9 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
             <div className="panel-header">
               <div>
                 <p className="eyebrow">Session</p>
-                <h2>Start a personal session</h2>
+                <h2>
+                  {isTokenControlPage ? "Control token and session" : "Run your MyGoonClaw session"}
+                </h2>
               </div>
             </div>
 
@@ -476,14 +530,30 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
               </select>
             </label>
             <label className="field">
-              <span>Contract address</span>
+              <span>{isTokenControlPage ? "Token mint" : "Shared token focus"}</span>
               <input
                 value={contractAddress}
-                onChange={(event) => setContractAddress(event.target.value)}
-                placeholder="Enter a Solana contract address"
+                onChange={(event) => {
+                  if (!isTokenControlPage) {
+                    return;
+                  }
+                  setContractAddress(event.target.value);
+                }}
+                placeholder={
+                  isTokenControlPage
+                    ? "Enter a Solana contract address"
+                    : "Controlled from GoonClaw"
+                }
+                readOnly={!isTokenControlPage}
               />
             </label>
           </div>
+
+          <p className="inline-note">
+            {isTokenControlPage
+              ? "This token focus is mirrored into MyGoonClaw and any public guest session tied to your streamer profile."
+              : "Token changes happen in GoonClaw. MyGoonClaw mirrors that token across your guest-facing setup."}
+          </p>
 
           <div className="button-row">
             <button
@@ -699,17 +769,55 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
             </div>
           </section>
 
-          <PublicStreamSettingsPanel
-            slug={publicStreamSlug}
-            defaultContractAddress={contractAddress}
-            isPublic={Boolean(publicStream?.isPublic)}
-            saving={loading === "public"}
-            publicUrl={publicStreamUrl}
-            onSlugChange={setPublicStreamSlug}
-            onDefaultContractAddressChange={setContractAddress}
-            onSave={() => void savePublicStreamSettings(true)}
-            onMakePrivate={() => void savePublicStreamSettings(false)}
-          />
+          {isTokenControlPage ? (
+            <section className="panel">
+              <div className="panel-header">
+                <div>
+                  <p className="eyebrow">Token sync</p>
+                  <h2>Where this token shows up</h2>
+                </div>
+              </div>
+
+              <p className="panel-lead">
+                Keep token control here. MyGoonClaw and any guest-facing stream page
+                mirror this contract focus automatically once your streamer profile is live.
+              </p>
+
+              <dl className="detail-list">
+                <div className="detail">
+                  <dt>Current token</dt>
+                  <dd>{contractAddress}</dd>
+                </div>
+                <div className="detail">
+                  <dt>Streamer page</dt>
+                  <dd>
+                    {publicStream?.isPublic
+                      ? publicStreamUrl || "Public stream is live."
+                      : "Create your streamer page in MyGoonClaw to publish this token to guests."}
+                  </dd>
+                </div>
+                <div className="detail">
+                  <dt>Guest sync</dt>
+                  <dd>
+                    {publicStream?.isPublic
+                      ? "Any public MyGoonClaw guest session now follows this token focus."
+                      : "Private until you sign up as a streamer in MyGoonClaw."}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          ) : (
+            <PublicStreamSettingsPanel
+              slug={publicStreamSlug}
+              defaultContractAddress={contractAddress}
+              isPublic={Boolean(publicStream?.isPublic)}
+              saving={loading === "public"}
+              publicUrl={publicStreamUrl}
+              onSlugChange={setPublicStreamSlug}
+              onSave={() => void savePublicStreamSettings(true)}
+              onMakePrivate={() => void savePublicStreamSettings(false)}
+            />
+          )}
 
           <section className="panel">
             <div className="panel-header">
@@ -720,7 +828,7 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
             </div>
 
             {sessions.length ? (
-              <div className="history-list">
+              <div className="history-list scroll-feed">
                 {sessions.map((session) => (
                   <div key={session.id} className="history-item">
                     <div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import {
   buildPublicStreamPath,
   getCurrentPublicStreamProfile,
@@ -10,6 +11,7 @@ import {
 export async function GET(request: Request) {
   try {
     const guestSession = await getOrCreateGuestSession();
+    await assertGuestEnabled(guestSession.id);
     const item = await getCurrentPublicStreamProfile(guestSession.id);
     const origin = new URL(request.url).origin;
 
@@ -33,6 +35,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     const guestSession = await getOrCreateGuestSession();
+    await assertGuestEnabled(guestSession.id);
     const body = (await request.json()) as {
       slug?: string;
       isPublic?: boolean;

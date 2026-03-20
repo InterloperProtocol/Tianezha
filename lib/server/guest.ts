@@ -59,7 +59,7 @@ export async function getOrCreateGuestSession() {
   const session: GuestSession = {
     id: `guest-${randomUUID()}`,
     issuedAt: nowIso(),
-    expiresAt: addDays(new Date(), 30).toISOString(),
+    expiresAt: addDays(new Date(), 2).toISOString(),
   };
   await persistGuestSession(session);
   return session;

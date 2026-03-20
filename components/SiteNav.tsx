@@ -8,8 +8,8 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 const items = [
   { href: "/", label: "Home" },
   { href: "/eligibility", label: "Access" },
-  { href: "/goonclaw", label: "Personal" },
-  { href: "/livestream", label: "GoonClaw" },
+  { href: "/goonclaw", label: "GoonClaw" },
+  { href: "/personal", label: "MyGoonClaw" },
   { href: "/goonstreams", label: "GoonStreams" },
   { href: "/agent", label: "Status" },
 ];
@@ -29,8 +29,9 @@ export function SiteNav() {
         <p className="eyebrow">GoonClaw</p>
         <strong>One place to track the action</strong>
         <p className="site-nav-summary">
-          Follow the market, manage live requests, check wallet access, and keep
-          an eye on platform health from one clean dashboard.
+          Control the token in GoonClaw, run your streamer page in MyGoonClaw,
+          browse live guest panels, and keep an eye on platform health from one
+          clean dashboard.
         </p>
         <div className="route-badges">
           <StatusBadge tone="accent">You&apos;re here: {activeItem.label}</StatusBadge>

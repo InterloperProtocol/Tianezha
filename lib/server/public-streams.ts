@@ -10,6 +10,7 @@ import {
   listSessions,
   upsertPublicStreamProfile,
 } from "@/lib/server/repository";
+import { isGuestDisabled } from "@/lib/server/internal-admin";
 import {
   PublicStreamPageState,
   PublicStreamProfile,
@@ -94,6 +95,10 @@ export async function listActivePublicStreams() {
   const summaries: PublicStreamSummary[] = [];
 
   for (const profile of publicProfiles) {
+    if (await isGuestDisabled(profile.guestId)) {
+      continue;
+    }
+
     const activeSession = sessions.find((session) => session.wallet === profile.guestId);
     if (!activeSession) {
       continue;
@@ -125,6 +130,10 @@ export async function getPublicStreamPageState(
   const normalizedSlug = parsedSlug.data;
   const profile = await getPublicStreamProfileBySlug(normalizedSlug);
   if (!profile || !profile.isPublic) {
+    return null;
+  }
+
+  if (await isGuestDisabled(profile.guestId)) {
     return null;
   }
 

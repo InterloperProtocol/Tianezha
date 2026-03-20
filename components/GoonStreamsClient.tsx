@@ -72,7 +72,7 @@ export function GoonStreamsClient() {
         summary="Browse the public guest-session panels that are currently running a live device session. Open any stream to watch the chart, media, and session state in read-only mode."
         badges={[
           "Live only",
-          "Public personal panels",
+          "Public MyGoonClaw panels",
           "Auto-refreshing board",
         ]}
         rail={

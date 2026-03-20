@@ -9,7 +9,6 @@ type Props = {
   saving: boolean;
   publicUrl: string | null;
   onSlugChange: (value: string) => void;
-  onDefaultContractAddressChange: (value: string) => void;
   onSave: () => void;
   onMakePrivate: () => void;
 };
@@ -21,7 +20,6 @@ export function PublicStreamSettingsPanel({
   saving,
   publicUrl,
   onSlugChange,
-  onDefaultContractAddressChange,
   onSave,
   onMakePrivate,
 }: Props) {
@@ -29,8 +27,8 @@ export function PublicStreamSettingsPanel({
     <section className="panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Public stream</p>
-          <h2>Turn your personal panel into a public stream page</h2>
+          <p className="eyebrow">Streamer signup</p>
+          <h2>Turn MyGoonClaw into your public stream page</h2>
         </div>
         <StatusBadge tone={isPublic ? "success" : "warning"}>
           {isPublic ? "Public now" : "Private draft"}
@@ -38,30 +36,30 @@ export function PublicStreamSettingsPanel({
       </div>
 
       <p className="panel-lead">
-        Use the same guest-session setup you already control here. Pick a stream
-        tag, lock in the default token, and your current chart, media, and live
-        session state become viewable to anyone at a shareable page.
+        Claim your streamer handle here. Your current chart, media, session
+        state, and the token focus from GoonClaw will become viewable to anyone
+        at a shareable page.
       </p>
 
       <div className="rail-grid">
         <article className="faq-item">
-          <strong>1. Claim your stream tag</strong>
+          <strong>1. Claim your streamer tag</strong>
           <p>
             Pick a clean lowercase tag so people can open your public page fast.
           </p>
         </article>
         <article className="faq-item">
-          <strong>2. Set the default token</strong>
+          <strong>2. Let GoonClaw drive the token</strong>
           <p>
-            This becomes the fallback chart whenever your page loads before a
-            live session takes over.
+            The token focus comes from GoonClaw and carries across your guest
+            sessions here.
           </p>
         </article>
         <article className="faq-item">
           <strong>3. Keep your media live</strong>
           <p>
-            Whatever YouTube, Kick, or direct stream link you load in Personal
-            is what guests will see on the public page.
+            Whatever YouTube, Kick, or direct stream link you load in
+            MyGoonClaw is what guests will see on the public page.
           </p>
         </article>
       </div>
@@ -76,14 +74,11 @@ export function PublicStreamSettingsPanel({
               placeholder="your-stream-name"
             />
           </label>
-          <label className="field">
-            <span>Default token mint</span>
-            <input
-              value={defaultContractAddress}
-              onChange={(event) => onDefaultContractAddressChange(event.target.value)}
-              placeholder="Pump.fun token mint"
-            />
-          </label>
+          <div className="summary-card">
+            <span>Token focus from GoonClaw</span>
+            <strong>{defaultContractAddress}</strong>
+            <p>This is the token guests will see unless an active live session overrides it.</p>
+          </div>
         </div>
 
         <div className="button-row">

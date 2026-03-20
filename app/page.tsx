@@ -42,10 +42,10 @@ export default function Home() {
         actions={
           <div className="button-row">
             <Link className="button button-primary" href="/goonclaw">
-              Open Personal
-            </Link>
-            <Link className="button button-secondary" href="/livestream">
               Open GoonClaw
+            </Link>
+            <Link className="button button-secondary" href="/personal">
+              Open MyGoonClaw
             </Link>
             <Link className="button button-ghost" href="/goonstreams">
               Browse GoonStreams
@@ -73,11 +73,11 @@ export default function Home() {
 
       <section className="surface-grid">
         <section className="surface-card">
-          <p className="eyebrow">Personal</p>
+          <p className="eyebrow">GoonClaw</p>
           <h2>/goonclaw</h2>
-          <p>Track the market, keep a video window nearby, and run your saved setup in one place.</p>
+          <p>Control the token focus, keep a video window nearby, and run the shared session workspace in one place.</p>
           <div className="surface-card-footer">
-            <StatusBadge tone="success">Personal dashboard</StatusBadge>
+            <StatusBadge tone="accent">Token control</StatusBadge>
             <Link className="surface-card-link" href="/goonclaw">
               Open dashboard
             </Link>
@@ -85,13 +85,13 @@ export default function Home() {
         </section>
 
         <section className="surface-card">
-          <p className="eyebrow">GoonClaw</p>
-          <h2>/livestream</h2>
-          <p>Run the public queue, collect requests, and keep the live room simple for viewers to follow.</p>
+          <p className="eyebrow">MyGoonClaw</p>
+          <h2>/personal</h2>
+          <p>Use the same workspace, sign up as a streamer, and mirror your public guest-facing session from one page.</p>
           <div className="surface-card-footer">
-            <StatusBadge tone="accent">Public experience</StatusBadge>
-            <Link className="surface-card-link" href="/livestream">
-              Open GoonClaw
+            <StatusBadge tone="success">Streamer control</StatusBadge>
+            <Link className="surface-card-link" href="/personal">
+              Open MyGoonClaw
             </Link>
           </div>
         </section>
@@ -147,10 +147,10 @@ export default function Home() {
               </div>
             </div>
             <p className="hero-summary">
-              Use Personal for your own setup, GoonClaw for the public queue,
-              GoonStreams to browse live public panels, Wallet Access for quick
-              yes-or-no checks, and Status when you want to confirm the foundation
-              is ready.
+              Use GoonClaw to set the token focus, MyGoonClaw to run your
+              streamer page, GoonStreams to browse live public panels, Wallet
+              Access for quick yes-or-no checks, and Status when you want to
+              confirm the foundation is ready.
             </p>
             <div className="route-badges">
               <StatusBadge tone="accent">Clear at a glance</StatusBadge>

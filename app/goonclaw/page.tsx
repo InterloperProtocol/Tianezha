@@ -6,5 +6,10 @@ export const dynamic = "force-dynamic";
 export default function GoonclawPage() {
   const config = getPublicEnv();
 
-  return <GoonclawClient defaultMediaUrl={config.NEXT_PUBLIC_GOONCLAW_MEDIA_URL} />;
+  return (
+    <GoonclawClient
+      defaultMediaUrl={config.NEXT_PUBLIC_GOONCLAW_MEDIA_URL}
+      variant="goonclaw"
+    />
+  );
 }

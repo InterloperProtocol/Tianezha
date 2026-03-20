@@ -200,7 +200,7 @@ export function NewsPanel({
         </div>
       ) : null}
       {customFeeds.length ? (
-        <div className="history-list">
+        <div className="history-list scroll-feed compact-scroll-feed">
           {customFeeds.map((feedUrl) => (
             <div key={feedUrl} className="history-item">
               <div>
