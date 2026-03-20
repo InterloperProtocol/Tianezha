@@ -6,6 +6,8 @@ import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
 import { SiteNav } from "@/components/SiteNav";
+import { RouteHeader } from "@/components/ui/RouteHeader";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import { ChartSnapshot, LivestreamTier } from "@/lib/types";
 
@@ -182,21 +184,41 @@ export function LivestreamClient() {
   return (
     <div className="app-shell">
       <SiteNav />
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">Livestream Panel</p>
-          <h1>Public stream, public chart, payment-gated control.</h1>
-          <p className="hero-summary">
-            Keep the chart, news, and video embed aligned across the top, then
-            handle shared device access from the control surface below.
-          </p>
-          <div className="hero-badges">
-            <span>Equal chart, news, and video panels</span>
-            <span>Standard: {state?.standardPriceSol ?? "0.001"} SOL</span>
-            <span>Priority: {state?.priorityPriceSol ?? "0.01"} SOL</span>
+      <RouteHeader
+        eyebrow="Public room"
+        title="Make queue state obvious and trustworthy."
+        summary="The livestream surface prioritizes public clarity: stream context up top, payment and request controls below, and current queue state visible before a user pays."
+        badges={[
+          "Public clarity",
+          "Request trust",
+          `Standard ${state?.standardPriceSol ?? "0.001"} SOL`,
+          `Priority ${state?.priorityPriceSol ?? "0.01"} SOL`,
+        ]}
+        rail={
+          <div className="rail-grid">
+            <div className="rail-card">
+              <p className="eyebrow">Device state</p>
+              <strong>{state?.deviceAvailable ? "Available" : "Busy or offline"}</strong>
+              <span>Public users should know if the shared device can take control.</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Queue depth</p>
+              <strong>{state?.queue.length ?? 0} waiting</strong>
+              <span>Queue visibility reduces uncertainty and duplicate requests.</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Current request</p>
+              <strong>{state?.current ? shorten(state.current.contractAddress) : "No active request"}</strong>
+              <span>Live status stays near the request controls.</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Payment window</p>
+              <strong>{state?.paymentWindowSeconds ?? 900} sec</strong>
+              <span>Memo verification timeout is explicit before users act.</span>
+            </div>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       {notice ? <p className="toast-banner">{notice}</p> : null}
       {error ? <p className="error-banner">{error}</p> : null}
@@ -332,6 +354,15 @@ export function LivestreamClient() {
               </button>
             </div>
           ) : null}
+
+          <div className="route-badges">
+            <StatusBadge tone={checkout ? "accent" : "warning"}>
+              {checkout ? "Request pending" : "No active request"}
+            </StatusBadge>
+            <StatusBadge tone={state?.deviceAvailable ? "success" : "danger"}>
+              {state?.deviceAvailable ? "Device available" : "Device occupied"}
+            </StatusBadge>
+          </div>
         </section>
 
         <div className="dashboard-column">

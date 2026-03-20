@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-const display = Space_Grotesk({
+const display = IBM_Plex_Sans({
   variable: "--font-display",
+  weight: ["400", "500", "600"],
   subsets: ["latin"],
 });
 
@@ -16,7 +17,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "GoonClaw",
   description:
-    "Tokenized-agent control room with personal and livestream panels, chart sync, news, and device automation.",
+    "Retro signal-console control room with private operator panels, public queue surfaces, device automation, and system diagnostics.",
 };
 
 export default function RootLayout({

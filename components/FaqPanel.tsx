@@ -21,10 +21,15 @@ export function FaqPanel() {
     <section className="panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">FAQ pt.1</p>
-          <h2>Tokenized agent basics</h2>
+          <p className="eyebrow">Reference notes</p>
+          <h2>Operator context and policy answers</h2>
         </div>
       </div>
+      <p className="panel-lead">
+        This side panel keeps the explanatory context close to the diagnostics
+        so policy, platform boundaries, and buyback mechanics do not clutter the
+        operator and public routes.
+      </p>
 
       <div className="faq-list">
         {faqItems.map((item) => (

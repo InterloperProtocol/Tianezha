@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { HomeEligibilityCta } from "@/components/HomeEligibilityCta";
 import { SiteNav } from "@/components/SiteNav";
+import { RouteHeader } from "@/components/ui/RouteHeader";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getPublicEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -20,57 +22,106 @@ export default function Home() {
     <div className="app-shell">
       <SiteNav />
 
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">GoonClaw</p>
-          <h1>Personal and livestream token control, now under one name.</h1>
-          <p className="hero-summary">
-            GoonClaw combines a private control room, a public livestream panel,
-            chart sync, crypto news, and wallet review tools. The guest window
-            stays open until {freeUntilLabel}.
-          </p>
-          <div className="hero-badges">
-            <span>Personal room at /goonclaw</span>
-            <span>Public livestream queue at /livestream</span>
-            <span>Eligibility review at /eligibility</span>
-            <span>API-only Autoblow, Handy, and REST support</span>
-          </div>
-        </div>
-        <div className="hero-actions">
+      <RouteHeader
+        eyebrow="Surface Map"
+        title="Retro shell, modern ergonomics."
+        summary={
+          <>
+            GoonClaw is a control network with distinct jobs: private operator
+            work on <strong>/goonclaw</strong>, public trust and queue flow on
+            <strong> /livestream</strong>, fast wallet review on
+            <strong> /eligibility</strong>, and readiness diagnostics on
+            <strong> /agent</strong>. Guest access stays open until{" "}
+            {freeUntilLabel}.
+          </>
+        }
+        badges={[
+          "Start from the user job",
+          "Status visible at all times",
+          "Consistent console patterns",
+          "Accessibility built in",
+        ]}
+        actions={
           <div className="button-row">
-            <Link className="button button-secondary" href="/eligibility">
-              Check Eligibility
-            </Link>
             <Link className="button button-primary" href="/goonclaw">
               Open Personal
             </Link>
-            <Link className="button button-ghost" href="/livestream">
+            <Link className="button button-secondary" href="/livestream">
               Open Livestream
             </Link>
+            <Link className="button button-ghost" href="/eligibility">
+              Check Eligibility
+            </Link>
           </div>
-        </div>
+        }
+        rail={
+          <div className="rail-grid">
+            <div className="rail-card">
+              <p className="eyebrow">Default token</p>
+              <strong>{config.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL}</strong>
+              <span>Shared across chart, stream, and eligibility surfaces.</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Support</p>
+              <strong>Autoblow / Handy / REST</strong>
+              <span>Operator controls stay explicit and text-labeled.</span>
+            </div>
+          </div>
+        }
+      />
+
+      <section className="surface-grid">
+        <section className="surface-card">
+          <p className="eyebrow">Private operator</p>
+          <h2>/goonclaw</h2>
+          <p>Dense personal console for chart sync, media monitoring, and direct device control.</p>
+          <div className="surface-card-footer">
+            <StatusBadge tone="success">Operator surface</StatusBadge>
+            <Link className="surface-card-link" href="/goonclaw">
+              Enter console
+            </Link>
+          </div>
+        </section>
+
+        <section className="surface-card">
+          <p className="eyebrow">Public room</p>
+          <h2>/livestream</h2>
+          <p>Trust-first queue and payment surface with live status, stream context, and request visibility.</p>
+          <div className="surface-card-footer">
+            <StatusBadge tone="accent">Queue surface</StatusBadge>
+            <Link className="surface-card-link" href="/livestream">
+              Open public room
+            </Link>
+          </div>
+        </section>
+
+        <section className="surface-card">
+          <p className="eyebrow">Verification</p>
+          <h2>/eligibility</h2>
+          <p>Single-purpose manual claim flow for checking a wallet and issuing the subscription cNFT.</p>
+          <div className="surface-card-footer">
+            <StatusBadge tone="warning">Manual review</StatusBadge>
+            <Link className="surface-card-link" href="/eligibility">
+              Review wallet
+            </Link>
+          </div>
+        </section>
+
+        <section className="surface-card">
+          <p className="eyebrow">Diagnostics</p>
+          <h2>/agent</h2>
+          <p>Readiness, reference stack, model state, and policy visibility for the hosted agent side.</p>
+          <div className="surface-card-footer">
+            <StatusBadge tone="neutral">Audit trail</StatusBadge>
+            <Link className="surface-card-link" href="/agent">
+              View diagnostics
+            </Link>
+          </div>
+        </section>
       </section>
 
       <section className="dashboard-grid">
         <div className="dashboard-column">
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Personal</p>
-                <h2>Chart + video + device control</h2>
-              </div>
-            </div>
-            <p className="hero-summary">
-              Load your own video or stream embed, pick a device, and drive it
-              from a live chart without leaving the control room.
-            </p>
-            <div className="button-row">
-              <Link className="button button-primary" href="/goonclaw">
-                Open /goonclaw
-              </Link>
-            </div>
-          </section>
-
           <HomeEligibilityCta />
         </div>
 
@@ -78,18 +129,19 @@ export default function Home() {
           <section className="panel">
             <div className="panel-header">
               <div>
-                <p className="eyebrow">Livestream</p>
-                <h2>Stream + chart + payment control</h2>
+                <p className="eyebrow">Operating model</p>
+                <h2>Use the right density for the job</h2>
               </div>
             </div>
             <p className="hero-summary">
-              The public room now keeps the stream, chart, queue, and crypto
-              news on one surface so paid control requests are easier to follow.
+              Personal is the dense operator console. Livestream is the public
+              queue room. Eligibility stays focused on a single decision.
+              Agent surfaces prioritize readiness and auditability over control.
             </p>
-            <div className="button-row">
-              <Link className="button button-secondary" href="/livestream">
-                Go to /livestream
-              </Link>
+            <div className="route-badges">
+              <StatusBadge tone="accent">Status first</StatusBadge>
+              <StatusBadge tone="neutral">Recognition over recall</StatusBadge>
+              <StatusBadge tone="success">Keyboard-safe</StatusBadge>
             </div>
           </section>
         </div>

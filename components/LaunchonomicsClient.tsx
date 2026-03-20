@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { SiteNav } from "@/components/SiteNav";
+import { RouteHeader } from "@/components/ui/RouteHeader";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
   EntitlementRecord,
   LaunchonomicsEvaluation,
@@ -168,37 +170,36 @@ export function LaunchonomicsClient({
     <div className="app-shell">
       <SiteNav />
 
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">Eligibility</p>
-          <h1>Check a wallet, then manually send the subscription cNFT.</h1>
-          <p className="hero-summary">
-            GoonClaw stays open for everyone until {freeUntilLabel}. After that,
-            this page uses LaunchONomics and Helius wallet history for {accessTokenSymbol}
-            to check subscription eligibility. Nothing is auto-sent anymore: a person
-            reviews the wallet and manually clicks the receive button.
-          </p>
-          <div className="hero-badges">
-            <span>Manual subscription claims</span>
-            <span>Wallet lookup without wallet connect</span>
-            <span>LaunchONomics review flow</span>
-            <span>Receive cNFT only after eligibility check</span>
+      <RouteHeader
+        eyebrow="Eligibility"
+        title="Check a wallet, then decide the next action."
+        summary={
+          <>
+            This route is intentionally narrow: enter a wallet, evaluate the
+            LaunchONomics outcome for {accessTokenSymbol}, and only then click
+            <strong> Receive subscription cNFT</strong> if the wallet qualifies.
+          </>
+        }
+        badges={[
+          "Single-purpose flow",
+          "Manual subscription claims",
+          "No wallet connect required",
+        ]}
+        rail={
+          <div className="rail-grid">
+            <div className="rail-card">
+              <p className="eyebrow">Guest window</p>
+              <strong>{freeUntilLabel}</strong>
+              <span>Open access before the gated review flow begins.</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Launch start</p>
+              <strong>{launchAt ? launchAtLabel : "Awaiting config"}</strong>
+              <span>Set the launch timestamp to activate the reward windows.</span>
+            </div>
           </div>
-        </div>
-        <div className="hero-actions">
-          <div className="toast-banner">
-            <strong>Launch start</strong>
-            <p>{launchAt ? launchAtLabel : "Set a launch date to activate the checker."}</p>
-          </div>
-          <div className="toast-banner">
-            <strong>Manual review flow</strong>
-            <p>
-              Enter a wallet, check its tier, and only then click
-              &nbsp;<strong>Receive subscription cNFT</strong>.
-            </p>
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       {notice ? <p className="toast-banner">{notice}</p> : null}
       {error ? <p className="error-banner">{error}</p> : null}
@@ -378,6 +379,14 @@ export function LaunchonomicsClient({
                     Manual flow: the cNFT is only sent after this button is clicked.
                   </p>
                 )}
+                <div className="route-badges">
+                  <StatusBadge tone={canClaim ? "success" : "warning"}>
+                    {canClaim ? "Claim available" : "No active entitlement"}
+                  </StatusBadge>
+                  <StatusBadge tone="neutral">
+                    {result.badge === "none" ? "No badge" : `${result.badge} badge`}
+                  </StatusBadge>
+                </div>
               </>
             ) : (
               <p className="empty-state">

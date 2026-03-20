@@ -6,6 +6,8 @@ import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
 import { SiteNav } from "@/components/SiteNav";
+import { RouteHeader } from "@/components/ui/RouteHeader";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import {
   ChartSnapshot,
@@ -66,6 +68,15 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
     () => devices.find((device) => device.id === selectedDeviceId) ?? null,
     [devices, selectedDeviceId],
   );
+
+  const lastActivityLabel = useMemo(() => {
+    const latest = activeSession?.updatedAt ?? sessions[0]?.updatedAt;
+    if (!latest) return "No recent session";
+    return new Date(latest).toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }, [activeSession?.updatedAt, sessions]);
 
   async function refreshDevices() {
     const response = await fetch("/api/devices");
@@ -271,21 +282,40 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
   return (
     <div className="app-shell">
       <SiteNav />
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">Personal Panel</p>
-          <h1>GoonClaw private control room.</h1>
-          <p className="hero-summary">
-            Keep the chart, news, and video embed aligned across the top, then
-            run your device session from the control surface below.
-          </p>
-          <div className="hero-badges">
-            <span>Equal chart, news, and video panels</span>
-            <span>Autoblow, Handy, and REST devices</span>
-            <span>Saved device profiles</span>
+      <RouteHeader
+        eyebrow="Private operator"
+        title="Run the personal control room."
+        summary="This is the dense operator surface: monitor the token, keep media context visible, and control a selected device with explicit session feedback."
+        badges={[
+          "Status first",
+          "Chart + media + control",
+          "Saved device profiles",
+        ]}
+        rail={
+          <div className="rail-grid">
+            <div className="rail-card">
+              <p className="eyebrow">Session</p>
+              <strong>{activeSession ? activeSession.status : "Idle"}</strong>
+              <span>Current control state is always visible before actions.</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Selected device</p>
+              <strong>{selectedDevice?.label || "No device selected"}</strong>
+              <span>{selectedDevice?.type || "Choose a saved connector below."}</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Mode</p>
+              <strong>{mode === "live" ? "Live engine" : "Generated script"}</strong>
+              <span>Recognition over recall: the active mode stays explicit.</span>
+            </div>
+            <div className="rail-card">
+              <p className="eyebrow">Last activity</p>
+              <strong>{lastActivityLabel}</strong>
+              <span>Use recent session updates as the operational timeline.</span>
+            </div>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       {notice ? <p className="toast-banner">{notice}</p> : null}
       {error ? <p className="error-banner">{error}</p> : null}
@@ -393,6 +423,15 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
               the chart.
             </p>
           )}
+
+          <div className="route-badges">
+            <StatusBadge tone={activeSession ? "success" : "warning"}>
+              {activeSession ? "Sync live" : "Sync idle"}
+            </StatusBadge>
+            <StatusBadge tone="neutral">
+              {selectedDevice ? `${selectedDevice.type} selected` : "No device selected"}
+            </StatusBadge>
+          </div>
         </section>
 
         <div className="dashboard-column">

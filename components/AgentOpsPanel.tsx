@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { AgentOpsStatus } from "@/lib/types";
 
 function shorten(value?: string) {
@@ -13,6 +14,7 @@ function shorten(value?: string) {
 export function AgentOpsPanel() {
   const [status, setStatus] = useState<AgentOpsStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,6 +33,7 @@ export function AgentOpsPanel() {
         if (!cancelled) {
           setStatus(payload);
           setError(null);
+          setLastUpdatedAt(Date.now());
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -52,6 +55,14 @@ export function AgentOpsPanel() {
     };
   }, []);
 
+  const lastUpdatedLabel = lastUpdatedAt
+    ? new Date(lastUpdatedAt).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+    : "Polling";
+
   return (
     <section className="panel">
       <div className="panel-header">
@@ -63,6 +74,23 @@ export function AgentOpsPanel() {
           <span className="status-dot" />
           {status?.modelRuntime.configured ? "vertex ready" : "awaiting vars"}
         </div>
+      </div>
+      <p className="panel-lead">
+        Polling <code>/api/agent/status</code> every 30 seconds so manual claim
+        readiness, runtime wiring, and payment configuration stay visible.
+      </p>
+
+      <div className="route-badges">
+        <StatusBadge tone="warning">Claim flow manual</StatusBadge>
+        <StatusBadge tone={status?.invoiceVerificationReady ? "success" : "neutral"}>
+          {status?.invoiceVerificationReady ? "Invoice armed" : "Invoice not armed"}
+        </StatusBadge>
+        <StatusBadge tone={status?.cnftTreeConfigured ? "success" : "danger"}>
+          {status?.cnftTreeConfigured ? "cNFT tree ready" : "cNFT tree missing"}
+        </StatusBadge>
+        <StatusBadge tone="neutral" mono>
+          Last update {lastUpdatedLabel}
+        </StatusBadge>
       </div>
 
       {error ? <p className="error-banner">{error}</p> : null}
