@@ -67,6 +67,20 @@ describe("media source resolver", () => {
     });
   });
 
+  it("builds a Kick channel embed from a channel URL", () => {
+    expect(
+      buildKnownMediaConfig(
+        "https://kick.com/goonclaw",
+        "localhost",
+      ),
+    ).toEqual({
+      kind: "iframe",
+      src: "https://player.kick.com/goonclaw",
+      provider: "Kick",
+      method: "embed",
+    });
+  });
+
   it("preserves direct HLS media sources", () => {
     expect(
       buildKnownMediaConfig(

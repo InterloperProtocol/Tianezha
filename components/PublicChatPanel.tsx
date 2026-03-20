@@ -28,7 +28,15 @@ function formatResetTime(value: string | null) {
   });
 }
 
-export function PublicChatPanel() {
+export function PublicChatPanel({
+  eyebrow = "Quick chat",
+  title = "Ask the lightweight chatbot",
+  description = "General chat only. This panel does not touch devices, queues, admin tools, or the private pump agent.",
+}: {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+} = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -157,8 +165,8 @@ export function PublicChatPanel() {
     <section className="panel chat-panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Quick chat</p>
-          <h2>Ask the lightweight chatbot</h2>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2>{title}</h2>
         </div>
         <div className="source-pill">
           <span className="status-dot" />
@@ -166,10 +174,7 @@ export function PublicChatPanel() {
         </div>
       </div>
 
-      <p className="hero-summary compact">
-        General chat only. This panel does not touch devices, queues, admin tools,
-        or the private pump agent.
-      </p>
+      <p className="hero-summary compact">{description}</p>
 
       <div className="route-badges">
         <StatusBadge tone="accent">20 messages / 24h</StatusBadge>

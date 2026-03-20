@@ -130,6 +130,8 @@ const rawPublicEnvSchema = z.object({
   NEXT_PUBLIC_LIVESTREAM_SESSION_SECONDS: z.string().optional(),
 });
 
+const DEFAULT_GOONCLAW_STREAM_URL = "https://www.youtube.com/watch?v=e5nyQmaq4k4";
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_NAME: z.string().min(1),
   NEXT_PUBLIC_SOLANA_RPC_URL: z.string().min(1),
@@ -395,9 +397,11 @@ export function getPublicEnv(): PublicEnv {
     NEXT_PUBLIC_GOONCLAW_MEDIA_URL:
       raw.NEXT_PUBLIC_GOONCLAW_MEDIA_URL?.trim() ||
       raw.NEXT_PUBLIC_LIVESTREAM_EMBED_URL?.trim() ||
-      "",
+      DEFAULT_GOONCLAW_STREAM_URL,
     NEXT_PUBLIC_LIVESTREAM_EMBED_URL:
-      raw.NEXT_PUBLIC_LIVESTREAM_EMBED_URL?.trim() || "",
+      raw.NEXT_PUBLIC_LIVESTREAM_EMBED_URL?.trim() ||
+      raw.NEXT_PUBLIC_GOONCLAW_MEDIA_URL?.trim() ||
+      DEFAULT_GOONCLAW_STREAM_URL,
     NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL:
       raw.NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL?.trim() ||
       process.env.LIVESTREAM_STANDARD_PRICE_SOL?.trim() ||

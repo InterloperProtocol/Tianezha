@@ -7,9 +7,9 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 
 const items = [
   { href: "/", label: "Home" },
-  { href: "/eligibility", label: "Access" },
-  { href: "/goonclaw", label: "GoonClaw" },
   { href: "/personal", label: "MyGoonClaw" },
+  { href: "/goonclaw", label: "GoonClaw" },
+  { href: "/eligibility", label: "Access" },
   { href: "/goonstreams", label: "GoonStreams" },
   { href: "/agent", label: "Status" },
 ];

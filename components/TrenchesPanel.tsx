@@ -52,7 +52,13 @@ function formatRefresh(value: string) {
   });
 }
 
-export function TrenchesPanel() {
+export function TrenchesPanel({
+  eyebrow = "Monitor the trenches",
+  title = "Fresh Solana pump graduates at a glance",
+}: {
+  eyebrow?: string;
+  title?: string;
+} = {}) {
   const [pulse, setPulse] = useState<TrenchesPulse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -121,8 +127,8 @@ export function TrenchesPanel() {
     <section className="panel trenches-panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Monitor the trenches</p>
-          <h2>Fresh Solana pump graduates at a glance</h2>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2>{title}</h2>
         </div>
         <div className="source-pill">
           <span className="status-dot" />

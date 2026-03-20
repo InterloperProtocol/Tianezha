@@ -5,13 +5,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
+import { PublicChatPanel } from "@/components/PublicChatPanel";
 import { PublicStreamSettingsPanel } from "@/components/PublicStreamSettingsPanel";
 import { SiteNav } from "@/components/SiteNav";
+import { TrenchesPanel } from "@/components/TrenchesPanel";
 import { RouteHeader } from "@/components/ui/RouteHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import {
-  ChartSnapshot,
   DeviceCredentials,
   DeviceType,
   PublicStreamProfile,
@@ -66,7 +67,6 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
   const [deviceForm, setDeviceForm] = useState<DeviceFormState>(initialDeviceState);
   const [devices, setDevices] = useState<SanitizedDeviceProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
-  const [chartSnapshot, setChartSnapshot] = useState<ChartSnapshot | null>(null);
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
   const [publicStream, setPublicStream] = useState<PublicStreamProfile | null>(null);
   const [publicStreamUrl, setPublicStreamUrl] = useState<string | null>(null);
@@ -490,12 +490,9 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       {error ? <p className="error-banner">{error}</p> : null}
 
       <section className="dashboard-grid dashboard-grid-triple">
-        <PriceChart
-          contractAddress={contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS}
-          onSnapshotChange={setChartSnapshot}
-        />
+        <PriceChart contractAddress={contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS} />
         <NewsPanel
-          title={`${chartSnapshot?.symbol ?? "Solana"} news`}
+          title="Monitoring the Situation"
           defaultCategory="solana"
         />
         <MediaEmbedPanel
@@ -507,16 +504,183 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
         />
       </section>
 
-      <section className="dashboard-grid">
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Session</p>
-                <h2>
-                  {isTokenControlPage ? "Control token and session" : "Run your MyGoonClaw session"}
-                </h2>
-              </div>
+      <section className="dashboard-grid dashboard-grid-secondary">
+        <PublicChatPanel
+          eyebrow="Agent"
+          title="GoonClaw agent chatbot"
+          description="Use the lightweight assistant for fast questions and simple prompts while you keep the dashboard live."
+        />
+        <TrenchesPanel
+          eyebrow="Monitoring the Trenches"
+          title="Monitoring the Trenches"
+        />
+      </section>
+
+      <section className="dashboard-grid dashboard-grid-secondary">
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Device connect</p>
+              <h2>Devices and connections</h2>
             </div>
+          </div>
+
+          {devices.length ? (
+            <div className="device-list scroll-feed">
+              {devices.map((device) => (
+                <div
+                  key={device.id}
+                  className={
+                    device.id === selectedDeviceId
+                      ? "device-item selected"
+                      : "device-item"
+                  }
+                >
+                  <button
+                    className="device-pick"
+                    onClick={() => setSelectedDeviceId(device.id)}
+                  >
+                    <div>
+                      <span>{device.type}</span>
+                      <strong>{device.label}</strong>
+                    </div>
+                    <div className="device-flags">
+                      {device.supportsLive ? <span>Live</span> : null}
+                      {device.supportsScript ? <span>Script</span> : null}
+                    </div>
+                  </button>
+                  <div className="button-row">
+                    <button
+                      className="button button-secondary small"
+                      disabled={loading === `test:${device.id}`}
+                      onClick={() => void testDevice(device.id)}
+                    >
+                      Test
+                    </button>
+                    <button
+                      className="button button-ghost small"
+                      disabled={loading === `delete:${device.id}`}
+                      onClick={() => void deleteDevice(device.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">
+              No setup saved yet. Add one below to get started.
+            </p>
+          )}
+
+          <div className="device-form">
+            <div className="field-grid">
+              <label className="field">
+                <span>Device type</span>
+                <select
+                  value={deviceForm.type}
+                  onChange={(event) =>
+                    updateDeviceForm("type", event.target.value as DeviceType)
+                  }
+                >
+                  <option value="autoblow">Autoblow</option>
+                  <option value="handy">Handy</option>
+                  <option value="rest">Generic REST</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Label</span>
+                <input
+                  value={deviceForm.label}
+                  onChange={(event) => updateDeviceForm("label", event.target.value)}
+                  placeholder="Bedroom setup"
+                />
+              </label>
+            </div>
+
+            {deviceForm.type === "autoblow" ? (
+              <label className="field">
+                <span>Device token</span>
+                <input
+                  value={deviceForm.deviceToken}
+                  onChange={(event) =>
+                    updateDeviceForm("deviceToken", event.target.value)
+                  }
+                  placeholder="Autoblow API token"
+                />
+              </label>
+            ) : null}
+
+            {deviceForm.type === "handy" ? (
+              <label className="field">
+                <span>Connection key</span>
+                <input
+                  value={deviceForm.connectionKey}
+                  onChange={(event) =>
+                    updateDeviceForm("connectionKey", event.target.value)
+                  }
+                  placeholder="Handy connection key"
+                />
+              </label>
+            ) : null}
+
+            {deviceForm.type === "rest" ? (
+              <div className="device-form">
+                <label className="field">
+                  <span>Endpoint URL</span>
+                  <input
+                    value={deviceForm.endpointUrl}
+                    onChange={(event) =>
+                      updateDeviceForm("endpointUrl", event.target.value)
+                    }
+                    placeholder="https://device.example/api/live"
+                  />
+                </label>
+                <div className="field-grid">
+                  <label className="field">
+                    <span>Auth token</span>
+                    <input
+                      value={deviceForm.authToken}
+                      onChange={(event) =>
+                        updateDeviceForm("authToken", event.target.value)
+                      }
+                      placeholder="Optional bearer token"
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Auth header</span>
+                    <input
+                      value={deviceForm.authHeaderName}
+                      onChange={(event) =>
+                        updateDeviceForm("authHeaderName", event.target.value)
+                      }
+                      placeholder="Authorization"
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : null}
+
+            <button
+              className="button button-primary"
+              disabled={loading === "device"}
+              onClick={() => void createDevice()}
+            >
+              {loading === "device" ? "Saving..." : "Save setup"}
+            </button>
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Go live</p>
+              <h2>
+                {isTokenControlPage ? "Control token and session" : "Run your MyGoonClaw session"}
+              </h2>
+            </div>
+          </div>
 
           <div className="field-grid">
             <label className="field">
@@ -611,179 +775,14 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               {selectedDevice ? `${selectedDevice.type} selected` : "No setup selected"}
             </StatusBadge>
           </div>
-        </section>
-
-        <div className="dashboard-column">
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Saved setups</p>
-                <h2>Devices and connections</h2>
-              </div>
-            </div>
-
-            {devices.length ? (
-              <div className="device-list">
-                {devices.map((device) => (
-                  <div
-                    key={device.id}
-                    className={
-                      device.id === selectedDeviceId
-                        ? "device-item selected"
-                        : "device-item"
-                    }
-                  >
-                    <button
-                      className="device-pick"
-                      onClick={() => setSelectedDeviceId(device.id)}
-                    >
-                      <div>
-                        <span>{device.type}</span>
-                        <strong>{device.label}</strong>
-                      </div>
-                      <div className="device-flags">
-                        {device.supportsLive ? <span>Live</span> : null}
-                        {device.supportsScript ? <span>Script</span> : null}
-                      </div>
-                    </button>
-                    <div className="button-row">
-                      <button
-                        className="button button-secondary small"
-                        disabled={loading === `test:${device.id}`}
-                        onClick={() => void testDevice(device.id)}
-                      >
-                        Test
-                      </button>
-                      <button
-                        className="button button-ghost small"
-                        disabled={loading === `delete:${device.id}`}
-                        onClick={() => void deleteDevice(device.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="empty-state">
-                No setup saved yet. Add one below to get started.
-              </p>
-            )}
-
-            <div className="device-form">
-              <div className="field-grid">
-                <label className="field">
-                  <span>Device type</span>
-                  <select
-                    value={deviceForm.type}
-                    onChange={(event) =>
-                      updateDeviceForm("type", event.target.value as DeviceType)
-                    }
-                  >
-                    <option value="autoblow">Autoblow</option>
-                    <option value="handy">Handy</option>
-                    <option value="rest">Generic REST</option>
-                  </select>
-                </label>
-                <label className="field">
-                  <span>Label</span>
-                  <input
-                    value={deviceForm.label}
-                    onChange={(event) => updateDeviceForm("label", event.target.value)}
-                    placeholder="Bedroom setup"
-                  />
-                </label>
-              </div>
-
-              {deviceForm.type === "autoblow" ? (
-                <label className="field">
-                  <span>Device token</span>
-                  <input
-                    value={deviceForm.deviceToken}
-                    onChange={(event) =>
-                      updateDeviceForm("deviceToken", event.target.value)
-                    }
-                    placeholder="Autoblow API token"
-                  />
-                </label>
-              ) : null}
-
-              {deviceForm.type === "handy" ? (
-                <label className="field">
-                  <span>Connection key</span>
-                  <input
-                    value={deviceForm.connectionKey}
-                    onChange={(event) =>
-                      updateDeviceForm("connectionKey", event.target.value)
-                    }
-                    placeholder="Handy connection key"
-                  />
-                </label>
-              ) : null}
-
-              {deviceForm.type === "rest" ? (
-                <div className="device-form">
-                  <label className="field">
-                    <span>Endpoint URL</span>
-                    <input
-                      value={deviceForm.endpointUrl}
-                      onChange={(event) =>
-                        updateDeviceForm("endpointUrl", event.target.value)
-                      }
-                      placeholder="https://device.example/api/live"
-                    />
-                  </label>
-                  <div className="field-grid">
-                    <label className="field">
-                      <span>Auth token</span>
-                      <input
-                        value={deviceForm.authToken}
-                        onChange={(event) =>
-                          updateDeviceForm("authToken", event.target.value)
-                        }
-                        placeholder="Optional bearer token"
-                      />
-                    </label>
-                    <label className="field">
-                      <span>Auth header</span>
-                      <input
-                        value={deviceForm.authHeaderName}
-                        onChange={(event) =>
-                          updateDeviceForm("authHeaderName", event.target.value)
-                        }
-                        placeholder="Authorization"
-                      />
-                    </label>
-                  </div>
-                </div>
-              ) : null}
-
-              <button
-                className="button button-primary"
-                disabled={loading === "device"}
-                onClick={() => void createDevice()}
-              >
-                {loading === "device" ? "Saving..." : "Save setup"}
-              </button>
-            </div>
-          </section>
 
           {isTokenControlPage ? (
-            <section className="panel">
-              <div className="panel-header">
-                <div>
-                  <p className="eyebrow">Token sync</p>
-                  <h2>Where this token shows up</h2>
-                </div>
-              </div>
-
-              <p className="panel-lead">
-                Keep token control here. MyGoonClaw and any guest-facing stream page
-                mirror this contract focus automatically once your streamer profile is live.
+            <>
+              <p className="panel-lead go-live-subsection">
+                Keep token control here. MyGoonClaw and any guest-facing stream page mirror this contract focus automatically once your streamer profile is live.
               </p>
 
-              <dl className="detail-list">
+              <dl className="detail-list compact">
                 <div className="detail">
                   <dt>Current token</dt>
                   <dd>{contractAddress}</dd>
@@ -805,22 +804,25 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                   </dd>
                 </div>
               </dl>
-            </section>
+            </>
           ) : (
-            <PublicStreamSettingsPanel
-              slug={publicStreamSlug}
-              defaultContractAddress={contractAddress}
-              isPublic={Boolean(publicStream?.isPublic)}
-              saving={loading === "public"}
-              publicUrl={publicStreamUrl}
-              onSlugChange={setPublicStreamSlug}
-              onSave={() => void savePublicStreamSettings(true)}
-              onMakePrivate={() => void savePublicStreamSettings(false)}
-            />
+            <div className="go-live-subsection">
+              <PublicStreamSettingsPanel
+                slug={publicStreamSlug}
+                defaultContractAddress={contractAddress}
+                isPublic={Boolean(publicStream?.isPublic)}
+                saving={loading === "public"}
+                publicUrl={publicStreamUrl}
+                embedded
+                onSlugChange={setPublicStreamSlug}
+                onSave={() => void savePublicStreamSettings(true)}
+                onMakePrivate={() => void savePublicStreamSettings(false)}
+              />
+            </div>
           )}
 
-          <section className="panel">
-            <div className="panel-header">
+          <div className="go-live-subsection">
+            <div className="panel-header go-live-subheader">
               <div>
                 <p className="eyebrow">Recent sessions</p>
                 <h2>Recent activity</h2>
@@ -859,8 +861,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                 Session history will appear here after your first run.
               </p>
             )}
-          </section>
-        </div>
+          </div>
+        </section>
       </section>
     </div>
   );

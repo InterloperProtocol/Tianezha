@@ -32,6 +32,18 @@ env:
     availability:
       - RUNTIME
 
+  - variable: NEXT_PUBLIC_GOONCLAW_MEDIA_URL
+    value: "https://www.youtube.com/watch?v=e5nyQmaq4k4"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_LIVESTREAM_EMBED_URL
+    value: "https://www.youtube.com/watch?v=e5nyQmaq4k4"
+    availability:
+      - BUILD
+      - RUNTIME
+
   - variable: TREASURY_WALLET
     value: "784GuK5UrT9KsTvUexXmq1G9pLgckUFscth5DEwQGVbZ"
     availability:

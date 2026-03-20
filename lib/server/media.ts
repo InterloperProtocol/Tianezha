@@ -386,6 +386,10 @@ function providerLabelForHost(hostname: string) {
     return "Twitch";
   }
 
+  if (hostname.includes("kick.com")) {
+    return "Kick";
+  }
+
   if (hostname.includes("pornhub.com")) {
     return "Pornhub";
   }
@@ -411,6 +415,7 @@ function providerLabelFromYtDlp(payload: YtDlpPayload) {
   if (source.includes("youtube")) return "YouTube";
   if (source.includes("vimeo")) return "Vimeo";
   if (source.includes("twitch")) return "Twitch";
+  if (source.includes("kick")) return "Kick";
   if (source.includes("pornhub")) return "Pornhub";
   if (source.includes("xvideos")) return "XVideos";
   if (source.includes("eporner")) return "Eporner";
@@ -669,6 +674,10 @@ function extractChaturbateRoom(url: URL) {
   return url.pathname.split("/").filter(Boolean)[0] ?? "";
 }
 
+function extractKickChannel(url: URL) {
+  return url.pathname.split("/").filter(Boolean)[0] ?? "";
+}
+
 export function buildKnownMediaConfig(value: string, parentHost: string): ResolvedMedia | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -712,6 +721,17 @@ export function buildKnownMediaConfig(value: string, parentHost: string): Resolv
           "embed",
         );
       }
+    }
+
+    if (lowerHost.includes("kick.com")) {
+      if (lowerHost.includes("player.kick.com")) {
+        return asIframeUrl(url.toString(), "Kick", "embed");
+      }
+
+      const channel = extractKickChannel(url);
+      return channel
+        ? asIframeUrl(`https://player.kick.com/${channel}`, "Kick", "embed")
+        : null;
     }
 
     if (lowerHost.includes("pornhub.com")) {

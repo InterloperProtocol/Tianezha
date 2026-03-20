@@ -695,6 +695,22 @@ textarea {
   overscroll-behavior: contain;
 }
 
+.news-controls {
+  margin-top: auto;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(242, 161, 74, 0.12);
+}
+
+.news-controls .media-toolbar {
+  margin-bottom: 0;
+}
+
+.news-saved-feeds {
+  max-height: min(22vh, 9rem);
+  overflow: auto;
+  padding-right: 0.35rem;
+}
+
 .dashboard-grid-triple .news-panel {
   overflow: hidden;
 }
@@ -1061,6 +1077,25 @@ textarea {
 
 .detail-list.compact {
   margin-top: 0.85rem;
+}
+
+.go-live-subsection {
+  margin-top: 1.1rem;
+}
+
+.go-live-subheader {
+  margin-bottom: 0.75rem;
+}
+
+.public-stream-settings.embedded {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.public-stream-settings.embedded .panel-header {
+  margin-bottom: 0.75rem;
 }
 
 .detail dt {

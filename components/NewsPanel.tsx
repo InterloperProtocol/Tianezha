@@ -147,48 +147,8 @@ export function NewsPanel({
       </div>
 
       <p className="hero-summary compact">
-        Stay close to the market with a mix of live headlines and your own saved
-        RSS feeds.
+        Stay close to the market with a live headline mix and your own saved RSS feeds.
       </p>
-
-      <div className="news-tabs">
-        {categories.map((item) => (
-          <button
-            key={item.id}
-            className={
-              category === item.id
-                ? "button button-primary small"
-                : "button button-ghost small"
-            }
-            onClick={() => setCategory(item.id)}
-            type="button"
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="media-toolbar">
-        <label className="field">
-          <span>Add a custom feed</span>
-          <input
-            value={customFeedDraft}
-            onChange={(event) => setCustomFeedDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                addCustomFeed();
-              }
-            }}
-            placeholder="Paste an RSS or Atom feed URL"
-          />
-        </label>
-        <div className="button-row">
-          <button className="button button-secondary small" onClick={addCustomFeed} type="button">
-            Save feed
-          </button>
-        </div>
-      </div>
 
       {error ? <p className="error-banner">{error}</p> : null}
       {feed?.sources.length ? (
@@ -197,25 +157,6 @@ export function NewsPanel({
           <span className="status-badge">
             {feed.sources.length} free sources
           </span>
-        </div>
-      ) : null}
-      {customFeeds.length ? (
-        <div className="history-list scroll-feed compact-scroll-feed">
-          {customFeeds.map((feedUrl) => (
-            <div key={feedUrl} className="history-item">
-              <div>
-                <span>Saved feed</span>
-                <strong>{feedUrl}</strong>
-              </div>
-              <button
-                className="button button-ghost small"
-                onClick={() => removeCustomFeed(feedUrl)}
-                type="button"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
         </div>
       ) : null}
 
@@ -240,6 +181,67 @@ export function NewsPanel({
           moment.
         </p>
       ) : null}
+
+      <div className="news-controls">
+        <div className="news-tabs">
+          {categories.map((item) => (
+            <button
+              key={item.id}
+              className={
+                category === item.id
+                  ? "button button-primary small"
+                  : "button button-ghost small"
+              }
+              onClick={() => setCategory(item.id)}
+              type="button"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="media-toolbar">
+          <label className="field">
+            <span>Add a custom feed</span>
+            <input
+              value={customFeedDraft}
+              onChange={(event) => setCustomFeedDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addCustomFeed();
+                }
+              }}
+              placeholder="Paste an RSS or Atom feed URL"
+            />
+          </label>
+          <div className="button-row">
+            <button className="button button-secondary small" onClick={addCustomFeed} type="button">
+              Save feed
+            </button>
+          </div>
+        </div>
+
+        {customFeeds.length ? (
+          <div className="history-list compact-scroll-feed news-saved-feeds">
+            {customFeeds.map((feedUrl) => (
+              <div key={feedUrl} className="history-item">
+                <div>
+                  <span>Saved feed</span>
+                  <strong>{feedUrl}</strong>
+                </div>
+                <button
+                  className="button button-ghost small"
+                  onClick={() => removeCustomFeed(feedUrl)}
+                  type="button"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }

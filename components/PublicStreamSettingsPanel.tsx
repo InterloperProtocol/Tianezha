@@ -8,6 +8,7 @@ type Props = {
   isPublic: boolean;
   saving: boolean;
   publicUrl: string | null;
+  embedded?: boolean;
   onSlugChange: (value: string) => void;
   onSave: () => void;
   onMakePrivate: () => void;
@@ -19,12 +20,13 @@ export function PublicStreamSettingsPanel({
   isPublic,
   saving,
   publicUrl,
+  embedded = false,
   onSlugChange,
   onSave,
   onMakePrivate,
 }: Props) {
   return (
-    <section className="panel">
+    <section className={embedded ? "public-stream-settings embedded" : "panel public-stream-settings"}>
       <div className="panel-header">
         <div>
           <p className="eyebrow">Streamer signup</p>
