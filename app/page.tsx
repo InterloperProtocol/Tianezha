@@ -45,7 +45,10 @@ export default function Home() {
               Open Personal
             </Link>
             <Link className="button button-secondary" href="/livestream">
-              Open Livestream
+              Open GoonClaw
+            </Link>
+            <Link className="button button-ghost" href="/goonstreams">
+              Browse GoonStreams
             </Link>
             <Link className="button button-ghost" href="/eligibility">
               Check Access
@@ -82,13 +85,25 @@ export default function Home() {
         </section>
 
         <section className="surface-card">
-          <p className="eyebrow">Livestream</p>
+          <p className="eyebrow">GoonClaw</p>
           <h2>/livestream</h2>
-          <p>Show what&apos;s live, collect paid requests, and keep the queue easy for viewers to understand.</p>
+          <p>Run the public queue, collect requests, and keep the live room simple for viewers to follow.</p>
           <div className="surface-card-footer">
             <StatusBadge tone="accent">Public experience</StatusBadge>
             <Link className="surface-card-link" href="/livestream">
-              Open live room
+              Open GoonClaw
+            </Link>
+          </div>
+        </section>
+
+        <section className="surface-card">
+          <p className="eyebrow">GoonStreams</p>
+          <h2>/goonstreams</h2>
+          <p>See which guest-session public panels are actually live and open any one in read-only mode.</p>
+          <div className="surface-card-footer">
+            <StatusBadge tone="success">Active streams</StatusBadge>
+            <Link className="surface-card-link" href="/goonstreams">
+              Open board
             </Link>
           </div>
         </section>
@@ -132,9 +147,10 @@ export default function Home() {
               </div>
             </div>
             <p className="hero-summary">
-              Use Personal for your own setup, Livestream for public queue flow,
-              Wallet Access for quick yes-or-no checks, and Status when you want
-              to confirm the foundation is ready.
+              Use Personal for your own setup, GoonClaw for the public queue,
+              GoonStreams to browse live public panels, Wallet Access for quick
+              yes-or-no checks, and Status when you want to confirm the foundation
+              is ready.
             </p>
             <div className="route-badges">
               <StatusBadge tone="accent">Clear at a glance</StatusBadge>

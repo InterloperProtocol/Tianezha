@@ -9,13 +9,19 @@ const items = [
   { href: "/", label: "Home" },
   { href: "/eligibility", label: "Access" },
   { href: "/goonclaw", label: "Personal" },
-  { href: "/livestream", label: "Livestream" },
+  { href: "/livestream", label: "GoonClaw" },
+  { href: "/goonstreams", label: "GoonStreams" },
   { href: "/agent", label: "Status" },
 ];
 
 export function SiteNav() {
   const pathname = usePathname();
-  const activeItem = items.find((item) => item.href === pathname) ?? items[0];
+  const activeItem =
+    items.find(
+      (item) =>
+        pathname === item.href ||
+        (item.href !== "/" && pathname.startsWith(`${item.href}/`)),
+    ) ?? items[0];
 
   return (
     <nav className="site-nav panel">
@@ -36,7 +42,11 @@ export function SiteNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={pathname === item.href ? "nav-link active" : "nav-link"}
+            className={
+              pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`))
+                ? "nav-link active"
+                : "nav-link"
+            }
           >
             {item.label}
           </Link>

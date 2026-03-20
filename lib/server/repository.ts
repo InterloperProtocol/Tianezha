@@ -14,6 +14,7 @@ import {
   LivestreamRequestRecord,
   LivestreamRequestStatus,
   OrderRecord,
+  PublicStreamProfile,
   SanitizedDeviceProfile,
   SessionRecord,
 } from "@/lib/types";
@@ -23,6 +24,7 @@ type MemoryShape = {
   devices: Map<string, DeviceProfile>;
   entitlements: Map<string, EntitlementRecord>;
   orders: Map<string, OrderRecord>;
+  publicStreamProfiles: Map<string, PublicStreamProfile>;
   sessions: Map<string, SessionRecord>;
   livestreamRequests: Map<string, LivestreamRequestRecord>;
 };
@@ -37,6 +39,7 @@ function getMemoryStore(): MemoryShape {
       devices: new Map(),
       entitlements: new Map(),
       orders: new Map(),
+      publicStreamProfiles: new Map(),
       sessions: new Map(),
       livestreamRequests: new Map(),
     };
@@ -286,6 +289,71 @@ export async function getOrder(signature: string) {
     async (db) => {
       const doc = await db.collection("orders").doc(signature).get();
       return doc.exists ? (doc.data() as OrderRecord) : null;
+    },
+  );
+}
+
+export async function getPublicStreamProfile(guestId: string) {
+  return withRepositoryBackend(
+    "getPublicStreamProfile",
+    () => getMemoryStore().publicStreamProfiles.get(guestId) ?? null,
+    async (db) => {
+      const doc = await db.collection("publicStreamProfiles").doc(guestId).get();
+      return doc.exists ? (doc.data() as PublicStreamProfile) : null;
+    },
+  );
+}
+
+export async function getPublicStreamProfileBySlug(slug: string) {
+  return withRepositoryBackend(
+    "getPublicStreamProfileBySlug",
+    () =>
+      [...getMemoryStore().publicStreamProfiles.values()].find(
+        (item) => item.slug === slug,
+      ) ?? null,
+    async (db) => {
+      const snapshot = await db
+        .collection("publicStreamProfiles")
+        .where("slug", "==", slug)
+        .limit(1)
+        .get();
+
+      return snapshot.empty
+        ? null
+        : (snapshot.docs[0].data() as PublicStreamProfile);
+    },
+  );
+}
+
+export async function listPublicStreamProfiles() {
+  return withRepositoryBackend(
+    "listPublicStreamProfiles",
+    () =>
+      [...getMemoryStore().publicStreamProfiles.values()].sort((a, b) =>
+        b.updatedAt.localeCompare(a.updatedAt),
+      ),
+    async (db) => {
+      const snapshot = await db.collection("publicStreamProfiles").get();
+      return snapshot.docs
+        .map((doc) => doc.data() as PublicStreamProfile)
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    },
+  );
+}
+
+export async function upsertPublicStreamProfile(record: PublicStreamProfile) {
+  return withRepositoryBackend(
+    "upsertPublicStreamProfile",
+    () => {
+      getMemoryStore().publicStreamProfiles.set(record.guestId, record);
+      return record;
+    },
+    async (db) => {
+      await db
+        .collection("publicStreamProfiles")
+        .doc(record.guestId)
+        .set(record, { merge: true });
+      return record;
     },
   );
 }

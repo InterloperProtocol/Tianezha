@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
+import { PublicStreamSettingsPanel } from "@/components/PublicStreamSettingsPanel";
 import { SiteNav } from "@/components/SiteNav";
 import { RouteHeader } from "@/components/ui/RouteHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -13,6 +14,7 @@ import {
   ChartSnapshot,
   DeviceCredentials,
   DeviceType,
+  PublicStreamProfile,
   SanitizedDeviceProfile,
   SessionMode,
   SessionRecord,
@@ -30,6 +32,11 @@ type DeviceFormState = {
   endpointUrl: string;
   authToken: string;
   authHeaderName: string;
+};
+
+type PublicStreamResponse = {
+  item: PublicStreamProfile | null;
+  publicUrl: string | null;
 };
 
 const DEFAULT_CONTRACT_ADDRESS = DEFAULT_PUMP_TOKEN_MINT;
@@ -50,6 +57,10 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [chartSnapshot, setChartSnapshot] = useState<ChartSnapshot | null>(null);
   const [contractAddress, setContractAddress] = useState(DEFAULT_CONTRACT_ADDRESS);
+  const [publicStream, setPublicStream] = useState<PublicStreamProfile | null>(null);
+  const [publicStreamUrl, setPublicStreamUrl] = useState<string | null>(null);
+  const [publicStreamSlug, setPublicStreamSlug] = useState("");
+  const [publicMediaUrl, setPublicMediaUrl] = useState(defaultMediaUrl);
   const [mode, setMode] = useState<SessionMode>("live");
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
@@ -97,14 +108,77 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
     setSessions(payload.items);
   }
 
+  const refreshPublicStream = useCallback(async () => {
+    const response = await fetch("/api/public-stream");
+    if (!response.ok) return;
+
+    const payload = (await response.json()) as PublicStreamResponse;
+    setPublicStream(payload.item);
+    setPublicStreamUrl(payload.publicUrl);
+
+    if (payload.item) {
+      setPublicStreamSlug(payload.item.slug);
+      setContractAddress(payload.item.defaultContractAddress || DEFAULT_CONTRACT_ADDRESS);
+      setPublicMediaUrl(payload.item.mediaUrl || defaultMediaUrl);
+      return;
+    }
+
+    setPublicStreamSlug("");
+    setPublicMediaUrl(defaultMediaUrl);
+  }, [defaultMediaUrl]);
+
   useEffect(() => {
     void refreshDevices();
     void refreshSessions();
+    void refreshPublicStream();
     const interval = window.setInterval(() => {
       void refreshSessions();
     }, 4_000);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [refreshPublicStream]);
+
+  useEffect(() => {
+    if (!publicStream?.isPublic) {
+      return;
+    }
+
+    const nextContractAddress =
+      contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS;
+    const nextMediaUrl = publicMediaUrl.trim();
+    if (
+      publicStream.defaultContractAddress === nextContractAddress &&
+      (publicStream.mediaUrl || "") === nextMediaUrl
+    ) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      void fetch("/api/public-stream", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: publicStream.slug,
+          isPublic: true,
+          defaultContractAddress: nextContractAddress,
+          mediaUrl: nextMediaUrl,
+        }),
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            return;
+          }
+
+          const payload = (await response.json()) as PublicStreamResponse;
+          setPublicStream(payload.item);
+          setPublicStreamUrl(payload.publicUrl);
+        })
+        .catch((syncError) => {
+          console.warn("Failed to sync public stream state", syncError);
+        });
+    }, 700);
+
+    return () => window.clearTimeout(timeout);
+  }, [contractAddress, publicMediaUrl, publicStream]);
 
   function updateDeviceForm<K extends keyof DeviceFormState>(
     key: K,
@@ -279,6 +353,49 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
     }
   }
 
+  async function savePublicStreamSettings(nextIsPublic: boolean) {
+    setLoading("public");
+    setNotice(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/public-stream", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: publicStreamSlug.trim(),
+          isPublic: nextIsPublic,
+          defaultContractAddress:
+            contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS,
+          mediaUrl: publicMediaUrl.trim(),
+        }),
+      });
+      const payload = (await response.json()) as PublicStreamResponse & {
+        error?: string;
+      };
+      if (!response.ok || !payload.item) {
+        throw new Error(payload.error || "Couldn't save public stream");
+      }
+
+      setPublicStream(payload.item);
+      setPublicStreamUrl(payload.publicUrl);
+      setPublicStreamSlug(payload.item.slug);
+      setNotice(
+        nextIsPublic
+          ? "Your public stream page is live."
+          : "Your public stream page is now private.",
+      );
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Couldn't save public stream",
+      );
+    } finally {
+      setLoading(null);
+    }
+  }
+
   return (
     <div className="app-shell">
       <SiteNav />
@@ -332,8 +449,9 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
         <MediaEmbedPanel
           title="Video or stream"
           description="Paste a video or stream link to keep the right media beside the chart while you work."
-          defaultUrl={defaultMediaUrl}
+          defaultUrl={publicStream?.mediaUrl || defaultMediaUrl}
           storageKey="goonclaw-personal-media"
+          onActiveUrlChange={setPublicMediaUrl}
         />
       </section>
 
@@ -580,6 +698,18 @@ export function GoonclawClient({ defaultMediaUrl }: Props) {
               </button>
             </div>
           </section>
+
+          <PublicStreamSettingsPanel
+            slug={publicStreamSlug}
+            defaultContractAddress={contractAddress}
+            isPublic={Boolean(publicStream?.isPublic)}
+            saving={loading === "public"}
+            publicUrl={publicStreamUrl}
+            onSlugChange={setPublicStreamSlug}
+            onDefaultContractAddressChange={setContractAddress}
+            onSave={() => void savePublicStreamSettings(true)}
+            onMakePrivate={() => void savePublicStreamSettings(false)}
+          />
 
           <section className="panel">
             <div className="panel-header">

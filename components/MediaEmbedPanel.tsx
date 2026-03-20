@@ -53,6 +53,7 @@ export function MediaEmbedPanel({
   defaultUrl = "",
   storageKey,
   readOnly = false,
+  onActiveUrlChange,
 }: {
   title: string;
   eyebrow?: string;
@@ -60,6 +61,7 @@ export function MediaEmbedPanel({
   defaultUrl?: string;
   storageKey: string;
   readOnly?: boolean;
+  onActiveUrlChange?: (url: string) => void;
 }) {
   const [draftUrl, setDraftUrl] = useState(defaultUrl);
   const [activeUrl, setActiveUrl] = useState(defaultUrl);
@@ -192,6 +194,10 @@ export function MediaEmbedPanel({
     });
     setProviderHistoryCount(nextProviderHistory.length);
   }, [activeUrl, readHistory, readOnly, resolved, writeHistory]);
+
+  useEffect(() => {
+    onActiveUrlChange?.(activeUrl.trim());
+  }, [activeUrl, onActiveUrlChange]);
 
   useEffect(() => {
     if (!resolved || resolved.kind !== "video" || resolved.streamType !== "hls") {

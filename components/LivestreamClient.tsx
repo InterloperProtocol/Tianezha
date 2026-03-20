@@ -187,8 +187,8 @@ export function LivestreamClient() {
     <div className="app-shell">
       <SiteNav />
       <RouteHeader
-        eyebrow="Live queue"
-        title="Make it easy for viewers to join in."
+        eyebrow="GoonClaw"
+        title="Run the public queue without the clutter."
         summary="Show what&apos;s live, collect paid requests, and keep the queue clear before anyone sends payment."
         badges={[
           "Clear live status",

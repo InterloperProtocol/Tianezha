@@ -132,6 +132,30 @@ export interface LivestreamRequestRecord {
   error?: string;
 }
 
+export interface PublicStreamProfile {
+  id: string;
+  guestId: string;
+  slug: string;
+  isPublic: boolean;
+  defaultContractAddress: string;
+  mediaUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicStreamSummary {
+  profile: PublicStreamProfile;
+  activeSession: SessionRecord;
+  activeDeviceLabel?: string;
+}
+
+export interface PublicStreamPageState {
+  profile: PublicStreamProfile;
+  activeSession: SessionRecord | null;
+  activeDeviceLabel?: string;
+  recentSessions: SessionRecord[];
+}
+
 export interface AuthNonceRecord {
   nonce: string;
   wallet: string;
