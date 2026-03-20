@@ -8,6 +8,7 @@ import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
 import { SiteNav } from "@/components/SiteNav";
+import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import {
   ChartSnapshot,
   DeviceCredentials,
@@ -33,7 +34,7 @@ type DeviceFormState = {
   authHeaderName: string;
 };
 
-const DEFAULT_CONTRACT_ADDRESS = "m5ZBzQVNoaru3CmZWDWXo1KKpRkEhfH4Ti3X69ppump";
+const DEFAULT_CONTRACT_ADDRESS = DEFAULT_PUMP_TOKEN_MINT;
 
 const initialDeviceState: DeviceFormState = {
   type: "autoblow",

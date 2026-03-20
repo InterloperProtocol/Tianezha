@@ -16,6 +16,10 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 import { PriceChart } from "@/components/PriceChart";
 import {
+  DEFAULT_ACCESS_TOKEN_SYMBOL,
+  DEFAULT_PUMP_TOKEN_MINT,
+} from "@/lib/token-defaults";
+import {
   DeviceCredentials,
   DeviceType,
   EntitlementRecord,
@@ -29,6 +33,7 @@ type PublicConfig = {
   rpcUrl: string;
   treasuryWallet: string;
   accessPriceSol: string;
+  accessTokenSymbol?: string;
   burnMint: string;
   burnAmountRaw: string;
   burnDecimals: string;
@@ -64,6 +69,7 @@ const initialDeviceState: DeviceFormState = {
 export function AppClient({ config }: { config: PublicConfig }) {
   const { connection } = useConnection();
   const wallet = useWallet();
+  const accessTokenSymbol = config.accessTokenSymbol ?? DEFAULT_ACCESS_TOKEN_SYMBOL;
   const [entitlement, setEntitlement] = useState<EntitlementResponse>({
     authenticated: false,
     hasAccess: false,
@@ -72,7 +78,7 @@ export function AppClient({ config }: { config: PublicConfig }) {
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [deviceForm, setDeviceForm] = useState<DeviceFormState>(initialDeviceState);
   const [contractAddress, setContractAddress] = useState(
-    "m5ZBzQVNoaru3CmZWDWXo1KKpRkEhfH4Ti3X69ppump",
+    DEFAULT_PUMP_TOKEN_MINT,
   );
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [mode, setMode] = useState<SessionMode>("live");
@@ -467,13 +473,13 @@ export function AppClient({ config }: { config: PublicConfig }) {
 
           <article className="panel gate-panel secondary">
             <p className="eyebrow">Token Burn</p>
-            <h2>Burn 100,000 GOONCLAW</h2>
+            <h2>Burn 100,000 {accessTokenSymbol}</h2>
             <p>
               Burn{" "}
               <strong>
                 {Number(config.burnAmountRaw) / 10 ** Number(config.burnDecimals)}
               </strong>{" "}
-              GOONCLAW from the connected wallet to unlock permanent access
+              {accessTokenSymbol} from the connected wallet to unlock permanent access
               without buying the cNFT.
             </p>
             <button

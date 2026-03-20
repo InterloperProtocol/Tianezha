@@ -1,6 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 import { getServerEnv } from "@/lib/env";
+import { DEFAULT_ACCESS_TOKEN_SYMBOL } from "@/lib/token-defaults";
 import {
   LaunchonomicsBadge,
   LaunchonomicsEvaluation,
@@ -364,7 +365,9 @@ export async function getLaunchonomicsEvaluation(wallet: string) {
     wallet: normalizedWallet,
     launchAt: env.LAUNCHONOMICS_LAUNCH_AT,
     tokenMint: env.LAUNCHONOMICS_TOKEN_MINT,
-    tokenSymbol: process.env.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL?.trim() || "$TOKEN",
+    tokenSymbol:
+      process.env.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL?.trim() ||
+      DEFAULT_ACCESS_TOKEN_SYMBOL,
     transfers,
     currentBalance,
   });

@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  DEFAULT_ACCESS_TOKEN_SYMBOL,
+  DEFAULT_PUMP_TOKEN_MINT,
+} from "@/lib/token-defaults";
+
 const rawServerEnvSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -248,7 +253,7 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
     BAGSTROKE_TOKEN_MINT:
       raw.GOONCLAW_TOKEN_MINT?.trim() ||
       raw.BAGSTROKE_TOKEN_MINT?.trim() ||
-      "",
+      DEFAULT_PUMP_TOKEN_MINT,
     BAGSTROKE_BURN_AMOUNT_RAW:
       raw.GOONCLAW_BURN_AMOUNT_RAW?.trim() ||
       raw.BAGSTROKE_BURN_AMOUNT_RAW?.trim() ||
@@ -261,7 +266,7 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       raw.LAUNCHONOMICS_TOKEN_MINT?.trim() ||
       raw.GOONCLAW_TOKEN_MINT?.trim() ||
       raw.BAGSTROKE_TOKEN_MINT?.trim() ||
-      "",
+      DEFAULT_PUMP_TOKEN_MINT,
     LAUNCHONOMICS_LAUNCH_AT:
       raw.LAUNCHONOMICS_LAUNCH_AT?.trim() ||
       inferLaunchAtFromFreeUntil(process.env.NEXT_PUBLIC_FREE_ACCESS_UNTIL),
@@ -338,7 +343,7 @@ export function getPublicEnv(): PublicEnv {
       raw.NEXT_PUBLIC_BAGSTROKE_TOKEN_MINT?.trim() ||
       process.env.GOONCLAW_TOKEN_MINT?.trim() ||
       process.env.BAGSTROKE_TOKEN_MINT?.trim() ||
-      "",
+      DEFAULT_PUMP_TOKEN_MINT,
     NEXT_PUBLIC_BAGSTROKE_BURN_AMOUNT_RAW:
       raw.NEXT_PUBLIC_GOONCLAW_BURN_AMOUNT_RAW?.trim() ||
       raw.NEXT_PUBLIC_BAGSTROKE_BURN_AMOUNT_RAW?.trim() ||
@@ -355,7 +360,8 @@ export function getPublicEnv(): PublicEnv {
       raw.NEXT_PUBLIC_FREE_ACCESS_UNTIL?.trim() ||
       new Date(Date.now() + 24 * 60 * 60_000).toISOString(),
     NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL:
-      raw.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL?.trim() || "$TOKEN",
+      raw.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL?.trim() ||
+      DEFAULT_ACCESS_TOKEN_SYMBOL,
     NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT:
       raw.NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT?.trim() ||
       process.env.LAUNCHONOMICS_LAUNCH_AT?.trim() ||

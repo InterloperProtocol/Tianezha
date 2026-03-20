@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { evaluateLaunchonomicsWindow } from "@/lib/server/launchonomics";
+import {
+  DEFAULT_ACCESS_TOKEN_SYMBOL,
+  DEFAULT_PUMP_TOKEN_MINT,
+} from "@/lib/token-defaults";
 
 const launchAt = "2026-03-19T12:00:00.000Z";
 const wallet = "3vV4fGQm3xwY4yM8f2uyT8zYqb6P5SzY6h5o4PSJVpQ4";
-const tokenMint = "m5ZBzQVNoaru3CmZWDWXo1KKpRkEhfH4Ti3X69ppump";
-const tokenSymbol = "$TOKEN";
+const tokenMint = DEFAULT_PUMP_TOKEN_MINT;
+const tokenSymbol = DEFAULT_ACCESS_TOKEN_SYMBOL;
 
 describe("launchonomics tier evaluation", () => {
   it("grants a 5-year tier for a first trade in the first 10 minutes", () => {

@@ -8,6 +8,7 @@ import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
 import { SiteNav } from "@/components/SiteNav";
+import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import { ChartSnapshot, LivestreamTier } from "@/lib/types";
 
 type LivestreamRequestView = {
@@ -42,7 +43,7 @@ type LivestreamState = {
   deviceAvailable: boolean;
 };
 
-const DEFAULT_CONTRACT_ADDRESS = "m5ZBzQVNoaru3CmZWDWXo1KKpRkEhfH4Ti3X69ppump";
+const DEFAULT_CONTRACT_ADDRESS = DEFAULT_PUMP_TOKEN_MINT;
 
 function lamportsToSol(value: string) {
   return (Number(BigInt(value)) / 1_000_000_000).toFixed(3);

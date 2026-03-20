@@ -7,6 +7,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { getServerEnv } from "@/lib/env";
 import { getAgentModelStatus } from "@/lib/server/agent-model";
+import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import { AgentOpsStatus, ReferenceStatus } from "@/lib/types";
 
 function readPackageVersions() {
@@ -119,7 +120,7 @@ export function getAgentOpsStatus(): AgentOpsStatus {
     process.env.AGENT_TOKEN_MINT_ADDRESS?.trim() ||
     process.env.GOONCLAW_TOKEN_MINT?.trim() ||
     env.BAGSTROKE_TOKEN_MINT ||
-    "";
+    DEFAULT_PUMP_TOKEN_MINT;
   const currencyMint = process.env.CURRENCY_MINT?.trim() || "";
 
   const tokenMintKey = safePublicKey(tokenMint);

@@ -5,12 +5,13 @@ import {
   buildHandyStreamPoints,
   deriveLiveCommand,
 } from "@/lib/server/chart";
+import { DEFAULT_CHART_SYMBOL } from "@/lib/token-defaults";
 import { ChartSnapshot } from "@/lib/types";
 
 function makeSnapshot(): ChartSnapshot {
   return {
     contractAddress: "bagstroke-test-contract",
-    symbol: "BAG",
+    symbol: DEFAULT_CHART_SYMBOL,
     name: "BagStroke",
     priceUsd: 0.012,
     marketCapUsd: 1200000,

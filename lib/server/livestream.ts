@@ -28,6 +28,7 @@ import {
 import { nowIso } from "@/lib/utils";
 
 const PAYMENT_WINDOW_MS = 15 * 60_000;
+const LIVESTREAM_MEMO_PREFIX = "PUMP";
 
 function toLamports(sol: string) {
   return BigInt(Math.round(Number(sol) * 1_000_000_000));
@@ -81,7 +82,7 @@ function assertContractAddress(contractAddress: string) {
 
 async function generateUniqueMemo() {
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const memo = `BAG-${randomUUID().slice(0, 8).toUpperCase()}`;
+    const memo = `${LIVESTREAM_MEMO_PREFIX}-${randomUUID().slice(0, 8).toUpperCase()}`;
     const existing = await getLivestreamRequestByMemo(memo);
     if (!existing) {
       return memo;

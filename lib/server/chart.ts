@@ -1,4 +1,5 @@
 import { getServerEnv } from "@/lib/env";
+import { DEFAULT_CHART_SYMBOL } from "@/lib/token-defaults";
 import { ChartCandle, ChartSnapshot, FunscriptPayload, LiveCommand } from "@/lib/types";
 import { clamp, seededNumber } from "@/lib/utils";
 
@@ -113,7 +114,7 @@ export async function loadChartSnapshot(contractAddress: string): Promise<ChartS
   return {
     contractAddress,
     name: dex?.name ?? "Synthetic Pair",
-    symbol: dex?.symbol ?? "BAG",
+    symbol: dex?.symbol ?? DEFAULT_CHART_SYMBOL,
     priceUsd: dex?.priceUsd ?? latest.close,
     marketCapUsd: dex?.marketCapUsd ?? latest.close * 1_000_000,
     liquidityUsd: dex?.liquidityUsd ?? latest.volume * 20,
