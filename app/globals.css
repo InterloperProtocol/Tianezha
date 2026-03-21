@@ -599,6 +599,18 @@ textarea {
   overflow: hidden;
 }
 
+.chart-details {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.9rem 0.55rem 0.45rem;
+}
+
+.chart-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
 .chart-surface {
   position: relative;
   width: 100%;
@@ -732,33 +744,6 @@ textarea {
   overscroll-behavior: contain;
 }
 
-.news-source-strip {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0.95rem 0 1rem;
-  padding: 0.9rem;
-  border-radius: 0.18rem;
-  border: 1px solid rgba(242, 161, 74, 0.14);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.source-strip-label {
-  color: var(--text-dim);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.news-source-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  max-height: min(16vh, 7rem);
-  overflow: auto;
-  padding-right: 0.25rem;
-}
-
 .dashboard-grid-feed-row .news-panel .news-list,
 .dashboard-grid-feed-row .token-pulse-list {
   flex: 1 1 auto;
@@ -767,7 +752,7 @@ textarea {
 
 .news-controls {
   display: grid;
-  gap: 1rem;
+  gap: 0.9rem;
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(242, 161, 74, 0.12);
@@ -1510,7 +1495,8 @@ textarea {
 
   .session-card,
   .stats-grid,
-  .goonbook-stat-row {
+  .goonbook-stat-row,
+  .chart-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1543,6 +1529,7 @@ textarea {
   .session-card,
   .stats-grid,
   .goonbook-stat-row,
+  .chart-stats-grid,
   .chat-meta,
   .token-pulse-main,
   .token-pulse-stats {

@@ -39,7 +39,7 @@ export function PublicStreamSettingsPanel({
 
       <p className="panel-lead">
         Save a clean username for your guest-facing page. Your current chart,
-        media, and live session state can be published to a shareable page when
+        stream, and live session state can be published to a shareable page when
         you are ready.
       </p>
 
@@ -97,7 +97,7 @@ export function PublicStreamSettingsPanel({
             </div>
             <div className="detail">
               <dt>What goes live</dt>
-              <dd>Your chart focus, current media embed, and live session state.</dd>
+              <dd>Your chart focus, current stream, and live session state.</dd>
             </div>
           </dl>
         ) : null}

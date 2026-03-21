@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
+import { SimpleStreamEmbedPanel } from "@/components/SimpleStreamEmbedPanel";
 import { SiteNav } from "@/components/SiteNav";
 import { RouteHeader } from "@/components/ui/RouteHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -111,12 +111,10 @@ export function PublicStreamClient({
           title={`${chartSnapshot?.symbol ?? "Solana"} news`}
           defaultCategory="solana"
         />
-        <MediaEmbedPanel
+        <SimpleStreamEmbedPanel
           title="Shared media"
           description="Shared media for this room."
-          defaultUrl={state.profile.mediaUrl}
-          storageKey={`public-stream-${state.profile.slug}`}
-          readOnly
+          url={state.profile.mediaUrl}
         />
       </section>
 

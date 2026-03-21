@@ -150,45 +150,7 @@ export function NewsPanel({
         Stay close to the market with a live headline mix and your own saved RSS feeds.
       </p>
 
-      <div className="news-tabs">
-        {categories.map((item) => (
-          <button
-            key={item.id}
-            className={
-              category === item.id
-                ? "button button-primary small"
-                : "button button-ghost small"
-            }
-            onClick={() => setCategory(item.id)}
-            type="button"
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
       {error ? <p className="error-banner">{error}</p> : null}
-      {feed?.sources.length ? (
-        <div className="route-badges">
-          <span className="status-badge status-badge-accent">Live mix</span>
-          <span className="status-badge">
-            {feed.sources.length} free sources
-          </span>
-        </div>
-      ) : null}
-
-      {feed?.sources.length ? (
-        <div className="news-source-strip">
-          <span className="source-strip-label">Default feeds</span>
-          <div className="news-source-grid">
-            {feed.sources.map((source) => (
-              <span key={source} className="status-badge">
-                {source}
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
 
       <div className="news-list">
         {(feed?.articles ?? []).map((article) => (
@@ -213,6 +175,32 @@ export function NewsPanel({
       ) : null}
 
       <div className="news-controls">
+        <div className="news-tabs">
+          {categories.map((item) => (
+            <button
+              key={item.id}
+              className={
+                category === item.id
+                  ? "button button-primary small"
+                  : "button button-ghost small"
+              }
+              onClick={() => setCategory(item.id)}
+              type="button"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {feed?.sources.length ? (
+          <div className="route-badges">
+            <span className="status-badge status-badge-accent">Live mix</span>
+            <span className="status-badge">
+              {feed.sources.length} free sources
+            </span>
+          </div>
+        ) : null}
+
         <div className="media-toolbar">
           <label className="field">
             <span>Add RSS feed</span>

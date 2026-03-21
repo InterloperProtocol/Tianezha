@@ -79,6 +79,8 @@ export function PriceChart({ contractAddress, onSnapshotChange }: Props) {
     () => buildDexScreenerEmbedUrl(snapshot?.pairUrl, trimmedContractAddress),
     [snapshot?.pairUrl, trimmedContractAddress],
   );
+  const pairUrl =
+    snapshot?.pairUrl || `https://dexscreener.com/solana/${trimmedContractAddress}`;
 
   return (
     <section className="panel chart-panel">
@@ -92,6 +94,72 @@ export function PriceChart({ contractAddress, onSnapshotChange }: Props) {
           allowFullScreen
         />
       </div>
+
+      {snapshot ? (
+        <div className="chart-details">
+          <div className="chart-stats chart-stats-grid">
+            <div>
+              <span>Token</span>
+              <strong>
+                {snapshot.symbol} · {snapshot.name}
+              </strong>
+            </div>
+            <div>
+              <span>Price</span>
+              <strong>${snapshot.priceUsd.toFixed(6)}</strong>
+            </div>
+            <div>
+              <span>5m</span>
+              <strong className={snapshot.change5mPct >= 0 ? "text-up" : "text-down"}>
+                {snapshot.change5mPct >= 0 ? "+" : ""}
+                {snapshot.change5mPct.toFixed(2)}%
+              </strong>
+            </div>
+            <div>
+              <span>1h</span>
+              <strong className={snapshot.change1hPct >= 0 ? "text-up" : "text-down"}>
+                {snapshot.change1hPct >= 0 ? "+" : ""}
+                {snapshot.change1hPct.toFixed(2)}%
+              </strong>
+            </div>
+            <div>
+              <span>Liquidity</span>
+              <strong>${snapshot.liquidityUsd.toLocaleString("en-US")}</strong>
+            </div>
+            <div>
+              <span>24h volume</span>
+              <strong>${snapshot.volume24hUsd.toLocaleString("en-US")}</strong>
+            </div>
+          </div>
+
+          <div className="button-row">
+            <a
+              className="button button-primary small"
+              href={pairUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Buy on DexScreener
+            </a>
+            <a
+              className="button button-secondary small"
+              href={pairUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Sell on DexScreener
+            </a>
+            <a
+              className="button button-ghost small"
+              href={pairUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open pair
+            </a>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

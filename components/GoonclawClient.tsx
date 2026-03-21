@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { HomeEligibilityCta } from "@/components/HomeEligibilityCta";
-import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
 import { PublicChatPanel } from "@/components/PublicChatPanel";
 import { AutonomousStatusPreviewPanel } from "@/components/AutonomousStatusPreviewPanel";
 import { PublicStreamSettingsPanel } from "@/components/PublicStreamSettingsPanel";
+import { SimpleStreamEmbedPanel } from "@/components/SimpleStreamEmbedPanel";
 import { SiteNav } from "@/components/SiteNav";
 import { TrenchesPanel } from "@/components/TrenchesPanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -588,6 +588,163 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     }
   }
 
+  const savedDevicesSection = isUserWorkspace ? (
+    <div className="go-live-subsection">
+      <div className="panel-header go-live-subheader">
+        <div>
+          <p className="eyebrow">Saved devices</p>
+          <h2>Manage devices</h2>
+        </div>
+      </div>
+
+      {devices.length ? (
+        <div className="device-list scroll-feed">
+          {devices.map((device) => (
+            <div
+              key={device.id}
+              className={
+                device.id === selectedDeviceId
+                  ? "device-item selected"
+                  : "device-item"
+              }
+            >
+              <button
+                className="device-pick"
+                onClick={() => setSelectedDeviceId(device.id)}
+              >
+                <div>
+                  <span>{device.type}</span>
+                  <strong>{device.label}</strong>
+                </div>
+                <div className="device-flags">
+                  {device.supportsLive ? <span>Live</span> : null}
+                  {device.supportsScript ? <span>Script</span> : null}
+                </div>
+              </button>
+              <div className="button-row">
+                <button
+                  className="button button-secondary small"
+                  disabled={loading === `test:${device.id}`}
+                  onClick={() => void testDevice(device.id)}
+                >
+                  Test
+                </button>
+                <button
+                  className="button button-ghost small"
+                  disabled={loading === `delete:${device.id}`}
+                  onClick={() => void deleteDevice(device.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">
+          No saved device yet. Add one below when you are ready.
+        </p>
+      )}
+
+      <div className="device-form">
+        <div className="field-grid">
+          <label className="field">
+            <span>Device type</span>
+            <select
+              value={deviceForm.type}
+              onChange={(event) =>
+                updateDeviceForm("type", event.target.value as DeviceType)
+              }
+            >
+              <option value="autoblow">Autoblow</option>
+              <option value="handy">Handy</option>
+              <option value="rest">Generic REST</option>
+            </select>
+          </label>
+          <label className="field">
+            <span>Label</span>
+            <input
+              value={deviceForm.label}
+              onChange={(event) => updateDeviceForm("label", event.target.value)}
+              placeholder="Bedroom setup"
+            />
+          </label>
+        </div>
+
+        {deviceForm.type === "autoblow" ? (
+          <label className="field">
+            <span>Device token</span>
+            <input
+              value={deviceForm.deviceToken}
+              onChange={(event) =>
+                updateDeviceForm("deviceToken", event.target.value)
+              }
+              placeholder="Autoblow API token"
+            />
+          </label>
+        ) : null}
+
+        {deviceForm.type === "handy" ? (
+          <label className="field">
+            <span>Connection key</span>
+            <input
+              value={deviceForm.connectionKey}
+              onChange={(event) =>
+                updateDeviceForm("connectionKey", event.target.value)
+              }
+              placeholder="Handy connection key"
+            />
+          </label>
+        ) : null}
+
+        {deviceForm.type === "rest" ? (
+          <div className="device-form">
+            <label className="field">
+              <span>Endpoint URL</span>
+              <input
+                value={deviceForm.endpointUrl}
+                onChange={(event) =>
+                  updateDeviceForm("endpointUrl", event.target.value)
+                }
+                placeholder="https://device.example/api/live"
+              />
+            </label>
+            <div className="field-grid">
+              <label className="field">
+                <span>Auth token</span>
+                <input
+                  value={deviceForm.authToken}
+                  onChange={(event) =>
+                    updateDeviceForm("authToken", event.target.value)
+                  }
+                  placeholder="Optional bearer token"
+                />
+              </label>
+              <label className="field">
+                <span>Auth header</span>
+                <input
+                  value={deviceForm.authHeaderName}
+                  onChange={(event) =>
+                    updateDeviceForm("authHeaderName", event.target.value)
+                  }
+                  placeholder="Authorization"
+                />
+              </label>
+            </div>
+          </div>
+        ) : null}
+
+        <button
+          className="button button-primary"
+          disabled={loading === "device"}
+          onClick={() => void createDevice()}
+        >
+          {loading === "device" ? "Saving..." : "Save device"}
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className="app-shell">
       <SiteNav />
@@ -597,12 +754,14 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
 
       <section className="dashboard-grid dashboard-grid-primary-row">
         <PriceChart contractAddress={activeChartAddress} />
-        <MediaEmbedPanel
-          title="Video or stream"
-          defaultUrl={publicStream?.mediaUrl || defaultMediaUrl}
-          storageKey="goonclaw-personal-media"
-          readOnly={isTokenControlPage}
-          onActiveUrlChange={setPublicMediaUrl}
+        <SimpleStreamEmbedPanel
+          title={isTokenControlPage ? "Live stream" : "Your stream"}
+          description={
+            isTokenControlPage
+              ? "Simple Kick embed for the public room."
+              : "Simple stream player for your page."
+          }
+          url={publicStream?.mediaUrl || publicMediaUrl || defaultMediaUrl}
         />
       </section>
 
@@ -669,8 +828,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           <section className="panel">
             <div className="panel-header">
               <div>
-                <p className="eyebrow">Device connect</p>
-                <h2>Devices and chart control</h2>
+                <p className="eyebrow">Chart focus</p>
+                <h2>Current token</h2>
               </div>
             </div>
 
@@ -686,7 +845,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               <div className="summary-card">
                 <span>Current chart</span>
                 <strong>{activeChartAddress}</strong>
-                <p>Preview any token chart here even before a device is connected.</p>
+                <p>DexScreener details and trade buttons stay under the chart.</p>
               </div>
             </div>
 
@@ -700,151 +859,24 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               </button>
             </div>
 
-            {devices.length ? (
-              <div className="device-list scroll-feed">
-                {devices.map((device) => (
-                  <div
-                    key={device.id}
-                    className={
-                      device.id === selectedDeviceId
-                        ? "device-item selected"
-                        : "device-item"
-                    }
-                  >
-                    <button
-                      className="device-pick"
-                      onClick={() => setSelectedDeviceId(device.id)}
-                    >
-                      <div>
-                        <span>{device.type}</span>
-                        <strong>{device.label}</strong>
-                      </div>
-                      <div className="device-flags">
-                        {device.supportsLive ? <span>Live</span> : null}
-                        {device.supportsScript ? <span>Script</span> : null}
-                      </div>
-                    </button>
-                    <div className="button-row">
-                      <button
-                        className="button button-secondary small"
-                        disabled={loading === `test:${device.id}`}
-                        onClick={() => void testDevice(device.id)}
-                      >
-                        Test
-                      </button>
-                      <button
-                        className="button button-ghost small"
-                        disabled={loading === `delete:${device.id}`}
-                        onClick={() => void deleteDevice(device.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            <dl className="detail-list compact">
+              <div className="detail">
+                <dt>Selected device</dt>
+                <dd>{selectedDevice?.label || "Pick a saved device below before starting."}</dd>
               </div>
-            ) : (
-              <p className="empty-state">
-                No setup saved yet. Add one below to get started.
-              </p>
-            )}
-
-            <div className="device-form">
-              <div className="field-grid">
-                <label className="field">
-                  <span>Device type</span>
-                  <select
-                    value={deviceForm.type}
-                    onChange={(event) =>
-                      updateDeviceForm("type", event.target.value as DeviceType)
-                    }
-                  >
-                    <option value="autoblow">Autoblow</option>
-                    <option value="handy">Handy</option>
-                    <option value="rest">Generic REST</option>
-                  </select>
-                </label>
-                <label className="field">
-                  <span>Label</span>
-                  <input
-                    value={deviceForm.label}
-                    onChange={(event) => updateDeviceForm("label", event.target.value)}
-                    placeholder="Bedroom setup"
-                  />
-                </label>
+              <div className="detail">
+                <dt>Page status</dt>
+                <dd>
+                  {publicStream?.isPublic
+                    ? `Public page live at @${publicStream.slug}.`
+                    : "Private until you publish it."}
+                </dd>
               </div>
-
-              {deviceForm.type === "autoblow" ? (
-                <label className="field">
-                  <span>Device token</span>
-                  <input
-                    value={deviceForm.deviceToken}
-                    onChange={(event) =>
-                      updateDeviceForm("deviceToken", event.target.value)
-                    }
-                    placeholder="Autoblow API token"
-                  />
-                </label>
-              ) : null}
-
-              {deviceForm.type === "handy" ? (
-                <label className="field">
-                  <span>Connection key</span>
-                  <input
-                    value={deviceForm.connectionKey}
-                    onChange={(event) =>
-                      updateDeviceForm("connectionKey", event.target.value)
-                    }
-                    placeholder="Handy connection key"
-                  />
-                </label>
-              ) : null}
-
-              {deviceForm.type === "rest" ? (
-                <div className="device-form">
-                  <label className="field">
-                    <span>Endpoint URL</span>
-                    <input
-                      value={deviceForm.endpointUrl}
-                      onChange={(event) =>
-                        updateDeviceForm("endpointUrl", event.target.value)
-                      }
-                      placeholder="https://device.example/api/live"
-                    />
-                  </label>
-                  <div className="field-grid">
-                    <label className="field">
-                      <span>Auth token</span>
-                      <input
-                        value={deviceForm.authToken}
-                        onChange={(event) =>
-                          updateDeviceForm("authToken", event.target.value)
-                        }
-                        placeholder="Optional bearer token"
-                      />
-                    </label>
-                    <label className="field">
-                      <span>Auth header</span>
-                      <input
-                        value={deviceForm.authHeaderName}
-                        onChange={(event) =>
-                          updateDeviceForm("authHeaderName", event.target.value)
-                        }
-                        placeholder="Authorization"
-                      />
-                    </label>
-                  </div>
-                </div>
-              ) : null}
-
-              <button
-                className="button button-primary"
-                disabled={loading === "device"}
-                onClick={() => void createDevice()}
-              >
-                {loading === "device" ? "Saving..." : "Save setup"}
-              </button>
-            </div>
+              <div className="detail">
+                <dt>Stream</dt>
+                <dd>{publicStream?.mediaUrl || publicMediaUrl || defaultMediaUrl}</dd>
+              </div>
+            </dl>
           </section>
         )}
 
@@ -1017,6 +1049,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                   : "No setup selected"}
             </StatusBadge>
           </div>
+
+          {savedDevicesSection}
 
           {isTokenControlPage ? (
             <>
