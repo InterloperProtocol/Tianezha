@@ -109,16 +109,6 @@ env:
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_TELEGRAM_CHAT_ID
-    value: ""
-    availability:
-      - RUNTIME
-
-  - variable: GOONCLAW_TELEGRAM_THREAD_ID
-    value: ""
-    availability:
-      - RUNTIME
-
   - variable: GOONCLAW_X402_BUDGET_USD
     value: "25.00"
     availability:
@@ -131,11 +121,6 @@ env:
 
   - variable: GOONCLAW_X402_PER_HOUR_USD
     value: "5.00"
-    availability:
-      - RUNTIME
-
-  - variable: GOONCLAW_X402_ALLOWED_DOMAINS
-    value: ""
     availability:
       - RUNTIME
 
