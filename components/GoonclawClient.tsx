@@ -6,6 +6,7 @@ import { HomeEligibilityCta } from "@/components/HomeEligibilityCta";
 import { MediaEmbedPanel } from "@/components/MediaEmbedPanel";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PriceChart } from "@/components/PriceChart";
+import { PublicChatPanel } from "@/components/PublicChatPanel";
 import { AutonomousStatusPreviewPanel } from "@/components/AutonomousStatusPreviewPanel";
 import { PublicStreamSettingsPanel } from "@/components/PublicStreamSettingsPanel";
 import { SiteNav } from "@/components/SiteNav";
@@ -777,11 +778,19 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           </div>
         </section>
 
-        <AutonomousStatusPreviewPanel
-          eyebrow="Agent status"
-          title="GoonClaw is autonomous"
-          description="This slot now mirrors the public status wall instead of accepting prompts. Guests can watch the heartbeat, but only the hidden owner dashboard can intervene."
-        />
+        {isTokenControlPage ? (
+          <AutonomousStatusPreviewPanel
+            eyebrow="Agent status"
+            title="GoonClaw is autonomous"
+            description="This slot mirrors the public status wall. GoonClaw stays read-only here, and only the hidden owner dashboard can intervene."
+          />
+        ) : (
+          <PublicChatPanel
+            eyebrow="MyGoonClaw chat"
+            title="Use the lightweight chatbot"
+            description="MyGoonClaw keeps the helper chatbot available for quick copy, planning, and general questions while your chart stays locked into row 1."
+          />
+        )}
       </section>
 
       <section className="dashboard-grid dashboard-grid-feed-row">

@@ -12,7 +12,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline' https:",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
   "connect-src 'self' https: wss:",
-  "frame-src 'self' https://www.youtube.com https://youtube.com https://player.vimeo.com",
+  "frame-src 'self' https://www.youtube.com https://youtube.com https://player.vimeo.com https://dexscreener.com",
 ].join("; ");
 
 const nextConfig: NextConfig = {

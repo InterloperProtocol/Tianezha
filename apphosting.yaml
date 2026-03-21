@@ -49,6 +49,46 @@ env:
     availability:
       - RUNTIME
 
+  - variable: GOONCLAW_TOKEN_MINT
+    value: "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_OWNER_WALLET
+    value: "784GuK5UrT9KsTvUexXmq1G9pLgckUFscth5DEwQGVbZ"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_AGENT_RESERVE_FLOOR_SOL
+    value: "0.069420"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_SETTLEMENT_INTERVAL_MINUTES
+    value: "15"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_AUTONOMOUS_ENABLED
+    value: "true"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_PUBLIC_TRACE_MODE
+    value: "maximum-available"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_SKILLS_DIR
+    value: "services/goonclaw-automaton/vendor/sendaifun-skills-bundle/skills"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_AGENT_CONSTITUTION_PATH
+    value: "services/goonclaw-automaton/constitution.md"
+    availability:
+      - RUNTIME
+
   - variable: PAYLOAD_SECRET
     secret: PAYLOAD_SECRET
 
@@ -60,3 +100,6 @@ env:
 
   - variable: WORKER_TOKEN
     secret: goonclaw-worker-token
+
+  - variable: GOONCLAW_AGENT_WALLET_SECRET
+    secret: goonclaw-agent-wallet-secret
