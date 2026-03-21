@@ -1,20 +1,18 @@
-import { Suspense } from "react";
-
-import { LaunchonomicsClient } from "@/components/LaunchonomicsClient";
-import { getPublicEnv } from "@/lib/env";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function EligibilityPage() {
-  const config = getPublicEnv();
+type Props = {
+  searchParams: Promise<{
+    wallet?: string;
+  }>;
+};
 
-  return (
-    <Suspense fallback={null}>
-      <LaunchonomicsClient
-        accessTokenSymbol={config.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL}
-        freeAccessUntil={config.NEXT_PUBLIC_FREE_ACCESS_UNTIL}
-        launchAt={config.NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT}
-      />
-    </Suspense>
-  );
+export default async function EligibilityPage({ searchParams }: Props) {
+  const { wallet } = await searchParams;
+  const query = wallet?.trim()
+    ? `?wallet=${encodeURIComponent(wallet.trim())}`
+    : "";
+
+  redirect(`/${query}#wallet-access`);
 }

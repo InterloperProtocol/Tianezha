@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   applyAutonomousRevenueAllocation,
+  recordAutonomousRevenue,
   performAutonomousControl,
   tickAutonomousHeartbeat,
 } from "@/lib/server/autonomous-agent";
@@ -10,7 +11,11 @@ import {
   resetAutonomousStoreForTests,
   setAutonomousSnapshot,
 } from "@/lib/server/autonomous-store";
-import { assertAutonomousTreasuryInstructionAllowed } from "@/lib/server/autonomous-treasury-policy";
+import {
+  assertAutonomousTradeAllowed,
+  assertAutonomousTreasuryInstructionAllowed,
+  calculateAutonomousPortfolioValueUsdc,
+} from "@/lib/server/autonomous-treasury-policy";
 
 describe("autonomous agent policy", () => {
   beforeEach(() => {
@@ -71,6 +76,7 @@ describe("autonomous agent policy", () => {
           source: "goonclaw_chartsync",
           marketMint: "mint-1",
           symbol: "TEST",
+          venue: "pumpfun",
           entryUsdc: 12,
           currentUsdc: 11.5,
           rationale: "test",
@@ -109,5 +115,94 @@ describe("autonomous agent policy", () => {
         kind: "owner_payout",
       }),
     ).toThrow(/configured owner wallet/i);
+  });
+
+  it("allows Conway service access only through the allowlisted host set", () => {
+    expect(() =>
+      assertAutonomousTreasuryInstructionAllowed({
+        destinationHost: "billing.conway.ai",
+        kind: "conway_infrastructure_payment",
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertAutonomousTreasuryInstructionAllowed({
+        destinationHost: "evil.example.com",
+        kind: "conway_infrastructure_payment",
+      }),
+    ).toThrow(/allowlist/i);
+  });
+
+  it("blocks non-pump assets and over-sized meme coin positions", () => {
+    expect(() =>
+      assertAutonomousTradeAllowed({
+        assetMint: "mint-1",
+        isPumpCoin: false,
+        portfolioValueUsdc: 100,
+        requestedNotionalUsdc: 5,
+        venue: "pumpfun",
+      }),
+    ).toThrow(/Pump meme coins/i);
+
+    expect(() =>
+      assertAutonomousTradeAllowed({
+        assetMint: "mint-2",
+        isPumpCoin: true,
+        portfolioValueUsdc: 100,
+        requestedNotionalUsdc: 11,
+        venue: "pumpfun",
+      }),
+    ).toThrow(/10% of the portfolio/i);
+  });
+
+  it("blocks non-pump trading venues even for pump coins", () => {
+    expect(() =>
+      assertAutonomousTradeAllowed({
+        assetMint: "mint-3",
+        isPumpCoin: true,
+        portfolioValueUsdc: 100,
+        requestedNotionalUsdc: 5,
+        venue: "jupiter",
+      }),
+    ).toThrow(/canonical Pump venues/i);
+  });
+
+  it("queues chartsync trade capital until a pump-verified token is supplied", () => {
+    recordAutonomousRevenue("goonclaw_chartsync", 20, "session revenue");
+    const snapshot = getAutonomousSnapshot();
+
+    expect(snapshot.revenueBuckets.sessionTradeUsdc).toBe(10);
+    expect(snapshot.positions).toHaveLength(0);
+    expect(snapshot.latestPolicyDecision).toContain("queued");
+  });
+
+  it("calculates tracked portfolio value from liquid balance, trade buckets, and open positions", () => {
+    const portfolioValueUsdc = calculateAutonomousPortfolioValueUsdc({
+      usdcBalance: 12,
+      revenueBuckets: {
+        ownerUsdc: 0,
+        burnUsdc: 0,
+        reserveUsdc: 0,
+        tradingUsdc: 3,
+        sessionTradeUsdc: 2,
+        totalProcessedUsdc: 17,
+      },
+      positions: [
+        {
+          id: "position-2",
+          status: "open",
+          source: "goonclaw_chartsync",
+          marketMint: "mint-4",
+          symbol: "TEST",
+          venue: "pumpfun",
+          entryUsdc: 4,
+          currentUsdc: 5,
+          rationale: "test",
+          openedAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    expect(portfolioValueUsdc).toBe(22);
   });
 });

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getOrCreateGuestSession } from "@/lib/server/guest";
-import { assertGuestEnabled } from "@/lib/server/internal-admin";
+import { requireInternalAdminSession } from "@/lib/server/internal-admin";
 import { assertSameOriginMutation } from "@/lib/server/request-security";
 import { createLivestreamRequest, getLivestreamState } from "@/lib/server/livestream";
 import { LivestreamTier } from "@/lib/types";
@@ -9,21 +8,7 @@ import { LivestreamTier } from "@/lib/types";
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    const guestSession = await getOrCreateGuestSession();
-    const denied = await assertGuestEnabled(guestSession.id)
-      .then(() => null)
-      .catch((error) =>
-        NextResponse.json(
-          {
-            error:
-              error instanceof Error
-                ? error.message
-                : "This user has been disabled by the admin.",
-          },
-          { status: 403 },
-        ),
-      );
-    if (denied) return denied;
+    const admin = await requireInternalAdminSession();
 
     const body = (await request.json()) as {
       contractAddress?: string;
@@ -31,7 +16,7 @@ export async function POST(request: Request) {
     };
 
     if (!body.contractAddress || !body.tier) {
-      NextResponse.json(
+      return NextResponse.json(
         { error: "contractAddress and tier are required" },
         { status: 400 },
       );
@@ -47,21 +32,25 @@ export async function POST(request: Request) {
     const contractAddress = body.contractAddress as string;
     const tier = body.tier as LivestreamTier;
     const item = await createLivestreamRequest(
-      guestSession.id,
+      admin.id,
       contractAddress,
       tier,
     );
-    const state = await getLivestreamState(guestSession.id);
+    const state = await getLivestreamState();
     return NextResponse.json({ item, state });
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to create queue request";
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create queue request",
+        error: message,
       },
       {
         status:
-          error instanceof Error && error.message.includes("Cross-") ? 403 : 400,
+          message.includes("Admin authentication required") ||
+          message.includes("Cross-")
+            ? 403
+            : 400,
       },
     );
   }

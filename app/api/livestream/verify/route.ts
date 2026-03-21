@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getOrCreateGuestSession } from "@/lib/server/guest";
-import { assertGuestEnabled } from "@/lib/server/internal-admin";
+import { requireInternalAdminSession } from "@/lib/server/internal-admin";
 import { assertSameOriginMutation } from "@/lib/server/request-security";
 import {
   getLivestreamState,
@@ -11,8 +10,7 @@ import {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    const guestSession = await getOrCreateGuestSession();
-    await assertGuestEnabled(guestSession.id);
+    const admin = await requireInternalAdminSession();
     const body = (await request.json()) as {
       requestId?: string;
       signature?: string;
@@ -26,21 +24,25 @@ export async function POST(request: Request) {
     }
 
     const item = await verifyLivestreamRequestPayment(
-      guestSession.id,
+      admin.id,
       body.requestId,
       body.signature,
     );
-    const state = await getLivestreamState(guestSession.id);
+    const state = await getLivestreamState();
     return NextResponse.json({ item, state });
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to verify queue payment";
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to verify queue payment",
+        error: message,
       },
       {
         status:
-          error instanceof Error && error.message.includes("Cross-") ? 403 : 400,
+          message.includes("Admin authentication required") ||
+          message.includes("Cross-")
+            ? 403
+            : 400,
       },
     );
   }

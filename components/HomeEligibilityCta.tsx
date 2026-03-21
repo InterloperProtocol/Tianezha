@@ -13,7 +13,7 @@ export function HomeEligibilityCta() {
     const query = wallet.trim()
       ? `?wallet=${encodeURIComponent(wallet.trim())}`
       : "";
-    router.push(`/eligibility${query}`);
+    router.push(`/${query}#wallet-access`);
   }
 
   return (
@@ -25,8 +25,8 @@ export function HomeEligibilityCta() {
         </div>
       </div>
       <p className="panel-lead">
-        Paste a Solana wallet to open the access checker with the address
-        already filled in, then review the result on the next screen.
+        Paste a Solana wallet to jump straight to the homepage access checker
+        with the address already filled in.
       </p>
 
       <div className="route-badges">
@@ -43,7 +43,7 @@ export function HomeEligibilityCta() {
           placeholder="Paste a Solana wallet"
         />
       </label>
-      <p className="inline-note">You can review the result and send access from the next page.</p>
+      <p className="inline-note">You can review the result and send access from the homepage section.</p>
 
       <div className="button-row">
         <button

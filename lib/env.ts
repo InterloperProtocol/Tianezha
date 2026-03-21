@@ -29,10 +29,12 @@ const rawServerEnvSchema = z.object({
   GOONCLAW_AGENT_WALLET_SECRET: z.string().optional(),
   GOONCLAW_AGENT_RESERVE_FLOOR_SOL: z.string().optional(),
   GOONCLAW_SETTLEMENT_INTERVAL_MINUTES: z.string().optional(),
+  GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().optional(),
   GOONCLAW_AUTONOMOUS_ENABLED: z.string().optional(),
   GOONCLAW_PUBLIC_TRACE_MODE: z.string().optional(),
   GOONCLAW_SKILLS_DIR: z.string().optional(),
   GOONCLAW_AGENT_CONSTITUTION_PATH: z.string().optional(),
+  GOONCLAW_CONWAY_ALLOWED_HOSTS: z.string().optional(),
   GOONCLAW_BURN_AMOUNT_RAW: z.string().optional(),
   GOONCLAW_TOKEN_DECIMALS: z.string().optional(),
   BAGSTROKE_TOKEN_MINT: z.string().optional(),
@@ -56,12 +58,21 @@ const rawServerEnvSchema = z.object({
   ALLOW_IN_PROCESS_WORKER: z.string().optional(),
   PUBLIC_AUTOBLOW_DEVICE_TOKEN: z.string().optional(),
   PUBLIC_AUTOBLOW_DEVICE_LABEL: z.string().optional(),
+  GOONCLAW_TELEGRAM_BOT_TOKEN: z.string().optional(),
+  GOONCLAW_TELEGRAM_CHAT_ID: z.string().optional(),
+  GOONCLAW_TELEGRAM_THREAD_ID: z.string().optional(),
+  GOONCLAW_TELEGRAM_DESCRIPTION: z.string().optional(),
+  GOONCLAW_TELEGRAM_SHORT_DESCRIPTION: z.string().optional(),
   LIVESTREAM_STANDARD_PRICE_SOL: z.string().optional(),
   LIVESTREAM_PRIORITY_PRICE_SOL: z.string().optional(),
   LIVESTREAM_SESSION_SECONDS: z.string().optional(),
   LIVESTREAM_REQUESTER_COOLDOWN_SECONDS: z.string().optional(),
   LIVESTREAM_CONTRACT_COOLDOWN_SECONDS: z.string().optional(),
   LIVESTREAM_MAX_QUEUE_LENGTH: z.string().optional(),
+  GOONCLAW_X402_BUDGET_USD: z.string().optional(),
+  GOONCLAW_X402_PER_REQUEST_USD: z.string().optional(),
+  GOONCLAW_X402_PER_HOUR_USD: z.string().optional(),
+  GOONCLAW_X402_ALLOWED_DOMAINS: z.string().optional(),
   YT_DLP_COOKIES_PATH: z.string().optional(),
   YT_DLP_COOKIES_FROM_BROWSER: z.string().optional(),
 });
@@ -88,10 +99,12 @@ const resolvedServerEnvSchema = z.object({
   GOONCLAW_AGENT_WALLET_SECRET: z.string(),
   GOONCLAW_AGENT_RESERVE_FLOOR_SOL: z.string().min(1),
   GOONCLAW_SETTLEMENT_INTERVAL_MINUTES: z.string().min(1),
+  GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().min(1),
   GOONCLAW_AUTONOMOUS_ENABLED: z.enum(["true", "false"]),
   GOONCLAW_PUBLIC_TRACE_MODE: z.string().min(1),
   GOONCLAW_SKILLS_DIR: z.string().min(1),
   GOONCLAW_AGENT_CONSTITUTION_PATH: z.string().min(1),
+  GOONCLAW_CONWAY_ALLOWED_HOSTS: z.string().min(1),
   BAGSTROKE_BURN_AMOUNT_RAW: z.string().min(1),
   BAGSTROKE_TOKEN_DECIMALS: z.string().min(1),
   LAUNCHONOMICS_TOKEN_MINT: z.string(),
@@ -112,12 +125,21 @@ const resolvedServerEnvSchema = z.object({
   ALLOW_IN_PROCESS_WORKER: z.enum(["true", "false"]),
   PUBLIC_AUTOBLOW_DEVICE_TOKEN: z.string(),
   PUBLIC_AUTOBLOW_DEVICE_LABEL: z.string().min(1),
+  GOONCLAW_TELEGRAM_BOT_TOKEN: z.string(),
+  GOONCLAW_TELEGRAM_CHAT_ID: z.string(),
+  GOONCLAW_TELEGRAM_THREAD_ID: z.string(),
+  GOONCLAW_TELEGRAM_DESCRIPTION: z.string(),
+  GOONCLAW_TELEGRAM_SHORT_DESCRIPTION: z.string(),
   LIVESTREAM_STANDARD_PRICE_SOL: z.string().min(1),
   LIVESTREAM_PRIORITY_PRICE_SOL: z.string().min(1),
   LIVESTREAM_SESSION_SECONDS: z.string().min(1),
   LIVESTREAM_REQUESTER_COOLDOWN_SECONDS: z.string().min(1),
   LIVESTREAM_CONTRACT_COOLDOWN_SECONDS: z.string().min(1),
   LIVESTREAM_MAX_QUEUE_LENGTH: z.string().min(1),
+  GOONCLAW_X402_BUDGET_USD: z.string().min(1),
+  GOONCLAW_X402_PER_REQUEST_USD: z.string().min(1),
+  GOONCLAW_X402_PER_HOUR_USD: z.string().min(1),
+  GOONCLAW_X402_ALLOWED_DOMAINS: z.string(),
   YT_DLP_COOKIES_PATH: z.string(),
   YT_DLP_COOKIES_FROM_BROWSER: z.string(),
 });
@@ -305,6 +327,8 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       raw.GOONCLAW_AGENT_RESERVE_FLOOR_SOL?.trim() || "0.069420",
     GOONCLAW_SETTLEMENT_INTERVAL_MINUTES:
       raw.GOONCLAW_SETTLEMENT_INTERVAL_MINUTES?.trim() || "15",
+    GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT:
+      raw.GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT?.trim() || "10",
     GOONCLAW_AUTONOMOUS_ENABLED:
       raw.GOONCLAW_AUTONOMOUS_ENABLED?.trim().toLowerCase() || "true",
     GOONCLAW_PUBLIC_TRACE_MODE:
@@ -315,6 +339,8 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
     GOONCLAW_AGENT_CONSTITUTION_PATH:
       raw.GOONCLAW_AGENT_CONSTITUTION_PATH?.trim() ||
       "services/goonclaw-automaton/constitution.md",
+    GOONCLAW_CONWAY_ALLOWED_HOSTS:
+      raw.GOONCLAW_CONWAY_ALLOWED_HOSTS?.trim() || "conway.ai,*.conway.ai",
     BAGSTROKE_BURN_AMOUNT_RAW:
       raw.GOONCLAW_BURN_AMOUNT_RAW?.trim() ||
       raw.BAGSTROKE_BURN_AMOUNT_RAW?.trim() ||
@@ -360,6 +386,18 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
     PUBLIC_AUTOBLOW_DEVICE_TOKEN: raw.PUBLIC_AUTOBLOW_DEVICE_TOKEN?.trim() || "",
     PUBLIC_AUTOBLOW_DEVICE_LABEL:
       raw.PUBLIC_AUTOBLOW_DEVICE_LABEL?.trim() || "GoonClaw Public Device",
+    GOONCLAW_TELEGRAM_BOT_TOKEN:
+      raw.GOONCLAW_TELEGRAM_BOT_TOKEN?.trim() || "",
+    GOONCLAW_TELEGRAM_CHAT_ID:
+      raw.GOONCLAW_TELEGRAM_CHAT_ID?.trim() || "",
+    GOONCLAW_TELEGRAM_THREAD_ID:
+      raw.GOONCLAW_TELEGRAM_THREAD_ID?.trim() || "",
+    GOONCLAW_TELEGRAM_DESCRIPTION:
+      raw.GOONCLAW_TELEGRAM_DESCRIPTION?.trim() ||
+      "Read-only GoonClaw telemetry bot. Posts heartbeats, reasoning, and trade traces from the autonomous runtime.",
+    GOONCLAW_TELEGRAM_SHORT_DESCRIPTION:
+      raw.GOONCLAW_TELEGRAM_SHORT_DESCRIPTION?.trim() ||
+      "Read-only GoonClaw runtime feed.",
     LIVESTREAM_STANDARD_PRICE_SOL:
       raw.LIVESTREAM_STANDARD_PRICE_SOL?.trim() || "0.001",
     LIVESTREAM_PRIORITY_PRICE_SOL:
@@ -372,6 +410,14 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       raw.LIVESTREAM_CONTRACT_COOLDOWN_SECONDS?.trim() || "600",
     LIVESTREAM_MAX_QUEUE_LENGTH:
       raw.LIVESTREAM_MAX_QUEUE_LENGTH?.trim() || "25",
+    GOONCLAW_X402_BUDGET_USD:
+      raw.GOONCLAW_X402_BUDGET_USD?.trim() || "25.00",
+    GOONCLAW_X402_PER_REQUEST_USD:
+      raw.GOONCLAW_X402_PER_REQUEST_USD?.trim() || "1.00",
+    GOONCLAW_X402_PER_HOUR_USD:
+      raw.GOONCLAW_X402_PER_HOUR_USD?.trim() || "5.00",
+    GOONCLAW_X402_ALLOWED_DOMAINS:
+      raw.GOONCLAW_X402_ALLOWED_DOMAINS?.trim() || "",
     YT_DLP_COOKIES_PATH: raw.YT_DLP_COOKIES_PATH?.trim() || "",
     YT_DLP_COOKIES_FROM_BROWSER:
       raw.YT_DLP_COOKIES_FROM_BROWSER?.trim() || "",

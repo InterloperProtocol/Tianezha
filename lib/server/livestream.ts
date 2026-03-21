@@ -305,12 +305,12 @@ function serializeLivestreamRequest(request: LivestreamRequestRecord) {
   };
 }
 
-export async function getLivestreamState(guestId: string) {
+export async function getLivestreamState(guestId?: string | null) {
   const env = getServerEnv();
   const publicEnv = getPublicEnv();
   const [requests, recent] = await Promise.all([
     listLivestreamRequests(),
-    listLivestreamRequestsForGuest(guestId, 5),
+    guestId ? listLivestreamRequestsForGuest(guestId, 5) : Promise.resolve([]),
   ]);
 
   const persistedCurrent =

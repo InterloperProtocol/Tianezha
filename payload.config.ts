@@ -106,6 +106,23 @@ export default buildConfig({
           name: "reason",
           type: "textarea",
         },
+        {
+          name: "hiddenAt",
+          type: "date",
+          admin: {
+            date: {
+              pickerAppearance: "dayAndTime",
+            },
+          },
+        },
+        {
+          name: "hiddenBy",
+          type: "text",
+        },
+        {
+          name: "hiddenReason",
+          type: "textarea",
+        },
       ],
     },
   ],

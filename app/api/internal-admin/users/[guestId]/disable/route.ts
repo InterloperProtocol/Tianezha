@@ -26,12 +26,18 @@ export async function POST(
 
     return NextResponse.json({ item });
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Couldn't disable that user.";
+    const status =
+      message === "Admin authentication required"
+        ? 401
+        : message.includes("Cross-")
+          ? 403
+          : 400;
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Couldn't disable that user.",
-      },
-      { status: 400 },
+      { error: message },
+      { status },
     );
   }
 }

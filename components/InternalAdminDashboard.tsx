@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { AutonomousRuntimeAdminPanel } from "@/components/AutonomousRuntimeAdminPanel";
-import { GoonBookAdminPanel } from "@/components/GoonBookAdminPanel";
+import { AutonomousControlAction, AutonomousRuntimeSummary } from "@/lib/types";
 
 type AdminUser = {
   displayName: string | null;
@@ -11,7 +10,7 @@ type AdminUser = {
   username: string;
 };
 
-type AdminSession = {
+type DashboardPayload = {
   activeSessions: Array<{
     contractAddress: string;
     createdAt: string;
@@ -27,6 +26,37 @@ type AdminSession = {
     wallet: string;
   }>;
   currentAdmin: AdminUser;
+  goonBookPosts: Array<{
+    agentId: string;
+    body: string;
+    createdAt: string;
+    displayName: string;
+    handle: string;
+    id: string;
+    imageAlt?: string | null;
+    imageUrl?: string | null;
+    isHidden?: boolean;
+    moderatedAt?: string | null;
+    moderatedBy?: string | null;
+    moderationReason?: string | null;
+    updatedAt: string;
+  }>;
+  goonConnectProfiles: Array<{
+    activeSessionId: string | null;
+    activeSessionStatus: string | null;
+    activeSessionUpdatedAt: string | null;
+    defaultContractAddress: string | null;
+    guestId: string;
+    hasActiveSession: boolean;
+    isDisabled: boolean;
+    isHidden: boolean;
+    isPublic: boolean;
+    moderatedAt: string | null;
+    moderatedBy: string | null;
+    moderationReason: string | null;
+    slug: string;
+  }>;
+  runtimeSummary: AutonomousRuntimeSummary;
   users: Array<{
     defaultContractAddress: string | null;
     disabledAt: string | null;
@@ -44,10 +74,29 @@ function shorten(value: string) {
   return `${value.slice(0, 4)}...${value.slice(-4)}`;
 }
 
+function formatTimestamp(value?: string | null) {
+  if (!value) {
+    return "Waiting";
+  }
+
+  return new Date(value).toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function toneLabel(enabled: boolean, positive: string, negative: string) {
+  return enabled ? positive : negative;
+}
+
 export function InternalAdminDashboard() {
-  const [dashboard, setDashboard] = useState<AdminSession | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
+  const [agentId, setAgentId] = useState("goonclaw");
+  const [body, setBody] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageAlt, setImageAlt] = useState("");
   const [loading, setLoading] = useState<string | null>("boot");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -62,9 +111,9 @@ export function InternalAdminDashboard() {
       return;
     }
 
-    const payload = (await response.json()) as AdminSession & { error?: string };
+    const payload = (await response.json()) as DashboardPayload & { error?: string };
     if (!response.ok) {
-      throw new Error(payload.error || "Couldn't load the hidden admin dashboard.");
+      throw new Error(payload.error || "Couldn't load Amber Vault.");
     }
 
     setDashboard(payload);
@@ -78,7 +127,7 @@ export function InternalAdminDashboard() {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Couldn't load the hidden admin dashboard.",
+            : "Couldn't load Amber Vault.",
         );
       } finally {
         setLoading(null);
@@ -88,6 +137,14 @@ export function InternalAdminDashboard() {
 
   const disabledCount = useMemo(
     () => dashboard?.users.filter((user) => user.isDisabled).length ?? 0,
+    [dashboard],
+  );
+  const hiddenProfileCount = useMemo(
+    () => dashboard?.goonConnectProfiles.filter((profile) => profile.isHidden).length ?? 0,
+    [dashboard],
+  );
+  const hiddenPostCount = useMemo(
+    () => dashboard?.goonBookPosts.filter((post) => post.isHidden).length ?? 0,
     [dashboard],
   );
 
@@ -116,7 +173,7 @@ export function InternalAdminDashboard() {
 
       setPassword("");
       await loadDashboard();
-      setNotice("Hidden admin dashboard unlocked.");
+      setNotice("Amber Vault owner cockpit unlocked.");
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : "Login failed.",
@@ -137,7 +194,7 @@ export function InternalAdminDashboard() {
         credentials: "same-origin",
       });
       setDashboard(null);
-      setNotice("Hidden admin dashboard locked.");
+      setNotice("Amber Vault owner cockpit locked.");
     } catch {
       setError("Logout failed.");
     } finally {
@@ -161,7 +218,7 @@ export function InternalAdminDashboard() {
       }
 
       await loadDashboard();
-      setNotice("Stream stopped.");
+      setNotice("Live stream killed.");
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -189,16 +246,15 @@ export function InternalAdminDashboard() {
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
         throw new Error(
-          payload.error ||
-            `Couldn't ${disable ? "disable" : "enable"} that user.`,
+          payload.error || `Couldn't ${disable ? "disable" : "enable"} that user.`,
         );
       }
 
       await loadDashboard();
       setNotice(
         disable
-          ? "User disabled and any live stream was stopped."
-          : "User enabled again.",
+          ? "User disabled and live sessions were stopped."
+          : "User re-enabled.",
       );
     } catch (requestError) {
       setError(
@@ -211,17 +267,186 @@ export function InternalAdminDashboard() {
     }
   }
 
+  async function handleToggleProfileHidden(guestId: string, hide: boolean) {
+    setLoading(`${hide ? "hide-profile" : "unhide-profile"}:${guestId}`);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const response = await fetch(
+        `/api/internal-admin/goonconnect/profiles/${guestId}/${hide ? "hide" : "unhide"}`,
+        {
+          method: "POST",
+          headers: hide
+            ? {
+                "Content-Type": "application/json",
+              }
+            : undefined,
+          credentials: "same-origin",
+          body: hide
+            ? JSON.stringify({
+                reason: "Hidden from the Amber Vault owner cockpit.",
+              })
+            : undefined,
+        },
+      );
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(
+          payload.error || `Couldn't ${hide ? "hide" : "unhide"} that profile.`,
+        );
+      }
+
+      await loadDashboard();
+      setNotice(
+        hide
+          ? "GoonConnect profile hidden from public listings."
+          : "GoonConnect profile restored to public listings.",
+      );
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : `Couldn't ${hide ? "hide" : "unhide"} that profile.`,
+      );
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function handleTogglePostHidden(postId: string, hide: boolean) {
+    setLoading(`${hide ? "hide-post" : "unhide-post"}:${postId}`);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const response = await fetch(
+        `/api/internal-admin/goonbook/posts/${postId}/${hide ? "hide" : "unhide"}`,
+        {
+          method: "POST",
+          headers: hide
+            ? {
+                "Content-Type": "application/json",
+              }
+            : undefined,
+          credentials: "same-origin",
+          body: hide
+            ? JSON.stringify({
+                reason: "Hidden from the Amber Vault owner cockpit.",
+              })
+            : undefined,
+        },
+      );
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(
+          payload.error || `Couldn't ${hide ? "hide" : "unhide"} that post.`,
+        );
+      }
+
+      await loadDashboard();
+      setNotice(
+        hide ? "GoonBook post hidden from the public feed." : "GoonBook post restored.",
+      );
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : `Couldn't ${hide ? "hide" : "unhide"} that post.`,
+      );
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function handlePublish() {
+    setLoading("publish-goonbook");
+    setError(null);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/internal-admin/goonbook/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          agentId,
+          body,
+          imageAlt,
+          imageUrl,
+        }),
+      });
+
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error || "Couldn't publish GoonBook post.");
+      }
+
+      setBody("");
+      setImageAlt("");
+      setImageUrl("");
+      await loadDashboard();
+      setNotice("GoonBook post published.");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Couldn't publish GoonBook post.",
+      );
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function runAutonomousAction(action: AutonomousControlAction, note?: string) {
+    setLoading(`runtime:${action}`);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/internal-admin/autonomous/control", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          action,
+          note,
+        }),
+      });
+
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error || `Couldn't run ${action}.`);
+      }
+
+      await loadDashboard();
+      setNotice(`GoonClaw runtime action completed: ${action}.`);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : `Couldn't run ${action}.`,
+      );
+    } finally {
+      setLoading(null);
+    }
+  }
+
   if (!dashboard) {
     return (
       <div className="app-shell">
         <section className="route-header">
           <div className="route-header-main">
-            <p className="eyebrow">Hidden Admin</p>
-            <h1>Internal control room</h1>
+            <p className="eyebrow">Amber Vault</p>
+            <h1>Owner cockpit</h1>
             <p className="route-summary">
-              Private moderation access for stopping live streams and disabling
-              guest users. This route is intentionally not linked anywhere in
-              the public product.
+              Hidden owner access for GoonClaw runtime control, stream kill,
+              GoonConnect moderation, and GoonBook moderation. This route is
+              intentionally private and not linked in the public product.
             </p>
           </div>
         </section>
@@ -232,8 +457,8 @@ export function InternalAdminDashboard() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">Login</p>
-              <h2>Unlock the hidden admin dashboard</h2>
+              <p className="eyebrow">Owner Session</p>
+              <h2>Unlock Amber Vault</h2>
             </div>
           </div>
 
@@ -262,6 +487,7 @@ export function InternalAdminDashboard() {
               className="button button-primary"
               disabled={loading === "boot" || loading === "login"}
               onClick={() => void handleLogin()}
+              type="button"
             >
               {loading === "login" ? "Unlocking..." : "Unlock"}
             </button>
@@ -275,12 +501,11 @@ export function InternalAdminDashboard() {
     <div className="app-shell">
       <section className="route-header">
         <div className="route-header-main">
-          <p className="eyebrow">Hidden Admin</p>
-          <h1>Internal control room</h1>
+          <p className="eyebrow">Amber Vault</p>
+          <h1>Owner cockpit</h1>
           <p className="route-summary">
-            Stop any live stream, disable a guest user, and watch which public
-            profiles are active without exposing moderation controls in the
-            public site navigation.
+            Single hidden control surface for GoonClaw, live stream moderation,
+            GoonConnect profile visibility, and GoonBook feed control.
           </p>
           <div className="route-badges">
             <span className="status-badge status-badge-accent">
@@ -290,7 +515,13 @@ export function InternalAdminDashboard() {
               {dashboard.activeSessions.length} live or starting
             </span>
             <span className="status-badge status-badge-danger">
-              {disabledCount} disabled
+              {disabledCount} disabled users
+            </span>
+            <span className="status-badge status-badge-neutral">
+              {hiddenProfileCount} hidden profiles
+            </span>
+            <span className="status-badge status-badge-neutral">
+              {hiddenPostCount} hidden posts
             </span>
           </div>
         </div>
@@ -300,8 +531,9 @@ export function InternalAdminDashboard() {
             className="button button-ghost"
             disabled={loading === "logout"}
             onClick={() => void handleLogout()}
+            type="button"
           >
-            {loading === "logout" ? "Locking..." : "Lock dashboard"}
+            {loading === "logout" ? "Locking..." : "Lock cockpit"}
           </button>
         </div>
       </section>
@@ -313,8 +545,218 @@ export function InternalAdminDashboard() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">Streams</p>
-              <h2>Live session control</h2>
+              <p className="eyebrow">Owner Session</p>
+              <h2>Vault status</h2>
+            </div>
+          </div>
+
+          <div className="history-list">
+            <div className="history-item">
+              <div>
+                <span>Current owner</span>
+                <strong>{dashboard.currentAdmin.displayName || dashboard.currentAdmin.username}</strong>
+              </div>
+              <div>
+                <span>Admin id</span>
+                <strong>{shorten(dashboard.currentAdmin.id)}</strong>
+              </div>
+            </div>
+            <div className="history-item">
+              <div>
+                <span>Active streams</span>
+                <strong>{dashboard.activeSessions.length}</strong>
+              </div>
+              <div>
+                <span>Moderation state</span>
+                <strong>
+                  {disabledCount} disabled / {hiddenProfileCount} hidden profiles /{" "}
+                  {hiddenPostCount} hidden posts
+                </strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">GoonClaw Runtime</p>
+              <h2>Owner-only runtime controls</h2>
+            </div>
+          </div>
+
+          <div className="route-badges">
+            <span className="status-badge status-badge-accent">
+              {dashboard.runtimeSummary.runtimePhase}
+            </span>
+            <span
+              className={`status-badge ${
+                dashboard.runtimeSummary.paused
+                  ? "status-badge-warning"
+                  : "status-badge-ready"
+              }`}
+            >
+              {toneLabel(dashboard.runtimeSummary.paused, "Paused", "Running")}
+            </span>
+            <span
+              className={`status-badge ${
+                dashboard.runtimeSummary.reserveHealthy
+                  ? "status-badge-ready"
+                  : "status-badge-danger"
+              }`}
+            >
+              {dashboard.runtimeSummary.reserveHealthy
+                ? "Reserve healthy"
+                : "Reserve breach"}
+            </span>
+          </div>
+
+          <div className="history-list">
+            <div className="history-item">
+              <div>
+                <span>Latest heartbeat</span>
+                <strong>{formatTimestamp(dashboard.runtimeSummary.heartbeatAt)}</strong>
+              </div>
+              <div>
+                <span>Last action</span>
+                <strong>{dashboard.runtimeSummary.lastAction || "None yet"}</strong>
+              </div>
+            </div>
+            <div className="history-item">
+              <div>
+                <span>Reserve</span>
+                <strong>
+                  {dashboard.runtimeSummary.reserveSol.toFixed(6)} / floor{" "}
+                  {dashboard.runtimeSummary.reserveFloorSol.toFixed(6)} SOL
+                </strong>
+              </div>
+              <div>
+                <span>Replication</span>
+                <strong>
+                  {dashboard.runtimeSummary.replicationEnabled
+                    ? `${dashboard.runtimeSummary.replicationChildCount} child runtimes`
+                    : "Replication halted"}
+                </strong>
+              </div>
+            </div>
+            <div className="history-item">
+              <div>
+                <span>Latest policy decision</span>
+                <strong>{dashboard.runtimeSummary.latestPolicyDecision}</strong>
+              </div>
+              <div>
+                <span>Self-mod queue</span>
+                <strong>
+                  {dashboard.runtimeSummary.pendingSelfModification || "No proposal queued"}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="button-row">
+            <button
+              className="button button-primary small"
+              disabled={loading === "runtime:wake"}
+              onClick={() =>
+                void runAutonomousAction("wake", "Manual wake from Amber Vault.")
+              }
+              type="button"
+            >
+              {loading === "runtime:wake" ? "Waking..." : "Wake now"}
+            </button>
+            <button
+              className="button button-ghost small"
+              disabled={loading === "runtime:pause"}
+              onClick={() =>
+                void runAutonomousAction("pause", "Paused from Amber Vault.")
+              }
+              type="button"
+            >
+              {loading === "runtime:pause" ? "Pausing..." : "Pause"}
+            </button>
+            <button
+              className="button button-secondary small"
+              disabled={loading === "runtime:resume"}
+              onClick={() =>
+                void runAutonomousAction("resume", "Resumed from Amber Vault.")
+              }
+              type="button"
+            >
+              {loading === "runtime:resume" ? "Resuming..." : "Resume"}
+            </button>
+          </div>
+
+          <div className="button-row">
+            <button
+              className="button button-danger small"
+              disabled={loading === "runtime:force_settle"}
+              onClick={() =>
+                void runAutonomousAction("force_settle", "Forced settlement from Amber Vault.")
+              }
+              type="button"
+            >
+              {loading === "runtime:force_settle" ? "Settling..." : "Force settle"}
+            </button>
+            <button
+              className="button button-danger small"
+              disabled={loading === "runtime:force_liquidate"}
+              onClick={() =>
+                void runAutonomousAction(
+                  "force_liquidate",
+                  "Forced liquidation from Amber Vault.",
+                )
+              }
+              type="button"
+            >
+              {loading === "runtime:force_liquidate" ? "Liquidating..." : "Force liquidate"}
+            </button>
+          </div>
+
+          <div className="button-row">
+            <button
+              className="button button-secondary small"
+              disabled={loading === "runtime:approve_self_mod"}
+              onClick={() => void runAutonomousAction("approve_self_mod")}
+              type="button"
+            >
+              {loading === "runtime:approve_self_mod" ? "Approving..." : "Approve self-mod"}
+            </button>
+            <button
+              className="button button-ghost small"
+              disabled={loading === "runtime:reject_self_mod"}
+              onClick={() => void runAutonomousAction("reject_self_mod")}
+              type="button"
+            >
+              {loading === "runtime:reject_self_mod" ? "Rejecting..." : "Reject self-mod"}
+            </button>
+            <button
+              className="button button-secondary small"
+              disabled={loading === "runtime:trigger_replication"}
+              onClick={() => void runAutonomousAction("trigger_replication")}
+              type="button"
+            >
+              {loading === "runtime:trigger_replication"
+                ? "Replicating..."
+                : "Trigger replication"}
+            </button>
+            <button
+              className="button button-ghost small"
+              disabled={loading === "runtime:halt_replication"}
+              onClick={() => void runAutonomousAction("halt_replication")}
+              type="button"
+            >
+              {loading === "runtime:halt_replication" ? "Halting..." : "Halt replication"}
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <section className="dashboard-grid">
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Live Streams</p>
+              <h2>Kill active public sessions</h2>
             </div>
           </div>
 
@@ -326,21 +768,17 @@ export function InternalAdminDashboard() {
                     <span>{session.publicSlug ? `@${session.publicSlug}` : session.wallet}</span>
                     <strong>{shorten(session.contractAddress)}</strong>
                     <span>
-                      {session.mode} · {session.deviceType} · {session.status}
+                      {session.mode} / {session.deviceType} / {session.status}
                     </span>
                   </div>
                   <div className="admin-history-actions">
-                    <span>
-                      {new Date(session.updatedAt).toLocaleString("en-US", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </span>
+                    <span>{formatTimestamp(session.updatedAt)}</span>
                     <div className="button-row">
                       <button
                         className="button button-danger small"
                         disabled={loading === `stop:${session.id}`}
                         onClick={() => void handleStopSession(session.id)}
+                        type="button"
                       >
                         Kill stream
                       </button>
@@ -350,6 +788,7 @@ export function InternalAdminDashboard() {
                           session.isDisabled || loading === `disable:${session.wallet}`
                         }
                         onClick={() => void handleToggleUser(session.wallet, true)}
+                        type="button"
                       >
                         Disable user
                       </button>
@@ -359,7 +798,7 @@ export function InternalAdminDashboard() {
               ))}
             </div>
           ) : (
-            <p className="empty-state">No active or starting streams right now.</p>
+            <p className="empty-state">No live or starting streams right now.</p>
           )}
         </section>
 
@@ -367,7 +806,7 @@ export function InternalAdminDashboard() {
           <div className="panel-header">
             <div>
               <p className="eyebrow">Users</p>
-              <h2>Guest user moderation</h2>
+              <h2>Source account control</h2>
             </div>
           </div>
 
@@ -383,20 +822,15 @@ export function InternalAdminDashboard() {
                         : "No default token"}
                     </strong>
                     <span>
-                      {user.hasPublicProfile ? "Public profile" : "No public profile"} ·{" "}
-                      {user.hasActiveSession ? "Live session" : "Idle"} ·{" "}
+                      {user.hasPublicProfile ? "Public profile" : "No public profile"} /{" "}
+                      {user.hasActiveSession ? "Live session" : "Idle"} /{" "}
                       {user.isDisabled ? "Disabled" : "Enabled"}
                     </span>
                     {user.reason ? <span>{user.reason}</span> : null}
                   </div>
                   <div className="admin-history-actions">
                     <span>
-                      {user.disabledAt
-                        ? `Disabled ${new Date(user.disabledAt).toLocaleString("en-US", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}`
-                        : "Available"}
+                      {user.disabledAt ? `Disabled ${formatTimestamp(user.disabledAt)}` : "Available"}
                     </span>
                     <div className="button-row">
                       {user.isDisabled ? (
@@ -404,6 +838,7 @@ export function InternalAdminDashboard() {
                           className="button button-primary small"
                           disabled={loading === `enable:${user.guestId}`}
                           onClick={() => void handleToggleUser(user.guestId, false)}
+                          type="button"
                         >
                           Enable user
                         </button>
@@ -412,6 +847,7 @@ export function InternalAdminDashboard() {
                           className="button button-danger small"
                           disabled={loading === `disable:${user.guestId}`}
                           onClick={() => void handleToggleUser(user.guestId, true)}
+                          type="button"
                         >
                           Disable user
                         </button>
@@ -428,8 +864,206 @@ export function InternalAdminDashboard() {
       </section>
 
       <section className="dashboard-grid">
-        <AutonomousRuntimeAdminPanel />
-        <GoonBookAdminPanel />
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">GoonConnect Moderation</p>
+              <h2>Public profile visibility and live state</h2>
+            </div>
+          </div>
+
+          {dashboard.goonConnectProfiles.length ? (
+            <div className="history-list scroll-feed">
+              {dashboard.goonConnectProfiles.map((profile) => (
+                <div key={profile.guestId} className="history-item admin-history-item">
+                  <div>
+                    <span>@{profile.slug}</span>
+                    <strong>
+                      {profile.defaultContractAddress
+                        ? shorten(profile.defaultContractAddress)
+                        : "No default token"}
+                    </strong>
+                    <span>
+                      {profile.isPublic ? "Public" : "Private"} /{" "}
+                      {profile.isHidden ? "Hidden" : "Visible"} /{" "}
+                      {profile.isDisabled ? "Disabled" : "Enabled"} /{" "}
+                      {profile.hasActiveSession
+                        ? `Live ${profile.activeSessionStatus || ""}`.trim()
+                        : "Idle"}
+                    </span>
+                    {profile.moderationReason ? <span>{profile.moderationReason}</span> : null}
+                  </div>
+                  <div className="admin-history-actions">
+                    <span>
+                      {profile.moderatedAt
+                        ? `Moderated ${formatTimestamp(profile.moderatedAt)}`
+                        : profile.activeSessionUpdatedAt
+                          ? `Updated ${formatTimestamp(profile.activeSessionUpdatedAt)}`
+                          : "No moderation"}
+                    </span>
+                    <div className="button-row">
+                      {profile.activeSessionId ? (
+                        <button
+                          className="button button-danger small"
+                          disabled={loading === `stop:${profile.activeSessionId}`}
+                          onClick={() => void handleStopSession(profile.activeSessionId!)}
+                          type="button"
+                        >
+                          Kill stream
+                        </button>
+                      ) : null}
+                      {profile.isDisabled ? (
+                        <button
+                          className="button button-primary small"
+                          disabled={loading === `enable:${profile.guestId}`}
+                          onClick={() => void handleToggleUser(profile.guestId, false)}
+                          type="button"
+                        >
+                          Enable user
+                        </button>
+                      ) : (
+                        <button
+                          className="button button-secondary small"
+                          disabled={loading === `disable:${profile.guestId}`}
+                          onClick={() => void handleToggleUser(profile.guestId, true)}
+                          type="button"
+                        >
+                          Disable user
+                        </button>
+                      )}
+                      {profile.isHidden ? (
+                        <button
+                          className="button button-primary small"
+                          disabled={loading === `unhide-profile:${profile.guestId}`}
+                          onClick={() => void handleToggleProfileHidden(profile.guestId, false)}
+                          type="button"
+                        >
+                          Unhide profile
+                        </button>
+                      ) : (
+                        <button
+                          className="button button-ghost small"
+                          disabled={loading === `hide-profile:${profile.guestId}`}
+                          onClick={() => void handleToggleProfileHidden(profile.guestId, true)}
+                          type="button"
+                        >
+                          Hide profile
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">No GoonConnect profiles have been published yet.</p>
+          )}
+        </section>
+
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">GoonBook Moderation</p>
+              <h2>Compose and moderate public drops</h2>
+            </div>
+          </div>
+
+          <div className="field-grid">
+            <label className="field">
+              <span>Agent profile</span>
+              <select value={agentId} onChange={(event) => setAgentId(event.target.value)}>
+                <option value="goonclaw">GoonClaw</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Image URL</span>
+              <input
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={(event) => setImageUrl(event.target.value)}
+              />
+            </label>
+          </div>
+
+          <label className="field">
+            <span>Caption</span>
+            <textarea
+              maxLength={240}
+              placeholder="Post the next autonomous drop..."
+              rows={4}
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+            />
+          </label>
+
+          <label className="field">
+            <span>Image alt text</span>
+            <input
+              placeholder="Optional accessibility text"
+              value={imageAlt}
+              onChange={(event) => setImageAlt(event.target.value)}
+            />
+          </label>
+
+          <div className="button-row">
+            <button
+              className="button button-primary"
+              disabled={loading === "publish-goonbook" || !body.trim()}
+              onClick={() => void handlePublish()}
+              type="button"
+            >
+              {loading === "publish-goonbook" ? "Publishing..." : "Publish to GoonBook"}
+            </button>
+            <span className="status-badge status-badge-neutral">{body.trim().length}/240</span>
+          </div>
+
+          {dashboard.goonBookPosts.length ? (
+            <div className="history-list scroll-feed">
+              {dashboard.goonBookPosts.map((post) => (
+                <div key={post.id} className="history-item admin-history-item">
+                  <div>
+                    <span>@{post.handle}</span>
+                    <strong>{post.body}</strong>
+                    <span>
+                      {post.isHidden ? "Hidden" : "Visible"} / {formatTimestamp(post.createdAt)}
+                    </span>
+                    {post.moderationReason ? <span>{post.moderationReason}</span> : null}
+                  </div>
+                  <div className="admin-history-actions">
+                    <span>
+                      {post.moderatedAt
+                        ? `Moderated ${formatTimestamp(post.moderatedAt)}`
+                        : "No moderation"}
+                    </span>
+                    <div className="button-row">
+                      {post.isHidden ? (
+                        <button
+                          className="button button-primary small"
+                          disabled={loading === `unhide-post:${post.id}`}
+                          onClick={() => void handleTogglePostHidden(post.id, false)}
+                          type="button"
+                        >
+                          Unhide post
+                        </button>
+                      ) : (
+                        <button
+                          className="button button-ghost small"
+                          disabled={loading === `hide-post:${post.id}`}
+                          onClick={() => void handleTogglePostHidden(post.id, true)}
+                          type="button"
+                        >
+                          Hide post
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">No GoonBook posts have been published yet.</p>
+          )}
+        </section>
       </section>
     </div>
   );

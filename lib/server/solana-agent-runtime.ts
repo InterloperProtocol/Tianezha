@@ -24,16 +24,34 @@ function parseSecretKey(secret: string) {
 export function getSolanaAgentRuntimeStatus() {
   const env = getServerEnv();
   const secretKey = parseSecretKey(env.GOONCLAW_AGENT_WALLET_SECRET);
+  const blockedActionNames = [
+    "arbitrary-transfer",
+    "external-wallet-withdrawal",
+    "non-pump-asset-trade",
+    "non-pump-memecoin-trade",
+    "cross-chain-transfer",
+    "bridge-assets",
+    "jupiter-swap",
+    "raydium-swap",
+    "orca-swap",
+    "launchPumpToken",
+  ] as string[];
+  const actionNames = [
+    "buyPumpToken",
+    "sellPumpToken",
+    "registerDomain",
+    "resolveDomain",
+    "conway-domain-access",
+    "conway-infrastructure-payment",
+    "solana-mcp-bridge",
+  ] as string[];
 
   if (!secretKey) {
     return {
       configured: false,
       walletAddress: null,
       actionNames: [] as string[],
-      blockedActionNames: [
-        "arbitrary-transfer",
-        "external-wallet-withdrawal",
-      ] as string[],
+      blockedActionNames,
     };
   }
 
@@ -43,27 +61,15 @@ export function getSolanaAgentRuntimeStatus() {
     return {
       configured: true,
       walletAddress: keypair.publicKey.toBase58(),
-      actionNames: [
-        "solana-agent-kit-runtime",
-        "token-plugin",
-        "defi-plugin",
-        "misc-plugin",
-        "solana-mcp-bridge",
-      ],
-      blockedActionNames: [
-        "arbitrary-transfer",
-        "external-wallet-withdrawal",
-      ],
+      actionNames,
+      blockedActionNames,
     };
   } catch {
     return {
       configured: false,
       walletAddress: null,
       actionNames: [] as string[],
-      blockedActionNames: [
-        "arbitrary-transfer",
-        "external-wallet-withdrawal",
-      ] as string[],
+      blockedActionNames,
     };
   }
 }

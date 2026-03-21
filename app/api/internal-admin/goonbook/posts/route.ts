@@ -32,15 +32,18 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ item });
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Couldn't publish GoonBook post.";
+    const status =
+      message === "Admin authentication required"
+        ? 401
+        : message.includes("Cross-")
+          ? 403
+          : 400;
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Couldn't publish GoonBook post.",
-      },
-      {
-        status:
-          error instanceof Error && error.message.includes("Cross-") ? 403 : 400,
-      },
+      { error: message },
+      { status },
     );
   }
 }

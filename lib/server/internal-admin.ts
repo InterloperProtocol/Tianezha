@@ -3,14 +3,21 @@ import { createHmac } from "crypto";
 import { cookies } from "next/headers";
 
 import { getServerEnv } from "@/lib/env";
+import { getAutonomousStatus } from "@/lib/server/autonomous-agent";
 import { getPayloadClient } from "@/lib/server/payload";
 import {
   getSession,
+  listGoonBookPosts,
   listPublicStreamProfiles,
   listRecoverableSessions,
+  upsertPublicStreamProfile,
 } from "@/lib/server/repository";
 import { dispatchSessionStop } from "@/lib/server/worker-client";
-import { SessionRecord } from "@/lib/types";
+import {
+  AutonomousRuntimeSummary,
+  GoonBookPostRecord,
+  SessionRecord,
+} from "@/lib/types";
 import { addDays, fromBase64Url, nowIso, toBase64Url } from "@/lib/utils";
 
 const INTERNAL_ADMIN_COOKIE = "goonclaw_internal_admin";
@@ -24,6 +31,9 @@ type StreamerControlDoc = {
   disabledAt?: string | null;
   disabledBy?: string | null;
   reason?: string | null;
+  hiddenAt?: string | null;
+  hiddenBy?: string | null;
+  hiddenReason?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -51,6 +61,27 @@ type DashboardUser = {
   disabledAt: string | null;
   disabledBy: string | null;
   reason: string | null;
+};
+
+type DashboardGoonConnectProfile = {
+  guestId: string;
+  slug: string;
+  defaultContractAddress: string | null;
+  isPublic: boolean;
+  isHidden: boolean;
+  isDisabled: boolean;
+  hasActiveSession: boolean;
+  activeSessionId: string | null;
+  activeSessionStatus: string | null;
+  activeSessionUpdatedAt: string | null;
+  moderatedAt: string | null;
+  moderatedBy: string | null;
+  moderationReason: string | null;
+};
+
+type DashboardGoonBookPost = GoonBookPostRecord & {
+  displayName: string;
+  handle: string;
 };
 
 function asRecord(value: unknown) {
@@ -116,6 +147,10 @@ function normalizeStreamerControl(doc: unknown): StreamerControlDoc | null {
     disabledBy:
       typeof record.disabledBy === "string" ? record.disabledBy : null,
     reason: typeof record.reason === "string" ? record.reason : null,
+    hiddenAt: typeof record.hiddenAt === "string" ? record.hiddenAt : null,
+    hiddenBy: typeof record.hiddenBy === "string" ? record.hiddenBy : null,
+    hiddenReason:
+      typeof record.hiddenReason === "string" ? record.hiddenReason : null,
     createdAt: typeof record.createdAt === "string" ? record.createdAt : undefined,
     updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : undefined,
   };
@@ -423,6 +458,78 @@ export async function enableGuestAccount(args: {
   });
 }
 
+export async function hidePublicStreamProfile(args: {
+  guestId: string;
+  adminUsername: string;
+  reason?: string | null;
+}) {
+  const existing = await getPublicStreamProfileOrThrow(args.guestId);
+  const timestamp = nowIso();
+
+  const updated = await upsertPublicStreamProfile({
+    ...existing,
+    isHidden: true,
+    moderatedAt: timestamp,
+    moderatedBy: args.adminUsername,
+    moderationReason:
+      args.reason?.trim() || "Hidden from the Amber Vault owner cockpit.",
+    updatedAt: timestamp,
+  });
+
+  return updated;
+}
+
+export async function unhidePublicStreamProfile(args: { guestId: string }) {
+  const existing = await getPublicStreamProfileOrThrow(args.guestId);
+  const timestamp = nowIso();
+
+  const updated = await upsertPublicStreamProfile({
+    ...existing,
+    isHidden: false,
+    moderatedAt: null,
+    moderatedBy: null,
+    moderationReason: null,
+    updatedAt: timestamp,
+  });
+
+  return updated;
+}
+
+function getProfileHandle(agentId: string) {
+  return agentId === "goonclaw"
+    ? { displayName: "GoonClaw", handle: "goonclaw" }
+    : { displayName: agentId, handle: agentId };
+}
+
+function buildRuntimeSummary(): AutonomousRuntimeSummary {
+  const status = getAutonomousStatus();
+  return {
+    heartbeatAt: status.heartbeatAt,
+    runtimePhase: status.runtimePhase,
+    latestPolicyDecision: status.latestPolicyDecision,
+    paused: status.control.paused,
+    pauseReason: status.control.pauseReason,
+    lastAction: status.control.lastAction,
+    lastActionAt: status.control.lastActionAt,
+    reserveHealthy: status.treasury.reserveHealthy,
+    reserveSol: status.treasury.reserveSol,
+    reserveFloorSol: status.treasury.reserveFloorSol,
+    pendingSelfModification: status.selfModification.pendingProposal || null,
+    replicationEnabled: status.replication.enabled,
+    replicationChildCount: status.replication.childCount,
+  };
+}
+
+async function getPublicStreamProfileOrThrow(guestId: string) {
+  const profiles = await listPublicStreamProfiles();
+  const profile = profiles.find((item) => item.guestId === guestId) || null;
+  if (!profile) {
+    throw new Error("Public stream profile not found");
+  }
+
+  return profile;
+}
+
 export async function stopSessionFromAdmin(sessionId: string) {
   const session = await getSession(sessionId);
   if (!session) {
@@ -433,10 +540,12 @@ export async function stopSessionFromAdmin(sessionId: string) {
 }
 
 export async function getInternalAdminDashboardData() {
-  const [controls, publicProfiles, recoverableSessions] = await Promise.all([
+  const [controls, publicProfiles, recoverableSessions, goonBookPosts] =
+    await Promise.all([
     listStreamerControls(),
     listPublicStreamProfiles(),
     listRecoverableSessions(),
+    listGoonBookPosts(24, { includeHidden: true }),
   ]);
 
   const controlMap = new Map(controls.map((item) => [item.guestId, item]));
@@ -492,8 +601,44 @@ export async function getInternalAdminDashboardData() {
       return (left.slug || left.guestId).localeCompare(right.slug || right.guestId);
     });
 
+  const goonConnectProfiles: DashboardGoonConnectProfile[] = publicProfiles
+    .map((profile) => {
+      const control = controlMap.get(profile.guestId);
+      const activeSession =
+        recoverableSessions.find((session) => session.wallet === profile.guestId) ?? null;
+
+      return {
+        guestId: profile.guestId,
+        slug: profile.slug,
+        defaultContractAddress: profile.defaultContractAddress || null,
+        isPublic: profile.isPublic,
+        isHidden: Boolean(profile.isHidden),
+        isDisabled: Boolean(control?.isDisabled),
+        hasActiveSession: Boolean(activeSession),
+        activeSessionId: activeSession?.id || null,
+        activeSessionStatus: activeSession?.status || null,
+        activeSessionUpdatedAt: activeSession?.updatedAt || null,
+        moderatedAt: profile.moderatedAt || null,
+        moderatedBy: profile.moderatedBy || null,
+        moderationReason: profile.moderationReason || null,
+      };
+    })
+    .sort((left, right) => left.slug.localeCompare(right.slug));
+
+  const dashboardGoonBookPosts: DashboardGoonBookPost[] = goonBookPosts.map((post) => {
+    const profile = getProfileHandle(post.agentId);
+    return {
+      ...post,
+      displayName: profile.displayName,
+      handle: profile.handle,
+    };
+  });
+
   return {
     activeSessions,
+    goonBookPosts: dashboardGoonBookPosts,
+    goonConnectProfiles,
+    runtimeSummary: buildRuntimeSummary(),
     users,
   };
 }

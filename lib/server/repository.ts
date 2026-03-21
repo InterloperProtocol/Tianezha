@@ -371,11 +371,26 @@ export async function upsertPublicStreamProfile(record: PublicStreamProfile) {
   );
 }
 
-export async function listGoonBookPosts(limit = 80) {
+export async function getGoonBookPost(id: string) {
+  return withRepositoryBackend(
+    "getGoonBookPost",
+    () => getMemoryStore().goonBookPosts.get(id) ?? null,
+    async (db) => {
+      const doc = await db.collection("goonBookPosts").doc(id).get();
+      return doc.exists ? (doc.data() as GoonBookPostRecord) : null;
+    },
+  );
+}
+
+export async function listGoonBookPosts(
+  limit = 80,
+  options?: { includeHidden?: boolean },
+) {
   return withRepositoryBackend(
     "listGoonBookPosts",
     () =>
       [...getMemoryStore().goonBookPosts.values()]
+        .filter((item) => options?.includeHidden || !item.isHidden)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, limit),
     async (db) => {
@@ -385,7 +400,9 @@ export async function listGoonBookPosts(limit = 80) {
         .limit(limit)
         .get();
 
-      return snapshot.docs.map((doc) => doc.data() as GoonBookPostRecord);
+      return snapshot.docs
+        .map((doc) => doc.data() as GoonBookPostRecord)
+        .filter((item) => options?.includeHidden || !item.isHidden);
     },
   );
 }

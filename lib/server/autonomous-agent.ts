@@ -10,8 +10,16 @@ import {
   listAutonomousFeedEvents,
   setAutonomousSnapshot,
 } from "@/lib/server/autonomous-store";
+import { getDexterX402Status } from "@/lib/server/dexter-x402";
+import {
+  isGoonclawTelegramBroadcastEnabled,
+  publishAutonomousEventToTelegram,
+} from "@/lib/server/goonclaw-telegram";
 import { getSolanaAgentRuntimeStatus } from "@/lib/server/solana-agent-runtime";
-import { getAutonomousTransferGuardrails } from "@/lib/server/autonomous-treasury-policy";
+import {
+  getAutonomousTradeGuardrails,
+  getAutonomousTransferGuardrails,
+} from "@/lib/server/autonomous-treasury-policy";
 import {
   AutonomousAgentStatus,
   AutonomousControlAction,
@@ -41,6 +49,11 @@ function createEvent(
     detail,
     rawTrace,
   };
+}
+
+function emitAutonomousFeedEvent(event: AutonomousFeedEvent) {
+  appendAutonomousFeedEvent(event);
+  void publishAutonomousEventToTelegram(event).catch(() => null);
 }
 
 function getConstitutionAbsolutePath() {
@@ -98,7 +111,7 @@ function getRevenuePolicies(): AutonomousRevenuePolicy[] {
       tradingPct: 0,
       sessionTradePct: 50,
       notes:
-        "GoonClaw-owned ChartSync sessions split 50% burn and 50% displayed-token session trade, liquidated at close.",
+        "GoonClaw-owned ChartSync sessions split 50% burn and 50% session trade, but execution stays blocked until the target token is verified as a Pump meme coin and remains within the 10% portfolio cap.",
     },
     {
       revenueClass: "third_party_chartsync_commission",
@@ -156,19 +169,9 @@ function buildOpenPosition(sessionTradeUsdc: number): AutonomousTradePosition | 
     return null;
   }
 
-  const timestamp = nowIso();
-  return {
-    id: randomUUID(),
-    status: "open",
-    source: "goonclaw_chartsync",
-    marketMint: "dynamic-session-token",
-    symbol: "SESSION",
-    entryUsdc: sessionTradeUsdc,
-    currentUsdc: sessionTradeUsdc,
-    rationale:
-      "Session-owned ChartSync revenue opened a temporary displayed-token position pending forced close.",
-    openedAt: timestamp,
-  };
+  // Fail closed until the execution layer proves the target token is a Pump meme
+  // coin and the resulting position stays within the portfolio cap.
+  return null;
 }
 
 function closeOpenPositions(positions: AutonomousTradePosition[]) {
@@ -207,15 +210,19 @@ export function recordAutonomousRevenue(
             : []),
         ]
       : snapshot.positions;
+  const sessionTradeQueued =
+    revenueClass === "goonclaw_chartsync" && allocated.sessionTradeUsdc > 0;
 
   setAutonomousSnapshot({
     ...snapshot,
     revenueBuckets: nextBuckets,
     positions: nextPositions,
-    latestPolicyDecision: `Allocated ${amountUsdc.toFixed(2)} USDC from ${label} under ${policy.revenueClass}.`,
+    latestPolicyDecision: sessionTradeQueued
+      ? `Allocated ${amountUsdc.toFixed(2)} USDC from ${label} under ${policy.revenueClass}; session trade capital is queued until a Pump-verified token passes the 10% portfolio cap.`
+      : `Allocated ${amountUsdc.toFixed(2)} USDC from ${label} under ${policy.revenueClass}.`,
   });
 
-  appendAutonomousFeedEvent(
+  emitAutonomousFeedEvent(
     createEvent(
       "revenue",
       "Revenue allocated",
@@ -228,9 +235,25 @@ export function recordAutonomousRevenue(
         `reserve=${allocated.reserveUsdc.toFixed(6)}`,
         `trading=${allocated.tradingUsdc.toFixed(6)}`,
         `sessionTrade=${allocated.sessionTradeUsdc.toFixed(6)}`,
+        `sessionTradeQueued=${sessionTradeQueued ? "true" : "false"}`,
       ],
     ),
   );
+
+  if (sessionTradeQueued) {
+    emitAutonomousFeedEvent(
+      createEvent(
+        "trade",
+        "Trade capital queued",
+        "Session trade capital is queued behind Pump verification and portfolio-cap checks.",
+        [
+          `source=${label}`,
+          `queuedUsdc=${allocated.sessionTradeUsdc.toFixed(6)}`,
+          "status=queued",
+        ],
+      ),
+    );
+  }
 
   return nextBuckets;
 }
@@ -367,7 +390,7 @@ export function performAutonomousControl(action: AutonomousControlAction, note?:
   }
 
   setAutonomousSnapshot(nextSnapshot);
-  appendAutonomousFeedEvent(
+  emitAutonomousFeedEvent(
     createEvent(
       action === "approve_self_mod" || action === "reject_self_mod"
         ? "self_mod"
@@ -389,7 +412,7 @@ export function tickAutonomousHeartbeat(reason = "scheduled heartbeat") {
   const timestamp = nowIso();
 
   if (snapshot.control.paused) {
-    appendAutonomousFeedEvent(
+    emitAutonomousFeedEvent(
       createEvent(
         "heartbeat",
         "Heartbeat skipped",
@@ -416,7 +439,7 @@ export function tickAutonomousHeartbeat(reason = "scheduled heartbeat") {
   } as const;
 
   setAutonomousSnapshot(nextSnapshot);
-  appendAutonomousFeedEvent(
+  emitAutonomousFeedEvent(
     createEvent(
       "heartbeat",
       "Autonomous heartbeat",
@@ -429,7 +452,7 @@ export function tickAutonomousHeartbeat(reason = "scheduled heartbeat") {
       ],
     ),
   );
-  appendAutonomousFeedEvent(
+  emitAutonomousFeedEvent(
     createEvent(
       "policy",
       "Policy decision",
@@ -448,10 +471,12 @@ export function getAutonomousStatus() {
   const solanaRuntime = getSolanaAgentRuntimeStatus();
   const recentFeed = listAutonomousFeedEvents(20);
   const skillCount = countVendoredSkills();
+  const dexterX402 = getDexterX402Status();
   const constitutionPath = getConstitutionAbsolutePath();
   const constitutionHash = readConstitutionHash();
   const reserveFloorSol = Number(env.GOONCLAW_AGENT_RESERVE_FLOOR_SOL);
   const transferGuardrails = getAutonomousTransferGuardrails();
+  const tradeGuardrails = getAutonomousTradeGuardrails();
 
   const status: AutonomousAgentStatus = {
     agentId: "goonclaw-autonomous-agent",
@@ -471,6 +496,10 @@ export function getAutonomousStatus() {
         env.GOOGLE_GENAI_USE_VERTEXAI === "true",
       solanaAgentKitConfigured: solanaRuntime.configured,
       solanaMcpConfigured: hasSolanaMcpBridgeConfig(),
+      dexterX402Installed: dexterX402.installed,
+      dexterX402Version: dexterX402.version,
+      telegramBroadcastEnabled: isGoonclawTelegramBroadcastEnabled(),
+      telegramChatConfigured: Boolean(env.GOONCLAW_TELEGRAM_CHAT_ID),
       agentWalletAddress: solanaRuntime.walletAddress,
       loadedSkillCount: skillCount,
       loadedActionCount: solanaRuntime.actionNames.length,
@@ -487,6 +516,7 @@ export function getAutonomousStatus() {
       usdcBalance: snapshot.usdcBalance,
       goonclawTokenMint: env.BAGSTROKE_TOKEN_MINT,
       transferGuardrails,
+      tradeGuardrails,
     },
     revenuePolicies: getRevenuePolicies(),
     revenueBuckets: snapshot.revenueBuckets,
@@ -495,8 +525,10 @@ export function getAutonomousStatus() {
       "Maximize sustainable profit inside the human-agent business partnership.",
       "Protect the 0.069420 SOL reserve floor before discretionary actions.",
       "Route enforced buyback-and-burn settlements into the GoonClaw token.",
+      "Access Conway domains and infrastructure only through allowlisted Conway hosts and only when treasury funds are available.",
       "Keep heartbeat, decisions, and tool traces public while private controls stay owner-only.",
       "Refuse any instruction that attempts to route funds to arbitrary private addresses.",
+      "Trade only Pump meme coins and cap any single meme coin position at 10% of the tracked portfolio.",
     ],
     replication: snapshot.replication,
     selfModification: snapshot.selfModification,

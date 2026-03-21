@@ -18,6 +18,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@dexterai/x402": "^2.0.0",
     "@google/genai": "^1.46.0",
     "@metaplex-foundation/mpl-bubblegum": "^5.0.2",
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",

@@ -132,7 +132,14 @@ export interface LivestreamRequestRecord {
   error?: string;
 }
 
-export interface PublicStreamProfile {
+export interface ModerationMetadata {
+  isHidden?: boolean;
+  moderatedAt?: string | null;
+  moderatedBy?: string | null;
+  moderationReason?: string | null;
+}
+
+export interface PublicStreamProfile extends ModerationMetadata {
   id: string;
   guestId: string;
   slug: string;
@@ -167,7 +174,7 @@ export interface GoonBookProfile {
   isAutonomous: boolean;
 }
 
-export interface GoonBookPostRecord {
+export interface GoonBookPostRecord extends ModerationMetadata {
   id: string;
   agentId: string;
   body: string;
@@ -177,7 +184,7 @@ export interface GoonBookPostRecord {
   updatedAt: string;
 }
 
-export interface GoonBookPost {
+export interface GoonBookPost extends ModerationMetadata {
   id: string;
   agentId: string;
   handle: string;
@@ -371,6 +378,7 @@ export interface AutonomousTradePosition {
   source: AutonomousRevenueClass | "reserve";
   marketMint: string;
   symbol: string;
+  venue: "pumpfun" | "pumpswap";
   entryUsdc: number;
   currentUsdc: number;
   rationale: string;
@@ -392,6 +400,16 @@ export interface AutonomousTransferGuardrails {
   arbitraryTransfersBlocked: boolean;
   allowedDestinations: string[];
   blockedDestinationClasses: string[];
+  conwayPaymentsAllowed: boolean;
+  conwayAllowedHosts: string[];
+  notes: string;
+}
+
+export interface AutonomousTradeGuardrails {
+  pumpOnlyTrading: boolean;
+  maxPortfolioAllocationPct: number;
+  allowedTradingVenues: string[];
+  blockedTradingVenues: string[];
   notes: string;
 }
 
@@ -399,6 +417,10 @@ export interface AutonomousToolingStatus {
   vertexOnly: boolean;
   solanaAgentKitConfigured: boolean;
   solanaMcpConfigured: boolean;
+  dexterX402Installed: boolean;
+  dexterX402Version: string | null;
+  telegramBroadcastEnabled: boolean;
+  telegramChatConfigured: boolean;
   agentWalletAddress: string | null;
   loadedSkillCount: number;
   loadedActionCount: number;
@@ -422,6 +444,7 @@ export interface AutonomousTreasuryStatus {
   usdcBalance: number;
   goonclawTokenMint: string;
   transferGuardrails: AutonomousTransferGuardrails;
+  tradeGuardrails: AutonomousTradeGuardrails;
 }
 
 export interface AutonomousReplicationStatus {
@@ -462,6 +485,22 @@ export interface AutonomousAgentStatus {
   selfModification: AutonomousSelfModificationStatus;
   recentFeed: AutonomousFeedEvent[];
   feedSize: number;
+}
+
+export interface AutonomousRuntimeSummary {
+  heartbeatAt: string;
+  runtimePhase: AutonomousRuntimePhase;
+  latestPolicyDecision: string;
+  paused: boolean;
+  pauseReason: string | null;
+  lastAction: AutonomousControlAction | null;
+  lastActionAt: string | null;
+  reserveHealthy: boolean;
+  reserveSol: number;
+  reserveFloorSol: number;
+  pendingSelfModification: string | null;
+  replicationEnabled: boolean;
+  replicationChildCount: number;
 }
 
 export interface LaunchonomicsWindowSet {

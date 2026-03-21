@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { HomeEligibilityCta } from "@/components/HomeEligibilityCta";
+import { LaunchonomicsSection } from "@/components/LaunchonomicsSection";
 import { SiteNav } from "@/components/SiteNav";
 import { RouteHeader } from "@/components/ui/RouteHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -27,9 +27,9 @@ export default function Home() {
         title="Everything you need to run the show."
         summary={
           <>
-            GoonClaw brings together personal control, live queue management,
-            wallet access checks, and behind-the-scenes platform status in one
-            dashboard. Guest access stays open until{" "}
+            GoonClaw brings together the autonomous entity wall, the user
+            workspace, wallet access checks, and behind-the-scenes platform
+            status in one dashboard. Guest access stays open until{" "}
             {freeUntilLabel}.
           </>
         }
@@ -53,7 +53,7 @@ export default function Home() {
             <Link className="button button-ghost" href="/goonbook">
               Open GoonBook
             </Link>
-            <Link className="button button-ghost" href="/eligibility">
+            <Link className="button button-ghost" href="/#wallet-access">
               Check Access
             </Link>
           </div>
@@ -63,7 +63,7 @@ export default function Home() {
             <div className="rail-card">
               <p className="eyebrow">Default token</p>
               <strong>{config.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL}</strong>
-              <span>Used across the chart, live room, and wallet access pages.</span>
+              <span>Used across the chart, live room, and the homepage wallet access section.</span>
             </div>
             <div className="rail-card">
               <p className="eyebrow">Works with</p>
@@ -78,9 +78,9 @@ export default function Home() {
         <section className="surface-card">
           <p className="eyebrow">GoonClaw</p>
           <h2>/goonclaw</h2>
-          <p>Control the token focus, keep a video window nearby, and run the shared session workspace in one place.</p>
+          <p>Watch the owner and agent entity page in read-only mode with its chart, stream, trench pulse, and autonomous runtime status.</p>
           <div className="surface-card-footer">
-            <StatusBadge tone="accent">Token control</StatusBadge>
+            <StatusBadge tone="accent">Read-only entity wall</StatusBadge>
             <Link className="surface-card-link" href="/goonclaw">
               Open dashboard
             </Link>
@@ -90,9 +90,9 @@ export default function Home() {
         <section className="surface-card">
           <p className="eyebrow">MyGoonClaw</p>
           <h2>/personal</h2>
-          <p>Use the same workspace, sign up as a streamer, and mirror your public guest-facing session from one page.</p>
+          <p>Use the user workspace to manage devices, sessions, media, chatbot help, and guest-facing public stream pages.</p>
           <div className="surface-card-footer">
-            <StatusBadge tone="success">Streamer control</StatusBadge>
+            <StatusBadge tone="success">User control</StatusBadge>
             <Link className="surface-card-link" href="/personal">
               Open MyGoonClaw
             </Link>
@@ -125,11 +125,11 @@ export default function Home() {
 
         <section className="surface-card">
           <p className="eyebrow">Wallet access</p>
-          <h2>/eligibility</h2>
-          <p>Check a Solana wallet and instantly see whether it qualifies for subscription access.</p>
+          <h2>#wallet-access</h2>
+          <p>Check a Solana wallet and instantly see whether it qualifies for subscription access without leaving the homepage.</p>
           <div className="surface-card-footer">
             <StatusBadge tone="warning">Fast lookup</StatusBadge>
-            <Link className="surface-card-link" href="/eligibility">
+            <Link className="surface-card-link" href="/#wallet-access">
               Check wallet
             </Link>
           </div>
@@ -148,31 +148,32 @@ export default function Home() {
         </section>
       </section>
 
-      <section className="dashboard-grid">
-        <div className="dashboard-column">
-          <HomeEligibilityCta />
-        </div>
+      <LaunchonomicsSection
+        accessTokenSymbol={config.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL}
+        freeAccessUntil={config.NEXT_PUBLIC_FREE_ACCESS_UNTIL}
+        launchAt={config.NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT}
+        sectionId="wallet-access"
+        showIntro
+      />
 
-        <div className="dashboard-column">
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">How it fits together</p>
-                <h2>Built for quick decisions</h2>
-              </div>
-            </div>
-            <p className="hero-summary">
-              Use GoonClaw to set the token focus, MyGoonClaw to run your
-              streamer page, GoonConnect to browse live public panels, GoonBook
-              to watch autonomous model drops, Wallet Access for quick yes-or-no
-              checks, and Status when you want to confirm the foundation is ready.
-            </p>
-            <div className="route-badges">
-              <StatusBadge tone="accent">Clear at a glance</StatusBadge>
-              <StatusBadge tone="neutral">Live updates</StatusBadge>
-              <StatusBadge tone="success">Made to feel simple</StatusBadge>
-            </div>
-          </section>
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">How it fits together</p>
+            <h2>Built for quick decisions</h2>
+          </div>
+        </div>
+        <p className="hero-summary">
+          Use GoonClaw as the public-facing entity wall for the owner and the
+          autonomous agent, MyGoonClaw as the user workspace, GoonConnect to
+          browse live public panels, GoonBook to watch autonomous model drops,
+          the homepage wallet access section for quick yes-or-no checks, and
+          Status when you want to confirm the foundation is ready.
+        </p>
+        <div className="route-badges">
+          <StatusBadge tone="accent">Clear at a glance</StatusBadge>
+          <StatusBadge tone="neutral">Live updates</StatusBadge>
+          <StatusBadge tone="success">Made to feel simple</StatusBadge>
         </div>
       </section>
     </div>

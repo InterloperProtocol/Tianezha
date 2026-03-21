@@ -89,6 +89,20 @@ const TRENCHES_CACHE = new Map<string, { expiresAt: number; value: TrenchesPulse
 const DEX_API_BASE = "https://api.dexscreener.com";
 const JINA_READER_BASE = "https://r.jina.ai/http://x.com";
 
+export function buildUnavailableTrenchesPulse(message?: string): TrenchesPulse {
+  const fetchedAt = new Date();
+
+  return {
+    fetchedAt: fetchedAt.toISOString(),
+    nextRefreshAt: new Date(fetchedAt.getTime() + TRENCHES_CACHE_MS).toISOString(),
+    sourceLabel: "DexScreener public market pulse",
+    summary:
+      message ||
+      "The trench monitor hit a temporary data issue, so the panel is holding a safe standby summary until the next refresh.",
+    tokens: [],
+  };
+}
+
 function chunk<T>(values: T[], size: number) {
   const chunks: T[][] = [];
 
@@ -547,22 +561,37 @@ export async function getTrenchesPulse() {
     return cached.value;
   }
 
-  const fetchedAt = new Date();
-  const tokens = await buildTrenchesTokens();
-  const summary = await buildNarrativeSummary(tokens);
-  const sourceLabel = "DexScreener public market pulse";
-  const value = {
-    fetchedAt: fetchedAt.toISOString(),
-    nextRefreshAt: new Date(fetchedAt.getTime() + TRENCHES_CACHE_MS).toISOString(),
-    sourceLabel,
-    summary,
-    tokens,
-  } satisfies TrenchesPulse;
+  try {
+    const fetchedAt = new Date();
+    const tokens = await buildTrenchesTokens();
+    const summary = await buildNarrativeSummary(tokens);
+    const sourceLabel = "DexScreener public market pulse";
+    const value = {
+      fetchedAt: fetchedAt.toISOString(),
+      nextRefreshAt: new Date(fetchedAt.getTime() + TRENCHES_CACHE_MS).toISOString(),
+      sourceLabel,
+      summary,
+      tokens,
+    } satisfies TrenchesPulse;
 
-  TRENCHES_CACHE.set(cacheKey, {
-    expiresAt: fetchedAt.getTime() + TRENCHES_CACHE_MS,
-    value,
-  });
+    TRENCHES_CACHE.set(cacheKey, {
+      expiresAt: fetchedAt.getTime() + TRENCHES_CACHE_MS,
+      value,
+    });
 
-  return value;
+    return value;
+  } catch (error) {
+    const fallback = buildUnavailableTrenchesPulse(
+      error instanceof Error
+        ? `The trench monitor hit a temporary data issue: ${error.message}`
+        : undefined,
+    );
+
+    TRENCHES_CACHE.set(cacheKey, {
+      expiresAt: Date.now() + 60_000,
+      value: fallback,
+    });
+
+    return fallback;
+  }
 }

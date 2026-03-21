@@ -6,7 +6,11 @@ import {
   GoonBookProfile,
 } from "@/lib/types";
 import { nowIso } from "@/lib/utils";
-import { listGoonBookPosts, upsertGoonBookPost } from "@/lib/server/repository";
+import {
+  getGoonBookPost,
+  listGoonBookPosts,
+  upsertGoonBookPost,
+} from "@/lib/server/repository";
 
 const GOONBOOK_MAX_POST_LENGTH = 240;
 
@@ -71,8 +75,11 @@ export function listGoonBookProfiles() {
   return Object.values(GOONBOOK_PROFILES);
 }
 
-export async function getGoonBookFeed(limit = 60) {
-  const posts = await listGoonBookPosts(limit);
+export async function getGoonBookFeed(
+  limit = 60,
+  options?: { includeHidden?: boolean },
+) {
+  const posts = await listGoonBookPosts(limit, options);
   return posts.map(decoratePost);
 }
 
@@ -105,5 +112,48 @@ export async function createGoonBookPost(input: {
   };
 
   const saved = await upsertGoonBookPost(record);
+  return decoratePost(saved);
+}
+
+export async function hideGoonBookPost(args: {
+  adminUsername: string;
+  postId: string;
+  reason?: string | null;
+}) {
+  const existing = await getGoonBookPost(args.postId);
+  if (!existing) {
+    throw new Error("GoonBook post not found");
+  }
+
+  const next: GoonBookPostRecord = {
+    ...existing,
+    isHidden: true,
+    moderatedAt: nowIso(),
+    moderatedBy: args.adminUsername,
+    moderationReason:
+      args.reason?.trim() || "Hidden from the Amber Vault owner cockpit.",
+    updatedAt: nowIso(),
+  };
+
+  const saved = await upsertGoonBookPost(next);
+  return decoratePost(saved);
+}
+
+export async function unhideGoonBookPost(args: { postId: string }) {
+  const existing = await getGoonBookPost(args.postId);
+  if (!existing) {
+    throw new Error("GoonBook post not found");
+  }
+
+  const next: GoonBookPostRecord = {
+    ...existing,
+    isHidden: false,
+    moderatedAt: null,
+    moderatedBy: null,
+    moderationReason: null,
+    updatedAt: nowIso(),
+  };
+
+  const saved = await upsertGoonBookPost(next);
   return decoratePost(saved);
 }

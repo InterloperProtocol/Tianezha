@@ -166,6 +166,11 @@ export function AutonomousAgentPanel() {
         </StatusBadge>
         <StatusBadge tone="accent">Vertex AI Gemini only</StatusBadge>
         <StatusBadge tone="warning">Owner-only controls</StatusBadge>
+        <StatusBadge tone={status?.tooling.telegramBroadcastEnabled ? "success" : "neutral"}>
+          {status?.tooling.telegramBroadcastEnabled
+            ? "Telegram relay armed"
+            : "Telegram relay idle"}
+        </StatusBadge>
         <StatusBadge tone="neutral" mono>
           Last update {lastUpdatedLabel}
         </StatusBadge>
@@ -228,7 +233,7 @@ export function AutonomousAgentPanel() {
             <span>MCP / skills</span>
             <strong>
               {status
-                ? `${status.tooling.solanaMcpConfigured ? "MCP ready" : "MCP pending"} · ${status.tooling.loadedSkillCount} skills`
+                ? `${status.tooling.solanaMcpConfigured ? "MCP ready" : "MCP pending"} / ${status.tooling.loadedSkillCount} skills / Dexter x402 ${status.tooling.dexterX402Installed ? status.tooling.dexterX402Version || "installed" : "missing"}`
                 : "Waiting"}
             </strong>
           </div>

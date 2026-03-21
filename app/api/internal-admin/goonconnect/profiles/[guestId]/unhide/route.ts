@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 
 import {
-  enableGuestAccount,
   requireInternalAdminSession,
+  unhidePublicStreamProfile,
 } from "@/lib/server/internal-admin";
 import { assertSameOriginMutation } from "@/lib/server/request-security";
-import { getPublicStreamProfile } from "@/lib/server/repository";
 
 export async function POST(
   request: Request,
@@ -15,17 +14,13 @@ export async function POST(
     assertSameOriginMutation(request);
     await requireInternalAdminSession();
     const { guestId } = await params;
-    const profile = await getPublicStreamProfile(guestId);
-
-    const item = await enableGuestAccount({
-      guestId,
-      slug: profile?.slug,
-    });
-
+    const item = await unhidePublicStreamProfile({ guestId });
     return NextResponse.json({ item });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Couldn't enable that user.";
+      error instanceof Error
+        ? error.message
+        : "Couldn't unhide that GoonConnect profile.";
     const status =
       message === "Admin authentication required"
         ? 401
@@ -33,9 +28,6 @@ export async function POST(
           ? 403
           : 400;
 
-    return NextResponse.json(
-      { error: message },
-      { status },
-    );
+    return NextResponse.json({ error: message }, { status });
   }
 }

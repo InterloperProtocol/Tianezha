@@ -94,6 +94,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const isUserWorkspace = !isTokenControlPage;
 
   const activeSession = useMemo(
     () =>
@@ -151,19 +152,17 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             {
               question: "What is GoonClaw for?",
               answer:
-                "GoonClaw controls the shared token view and pushes that focus across guest-facing sessions so the broadcast stays consistent.",
+                "GoonClaw is the autonomous entity page for the owner and agent partnership. Public users can observe it, but only the hidden owner controls can steer it.",
             },
             {
-              question: "How does token focus work?",
+              question: "How does the published token focus work?",
               answer:
-                "The current token mint stays mirrored into the shared session workspace, and your public streamer page can inherit that focus automatically.",
+                "The current token mint reflects the active GoonClaw room and autonomous runtime posture. User-owned public pages live in MyGoonClaw instead of here.",
             },
             {
-              question: "What mode am I in?",
+              question: "Can users operate this page?",
               answer:
-                mode === "live"
-                  ? "Live tracking is active, so the dashboard is ready to follow the live market move."
-                  : "Guided pattern mode is active, so the dashboard will run a generated pattern instead of pure live tracking.",
+                "No. GoonClaw is read-only for viewers. Devices, personal sessions, media changes, and public stream publishing belong in MyGoonClaw.",
             },
             {
               question: "What was the latest activity?",
@@ -266,19 +265,29 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
   }, [defaultMediaUrl]);
 
   useEffect(() => {
-    void refreshDevices();
-    void refreshSessions();
-    void refreshPublicStream();
     void refreshLivestreamState();
-    const interval = window.setInterval(() => {
+    if (isUserWorkspace) {
+      void refreshDevices();
       void refreshSessions();
+      void refreshPublicStream();
+    } else {
+      setPublicStream(null);
+      setPublicStreamUrl(null);
+      setPublicStreamSlug("");
+      setPublicMediaUrl(defaultMediaUrl);
+      setContractAddress(DEFAULT_CONTRACT_ADDRESS);
+    }
+    const interval = window.setInterval(() => {
       void refreshLivestreamState();
+      if (isUserWorkspace) {
+        void refreshSessions();
+      }
     }, 4_000);
     return () => window.clearInterval(interval);
-  }, [refreshPublicStream]);
+  }, [defaultMediaUrl, isUserWorkspace, refreshPublicStream]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (!isUserWorkspace || typeof window === "undefined") {
       return;
     }
 
@@ -288,10 +297,10 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       SHARED_CONTRACT_ADDRESS_STORAGE_KEY,
       nextContractAddress,
     );
-  }, [contractAddress]);
+  }, [contractAddress, isUserWorkspace]);
 
   useEffect(() => {
-    if (!publicStream?.isPublic) {
+    if (!isUserWorkspace || !publicStream?.isPublic) {
       return;
     }
 
@@ -299,7 +308,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       contractAddress.trim() || DEFAULT_CONTRACT_ADDRESS;
     const nextMediaUrl = publicMediaUrl.trim();
     if (
-      publicStream.defaultContractAddress === nextContractAddress &&
+      publicStream?.defaultContractAddress === nextContractAddress &&
       (publicStream.mediaUrl || "") === nextMediaUrl
     ) {
       return;
@@ -331,7 +340,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     }, 700);
 
     return () => window.clearTimeout(timeout);
-  }, [contractAddress, publicMediaUrl, publicStream]);
+  }, [contractAddress, isUserWorkspace, publicMediaUrl, publicStream]);
 
   function updateDeviceForm<K extends keyof DeviceFormState>(
     key: K,
@@ -592,191 +601,255 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           title="Video or stream"
           defaultUrl={publicStream?.mediaUrl || defaultMediaUrl}
           storageKey="goonclaw-personal-media"
+          readOnly={isTokenControlPage}
           onActiveUrlChange={setPublicMediaUrl}
         />
       </section>
 
       <section className="dashboard-grid dashboard-grid-primary-row">
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <p className="eyebrow">Device connect</p>
-              <h2>Devices and chart control</h2>
+        {isTokenControlPage ? (
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Public room</p>
+                <h2>GoonClaw stream and device relay</h2>
+              </div>
             </div>
-          </div>
 
-          <div className="field-grid">
-            <label className="field">
-              <span>Chart lookup</span>
-              <input
-                value={chartLookupAddress}
-                onChange={(event) => setChartLookupAddress(event.target.value)}
-                placeholder={focusContractAddress}
-              />
-            </label>
-            <div className="summary-card">
-              <span>Current chart</span>
-              <strong>{activeChartAddress}</strong>
-              <p>Preview any token chart here even before a device is connected.</p>
-            </div>
-          </div>
-
-          <div className="button-row">
-            <button
-              className="button button-ghost small"
-              onClick={() => setChartLookupAddress("")}
-              type="button"
-            >
-              Follow session chart
-            </button>
-          </div>
-
-          {devices.length ? (
-            <div className="device-list scroll-feed">
-              {devices.map((device) => (
-                <div
-                  key={device.id}
-                  className={
-                    device.id === selectedDeviceId
-                      ? "device-item selected"
-                      : "device-item"
-                  }
-                >
-                  <button
-                    className="device-pick"
-                    onClick={() => setSelectedDeviceId(device.id)}
-                  >
-                    <div>
-                      <span>{device.type}</span>
-                      <strong>{device.label}</strong>
-                    </div>
-                    <div className="device-flags">
-                      {device.supportsLive ? <span>Live</span> : null}
-                      {device.supportsScript ? <span>Script</span> : null}
-                    </div>
-                  </button>
-                  <div className="button-row">
-                    <button
-                      className="button button-secondary small"
-                      disabled={loading === `test:${device.id}`}
-                      onClick={() => void testDevice(device.id)}
-                    >
-                      Test
-                    </button>
-                    <button
-                      className="button button-ghost small"
-                      disabled={loading === `delete:${device.id}`}
-                      onClick={() => void deleteDevice(device.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="empty-state">
-              No setup saved yet. Add one below to get started.
-            </p>
-          )}
-
-          <div className="device-form">
             <div className="field-grid">
               <label className="field">
-                <span>Device type</span>
-                <select
-                  value={deviceForm.type}
-                  onChange={(event) =>
-                    updateDeviceForm("type", event.target.value as DeviceType)
-                  }
-                >
-                  <option value="autoblow">Autoblow</option>
-                  <option value="handy">Handy</option>
-                  <option value="rest">Generic REST</option>
-                </select>
-              </label>
-              <label className="field">
-                <span>Label</span>
+                <span>Chart lookup</span>
                 <input
-                  value={deviceForm.label}
-                  onChange={(event) => updateDeviceForm("label", event.target.value)}
-                  placeholder="Bedroom setup"
+                  value={chartLookupAddress}
+                  onChange={(event) => setChartLookupAddress(event.target.value)}
+                  placeholder={focusContractAddress}
                 />
               </label>
+              <div className="summary-card">
+                <span>Fixed relay device</span>
+                <strong>Autoblow public room</strong>
+                <p>
+                  GoonClaw now runs a single configured Autoblow relay. Device
+                  setup lives outside this public page.
+                </p>
+              </div>
             </div>
 
-            {deviceForm.type === "autoblow" ? (
+            <div className="button-row">
+              <button
+                className="button button-ghost small"
+                onClick={() => setChartLookupAddress("")}
+                type="button"
+              >
+                Follow session chart
+              </button>
+            </div>
+
+            <dl className="detail-list compact">
+              <div className="detail">
+                <dt>Default stream</dt>
+                <dd>https://kick.com/goonclaw</dd>
+              </div>
+              <div className="detail">
+                <dt>Relay device</dt>
+                <dd>Autoblow token 71nt0tdpv35q</dd>
+              </div>
+              <div className="detail">
+                <dt>Room status</dt>
+                <dd>
+                  {livestreamState?.deviceAvailable
+                    ? `Available. Standard ${livestreamState.standardPriceSol} SOL, priority ${livestreamState.priorityPriceSol} SOL.`
+                    : "Busy or offline right now."}
+                </dd>
+              </div>
+              <div className="detail">
+                <dt>Current chart</dt>
+                <dd>{activeChartAddress}</dd>
+              </div>
+            </dl>
+          </section>
+        ) : (
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Device connect</p>
+                <h2>Devices and chart control</h2>
+              </div>
+            </div>
+
+            <div className="field-grid">
               <label className="field">
-                <span>Device token</span>
+                <span>Chart lookup</span>
                 <input
-                  value={deviceForm.deviceToken}
-                  onChange={(event) =>
-                    updateDeviceForm("deviceToken", event.target.value)
-                  }
-                  placeholder="Autoblow API token"
+                  value={chartLookupAddress}
+                  onChange={(event) => setChartLookupAddress(event.target.value)}
+                  placeholder={focusContractAddress}
                 />
               </label>
-            ) : null}
+              <div className="summary-card">
+                <span>Current chart</span>
+                <strong>{activeChartAddress}</strong>
+                <p>Preview any token chart here even before a device is connected.</p>
+              </div>
+            </div>
 
-            {deviceForm.type === "handy" ? (
-              <label className="field">
-                <span>Connection key</span>
-                <input
-                  value={deviceForm.connectionKey}
-                  onChange={(event) =>
-                    updateDeviceForm("connectionKey", event.target.value)
-                  }
-                  placeholder="Handy connection key"
-                />
-              </label>
-            ) : null}
+            <div className="button-row">
+              <button
+                className="button button-ghost small"
+                onClick={() => setChartLookupAddress("")}
+                type="button"
+              >
+                Follow session chart
+              </button>
+            </div>
 
-            {deviceForm.type === "rest" ? (
-              <div className="device-form">
-                <label className="field">
-                  <span>Endpoint URL</span>
-                  <input
-                    value={deviceForm.endpointUrl}
-                    onChange={(event) =>
-                      updateDeviceForm("endpointUrl", event.target.value)
+            {devices.length ? (
+              <div className="device-list scroll-feed">
+                {devices.map((device) => (
+                  <div
+                    key={device.id}
+                    className={
+                      device.id === selectedDeviceId
+                        ? "device-item selected"
+                        : "device-item"
                     }
-                    placeholder="https://device.example/api/live"
+                  >
+                    <button
+                      className="device-pick"
+                      onClick={() => setSelectedDeviceId(device.id)}
+                    >
+                      <div>
+                        <span>{device.type}</span>
+                        <strong>{device.label}</strong>
+                      </div>
+                      <div className="device-flags">
+                        {device.supportsLive ? <span>Live</span> : null}
+                        {device.supportsScript ? <span>Script</span> : null}
+                      </div>
+                    </button>
+                    <div className="button-row">
+                      <button
+                        className="button button-secondary small"
+                        disabled={loading === `test:${device.id}`}
+                        onClick={() => void testDevice(device.id)}
+                      >
+                        Test
+                      </button>
+                      <button
+                        className="button button-ghost small"
+                        disabled={loading === `delete:${device.id}`}
+                        onClick={() => void deleteDevice(device.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-state">
+                No setup saved yet. Add one below to get started.
+              </p>
+            )}
+
+            <div className="device-form">
+              <div className="field-grid">
+                <label className="field">
+                  <span>Device type</span>
+                  <select
+                    value={deviceForm.type}
+                    onChange={(event) =>
+                      updateDeviceForm("type", event.target.value as DeviceType)
+                    }
+                  >
+                    <option value="autoblow">Autoblow</option>
+                    <option value="handy">Handy</option>
+                    <option value="rest">Generic REST</option>
+                  </select>
+                </label>
+                <label className="field">
+                  <span>Label</span>
+                  <input
+                    value={deviceForm.label}
+                    onChange={(event) => updateDeviceForm("label", event.target.value)}
+                    placeholder="Bedroom setup"
                   />
                 </label>
-                <div className="field-grid">
-                  <label className="field">
-                    <span>Auth token</span>
-                    <input
-                      value={deviceForm.authToken}
-                      onChange={(event) =>
-                        updateDeviceForm("authToken", event.target.value)
-                      }
-                      placeholder="Optional bearer token"
-                    />
-                  </label>
-                  <label className="field">
-                    <span>Auth header</span>
-                    <input
-                      value={deviceForm.authHeaderName}
-                      onChange={(event) =>
-                        updateDeviceForm("authHeaderName", event.target.value)
-                      }
-                      placeholder="Authorization"
-                    />
-                  </label>
-                </div>
               </div>
-            ) : null}
 
-            <button
-              className="button button-primary"
-              disabled={loading === "device"}
-              onClick={() => void createDevice()}
-            >
-              {loading === "device" ? "Saving..." : "Save setup"}
-            </button>
-          </div>
-        </section>
+              {deviceForm.type === "autoblow" ? (
+                <label className="field">
+                  <span>Device token</span>
+                  <input
+                    value={deviceForm.deviceToken}
+                    onChange={(event) =>
+                      updateDeviceForm("deviceToken", event.target.value)
+                    }
+                    placeholder="Autoblow API token"
+                  />
+                </label>
+              ) : null}
+
+              {deviceForm.type === "handy" ? (
+                <label className="field">
+                  <span>Connection key</span>
+                  <input
+                    value={deviceForm.connectionKey}
+                    onChange={(event) =>
+                      updateDeviceForm("connectionKey", event.target.value)
+                    }
+                    placeholder="Handy connection key"
+                  />
+                </label>
+              ) : null}
+
+              {deviceForm.type === "rest" ? (
+                <div className="device-form">
+                  <label className="field">
+                    <span>Endpoint URL</span>
+                    <input
+                      value={deviceForm.endpointUrl}
+                      onChange={(event) =>
+                        updateDeviceForm("endpointUrl", event.target.value)
+                      }
+                      placeholder="https://device.example/api/live"
+                    />
+                  </label>
+                  <div className="field-grid">
+                    <label className="field">
+                      <span>Auth token</span>
+                      <input
+                        value={deviceForm.authToken}
+                        onChange={(event) =>
+                          updateDeviceForm("authToken", event.target.value)
+                        }
+                        placeholder="Optional bearer token"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Auth header</span>
+                      <input
+                        value={deviceForm.authHeaderName}
+                        onChange={(event) =>
+                          updateDeviceForm("authHeaderName", event.target.value)
+                        }
+                        placeholder="Authorization"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : null}
+
+              <button
+                className="button button-primary"
+                disabled={loading === "device"}
+                onClick={() => void createDevice()}
+              >
+                {loading === "device" ? "Saving..." : "Save setup"}
+              </button>
+            </div>
+          </section>
+        )}
 
         {isTokenControlPage ? (
           <AutonomousStatusPreviewPanel
@@ -810,7 +883,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             <div>
               <p className="eyebrow">Go live</p>
               <h2>
-                {isTokenControlPage ? "Control token and session" : "Run your MyGoonClaw session"}
+                {isTokenControlPage ? "GoonClaw entity status" : "Run your MyGoonClaw session"}
               </h2>
             </div>
           </div>
@@ -821,6 +894,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               <select
                 value={mode}
                 onChange={(event) => setMode(event.target.value as SessionMode)}
+                disabled={isTokenControlPage}
               >
                 <option value="live">Live tracking</option>
                 <option value="script">Guided pattern</option>
@@ -831,47 +905,71 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               <input
                 value={contractAddress}
                 onChange={(event) => {
-                  if (!isTokenControlPage) {
+                  if (isTokenControlPage) {
                     return;
                   }
                   setContractAddress(event.target.value);
                 }}
                 placeholder={
                   isTokenControlPage
-                    ? "Enter a Solana contract address"
+                    ? "Published by the autonomous entity"
                     : "Controlled from GoonClaw"
                 }
-                readOnly={!isTokenControlPage}
+                readOnly={isTokenControlPage}
               />
             </label>
           </div>
 
           <p className="inline-note">
             {isTokenControlPage
-              ? "This token focus is mirrored into MyGoonClaw and any public guest session tied to your streamer profile."
+              ? "This page now mirrors the live GoonClaw room. Token focus, stream source, and device execution are published here as read-only status."
               : "Token changes happen in GoonClaw. MyGoonClaw mirrors that token across your guest-facing setup."}
           </p>
 
-          <div className="button-row">
-            <button
-              className="button button-primary"
-              disabled={!selectedDeviceId || loading === "session"}
-              onClick={() => void startSession()}
-            >
-              {loading === "session" ? "Starting..." : "Start session"}
-            </button>
-            {activeSession ? (
+          {!isTokenControlPage ? (
+            <div className="button-row">
               <button
-                className="button button-danger"
-                disabled={loading === `stop:${activeSession.id}`}
-                onClick={() => void stopSession(activeSession.id)}
+                className="button button-primary"
+                disabled={!selectedDeviceId || loading === "session"}
+                onClick={() => void startSession()}
               >
-                Stop active session
+                {loading === "session" ? "Starting..." : "Start session"}
               </button>
-            ) : null}
-          </div>
+              {activeSession ? (
+                <button
+                  className="button button-danger"
+                  disabled={loading === `stop:${activeSession.id}`}
+                  onClick={() => void stopSession(activeSession.id)}
+                >
+                  Stop active session
+                </button>
+              ) : null}
+            </div>
+          ) : null}
 
-          {activeSession ? (
+          {isTokenControlPage && livestreamState?.current ? (
+            <div className="session-card">
+              <div>
+                <span>Status</span>
+                <strong>{livestreamState.current.status}</strong>
+              </div>
+              <div>
+                <span>Tier</span>
+                <strong>{livestreamState.current.tier}</strong>
+              </div>
+              <div>
+                <span>Device</span>
+                <strong>Autoblow relay</strong>
+              </div>
+              <div>
+                <span>Contract</span>
+                <strong>
+                  {livestreamState.current.contractAddress.slice(0, 4)}...
+                  {livestreamState.current.contractAddress.slice(-4)}
+                </strong>
+              </div>
+            </div>
+          ) : activeSession ? (
             <div className="session-card">
               <div>
                 <span>Status</span>
@@ -896,23 +994,37 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             </div>
           ) : (
             <p className="empty-state">
-              No active session yet. Save a setup and start whenever you&apos;re ready.
+              {isTokenControlPage
+                ? "No active public session is broadcasting right now."
+                : "No active session yet. Save a setup and start whenever you&apos;re ready."}
             </p>
           )}
 
           <div className="route-badges">
-            <StatusBadge tone={activeSession ? "success" : "warning"}>
-              {activeSession ? "Session live" : "Ready to start"}
+            <StatusBadge
+              tone={isTokenControlPage ? (livestreamState?.current ? "success" : "warning") : activeSession ? "success" : "warning"}
+            >
+              {isTokenControlPage
+                ? livestreamState?.current
+                  ? "Public session live"
+                  : "Standby"
+                : activeSession
+                ? "Session live"
+                : "Ready to start"}
             </StatusBadge>
             <StatusBadge tone="neutral">
-              {selectedDevice ? `${selectedDevice.type} selected` : "No setup selected"}
+              {isTokenControlPage
+                ? "Autoblow relay fixed"
+                : selectedDevice
+                  ? `${selectedDevice.type} selected`
+                  : "No setup selected"}
             </StatusBadge>
           </div>
 
           {isTokenControlPage ? (
             <>
               <p className="panel-lead go-live-subsection">
-                Keep token control here. MyGoonClaw and any guest-facing stream page mirror this contract focus automatically once your streamer profile is live.
+                GoonClaw broadcasts the active token and room status here. Manual device connect and session controls have been removed from this page.
               </p>
 
               {livestreamState ? (
@@ -942,20 +1054,12 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                   <dd>{focusContractAddress}</dd>
                 </div>
                 <div className="detail">
-                  <dt>Streamer page</dt>
-                  <dd>
-                    {publicStream?.isPublic
-                      ? publicStreamUrl || "Public stream is live."
-                      : "Create your streamer page in MyGoonClaw to publish this token to guests."}
-                  </dd>
+                  <dt>Access model</dt>
+                  <dd>Public viewers can observe this page, but only the internal owner dashboard can change GoonClaw state.</dd>
                 </div>
                 <div className="detail">
-                  <dt>Guest sync</dt>
-                  <dd>
-                    {publicStream?.isPublic
-                      ? "Any public MyGoonClaw guest session now follows this token focus."
-                      : "Private until you sign up as a streamer in MyGoonClaw."}
-                  </dd>
+                  <dt>User boundary</dt>
+                  <dd>All user-controlled devices, sessions, and public stream publishing belong in MyGoonClaw instead of this entity page.</dd>
                 </div>
               </dl>
             </>
@@ -1006,17 +1110,25 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       </section>
 
       <section className="dashboard-grid dashboard-grid-secondary">
-        <PublicStreamSettingsPanel
-          slug={publicStreamSlug}
-          defaultContractAddress={contractAddress}
-          isPublic={Boolean(publicStream?.isPublic)}
-          saving={loading === "public"}
-          publicUrl={publicStreamUrl}
-          embedded={false}
-          onSlugChange={setPublicStreamSlug}
-          onSave={() => void savePublicStreamSettings(true)}
-          onMakePrivate={() => void savePublicStreamSettings(false)}
-        />
+        {!isTokenControlPage ? (
+          <PublicStreamSettingsPanel
+            slug={publicStreamSlug}
+            defaultContractAddress={contractAddress}
+            isPublic={Boolean(publicStream?.isPublic)}
+            saving={loading === "public"}
+            publicUrl={publicStreamUrl}
+            embedded={false}
+            onSlugChange={setPublicStreamSlug}
+            onSave={() => void savePublicStreamSettings(true)}
+            onMakePrivate={() => void savePublicStreamSettings(false)}
+          />
+        ) : (
+          <AutonomousStatusPreviewPanel
+            eyebrow="Public visibility"
+            title="GoonClaw is read-only here"
+            description="The public page now mirrors the autonomous runtime, Kick stream, trench pulse, and fixed Autoblow relay without exposing device registration or room controls."
+          />
+        )}
         <HomeEligibilityCta />
       </section>
 

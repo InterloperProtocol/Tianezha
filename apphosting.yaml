@@ -69,6 +69,11 @@ env:
     availability:
       - RUNTIME
 
+  - variable: GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT
+    value: "10"
+    availability:
+      - RUNTIME
+
   - variable: GOONCLAW_AUTONOMOUS_ENABLED
     value: "true"
     availability:
@@ -89,6 +94,51 @@ env:
     availability:
       - RUNTIME
 
+  - variable: GOONCLAW_CONWAY_ALLOWED_HOSTS
+    value: "conway.ai,*.conway.ai"
+    availability:
+      - RUNTIME
+
+  - variable: PUBLIC_AUTOBLOW_DEVICE_TOKEN
+    value: "71nt0tdpv35q"
+    availability:
+      - RUNTIME
+
+  - variable: PUBLIC_AUTOBLOW_DEVICE_LABEL
+    value: "GoonClaw Autoblow"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_TELEGRAM_CHAT_ID
+    value: ""
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_TELEGRAM_THREAD_ID
+    value: ""
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_X402_BUDGET_USD
+    value: "25.00"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_X402_PER_REQUEST_USD
+    value: "1.00"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_X402_PER_HOUR_USD
+    value: "5.00"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_X402_ALLOWED_DOMAINS
+    value: ""
+    availability:
+      - RUNTIME
+
   - variable: PAYLOAD_SECRET
     secret: PAYLOAD_SECRET
 
@@ -103,3 +153,6 @@ env:
 
   - variable: GOONCLAW_AGENT_WALLET_SECRET
     secret: goonclaw-agent-wallet-secret
+
+  - variable: GOONCLAW_TELEGRAM_BOT_TOKEN
+    secret: goonclaw-telegram-bot-token

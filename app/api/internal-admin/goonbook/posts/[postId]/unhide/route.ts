@@ -1,24 +1,24 @@
 import { NextResponse } from "next/server";
 
-import {
-  requireInternalAdminSession,
-  stopSessionFromAdmin,
-} from "@/lib/server/internal-admin";
+import { requireInternalAdminSession } from "@/lib/server/internal-admin";
+import { unhideGoonBookPost } from "@/lib/server/goonbook";
 import { assertSameOriginMutation } from "@/lib/server/request-security";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ sessionId: string }> },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
   try {
     assertSameOriginMutation(request);
     await requireInternalAdminSession();
-    const { sessionId } = await params;
-    const item = await stopSessionFromAdmin(sessionId);
+    const { postId } = await params;
+    const item = await unhideGoonBookPost({ postId });
     return NextResponse.json({ item });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Couldn't stop the stream.";
+      error instanceof Error
+        ? error.message
+        : "Couldn't unhide that GoonBook post.";
     const status =
       message === "Admin authentication required"
         ? 401
@@ -26,9 +26,6 @@ export async function POST(
           ? 403
           : 400;
 
-    return NextResponse.json(
-      { error: message },
-      { status },
-    );
+    return NextResponse.json({ error: message }, { status });
   }
 }

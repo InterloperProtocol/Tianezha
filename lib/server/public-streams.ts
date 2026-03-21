@@ -81,6 +81,10 @@ export async function saveCurrentPublicStreamProfile(
     isPublic: parsed.isPublic,
     defaultContractAddress: parsed.defaultContractAddress,
     mediaUrl: parsed.mediaUrl,
+    isHidden: existing?.isHidden || false,
+    moderatedAt: existing?.moderatedAt || null,
+    moderatedBy: existing?.moderatedBy || null,
+    moderationReason: existing?.moderationReason || null,
     createdAt: existing?.createdAt || timestamp,
     updatedAt: timestamp,
   };
@@ -94,7 +98,9 @@ export async function listActivePublicStreams() {
     listRecoverableSessions(),
   ]);
 
-  const publicProfiles = profiles.filter((profile) => profile.isPublic);
+  const publicProfiles = profiles.filter(
+    (profile) => profile.isPublic && !profile.isHidden,
+  );
   const summaries: PublicStreamSummary[] = [];
 
   for (const profile of publicProfiles) {
@@ -139,7 +145,7 @@ export async function getPublicStreamPageState(
 
   const normalizedSlug = parsedSlug.data;
   const profile = await getPublicStreamProfileBySlug(normalizedSlug);
-  if (!profile || !profile.isPublic) {
+  if (!profile || !profile.isPublic || profile.isHidden) {
     return null;
   }
 

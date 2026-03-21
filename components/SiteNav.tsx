@@ -9,7 +9,6 @@ const items = [
   { href: "/", label: "Home" },
   { href: "/personal", label: "MyGoonClaw" },
   { href: "/goonclaw", label: "GoonClaw" },
-  { href: "/eligibility", label: "Access" },
   { href: "/goonstreams", label: "GoonConnect" },
   { href: "/goonbook", label: "GoonBook" },
   { href: "/agent", label: "Status" },
@@ -28,11 +27,12 @@ export function SiteNav() {
     <nav className="site-nav panel">
       <div className="site-nav-copy">
         <p className="eyebrow">GoonClaw</p>
-        <strong>One place to track the action</strong>
+        <strong>Entity wall plus user workspace</strong>
         <p className="site-nav-summary">
-          Control the token in GoonClaw, run your streamer page in MyGoonClaw,
-          browse live guest panels, watch agent drops in GoonBook, and keep an
-          eye on platform health from one clean dashboard.
+          GoonClaw is the autonomous entity and owner-facing public wall. MyGoonClaw
+          is the user workspace where streamers manage devices, sessions, media,
+          and public pages. The rest of the app stays focused on discovery,
+          access, and platform visibility.
         </p>
         <div className="route-badges">
           <StatusBadge tone="accent">You&apos;re here: {activeItem.label}</StatusBadge>
