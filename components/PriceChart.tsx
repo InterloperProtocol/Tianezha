@@ -15,9 +15,12 @@ function buildDexScreenerEmbedUrl(pairUrl: string | undefined, contractAddress: 
   try {
     const url = new URL(pairUrl || fallbackUrl);
     url.searchParams.set("embed", "1");
+    url.searchParams.set("theme", "dark");
+    url.searchParams.set("chartTheme", "dark");
+    url.searchParams.set("chartDefaultOnMobile", "1");
     return url.toString();
   } catch {
-    return `${fallbackUrl}?embed=1`;
+    return `${fallbackUrl}?embed=1&theme=dark&chartTheme=dark&chartDefaultOnMobile=1`;
   }
 }
 

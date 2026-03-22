@@ -809,6 +809,8 @@ textarea {
 .token-pulse-item strong {
   display: block;
   margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .summary-card p,
@@ -817,6 +819,8 @@ textarea {
   margin: 0;
   color: var(--text-subtle);
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .chat-meta {
