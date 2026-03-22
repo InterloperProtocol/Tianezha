@@ -109,6 +109,21 @@ env:
     availability:
       - RUNTIME
 
+  - variable: LIVESTREAM_STANDARD_PRICE_SOL
+    value: "0.0069"
+    availability:
+      - RUNTIME
+
+  - variable: LIVESTREAM_PRIORITY_PRICE_SOL
+    value: "0.01"
+    availability:
+      - RUNTIME
+
+  - variable: LIVESTREAM_SESSION_SECONDS
+    value: "120"
+    availability:
+      - RUNTIME
+
   - variable: GOONCLAW_X402_BUDGET_USD
     value: "25.00"
     availability:

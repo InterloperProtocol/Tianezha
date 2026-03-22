@@ -399,11 +399,11 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       raw.GOONCLAW_TELEGRAM_SHORT_DESCRIPTION?.trim() ||
       "Read-only GoonClaw runtime feed.",
     LIVESTREAM_STANDARD_PRICE_SOL:
-      raw.LIVESTREAM_STANDARD_PRICE_SOL?.trim() || "0.001",
+      raw.LIVESTREAM_STANDARD_PRICE_SOL?.trim() || "0.0069",
     LIVESTREAM_PRIORITY_PRICE_SOL:
       raw.LIVESTREAM_PRIORITY_PRICE_SOL?.trim() || "0.01",
     LIVESTREAM_SESSION_SECONDS:
-      raw.LIVESTREAM_SESSION_SECONDS?.trim() || "60",
+      raw.LIVESTREAM_SESSION_SECONDS?.trim() || "120",
     LIVESTREAM_REQUESTER_COOLDOWN_SECONDS:
       raw.LIVESTREAM_REQUESTER_COOLDOWN_SECONDS?.trim() || "120",
     LIVESTREAM_CONTRACT_COOLDOWN_SECONDS:
@@ -488,7 +488,7 @@ export function getPublicEnv(): PublicEnv {
     NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL:
       raw.NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL?.trim() ||
       process.env.LIVESTREAM_STANDARD_PRICE_SOL?.trim() ||
-      "0.001",
+      "0.0069",
     NEXT_PUBLIC_LIVESTREAM_PRIORITY_PRICE_SOL:
       raw.NEXT_PUBLIC_LIVESTREAM_PRIORITY_PRICE_SOL?.trim() ||
       process.env.LIVESTREAM_PRIORITY_PRICE_SOL?.trim() ||
@@ -496,7 +496,7 @@ export function getPublicEnv(): PublicEnv {
     NEXT_PUBLIC_LIVESTREAM_SESSION_SECONDS:
       raw.NEXT_PUBLIC_LIVESTREAM_SESSION_SECONDS?.trim() ||
       process.env.LIVESTREAM_SESSION_SECONDS?.trim() ||
-      "60",
+      "120",
   });
 }
 

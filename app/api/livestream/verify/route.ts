@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireInternalAdminSession } from "@/lib/server/internal-admin";
+import { getOrCreateGuestSession } from "@/lib/server/guest";
+import { assertGuestEnabled } from "@/lib/server/internal-admin";
 import { assertSameOriginMutation } from "@/lib/server/request-security";
 import {
   getLivestreamState,
@@ -10,7 +11,8 @@ import {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    const admin = await requireInternalAdminSession();
+    const guestSession = await getOrCreateGuestSession();
+    await assertGuestEnabled(guestSession.id);
     const body = (await request.json()) as {
       requestId?: string;
       signature?: string;
@@ -24,11 +26,11 @@ export async function POST(request: Request) {
     }
 
     const item = await verifyLivestreamRequestPayment(
-      admin.id,
+      guestSession.id,
       body.requestId,
       body.signature,
     );
-    const state = await getLivestreamState();
+    const state = await getLivestreamState(guestSession.id);
     return NextResponse.json({ item, state });
   } catch (error) {
     const message =
@@ -39,8 +41,7 @@ export async function POST(request: Request) {
       },
       {
         status:
-          message.includes("Admin authentication required") ||
-          message.includes("Cross-")
+          message.includes("Authentication required") || message.includes("Cross-")
             ? 403
             : 400,
       },

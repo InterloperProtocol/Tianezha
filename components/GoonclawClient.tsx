@@ -16,6 +16,7 @@ import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import {
   DeviceCredentials,
   DeviceType,
+  LivestreamTier,
   PublicStreamProfile,
   SanitizedDeviceProfile,
   SessionMode,
@@ -42,18 +43,36 @@ type PublicStreamResponse = {
   publicUrl: string | null;
 };
 
+type LivestreamRequestView = {
+  id: string;
+  contractAddress: string;
+  memo: string;
+  tier: LivestreamTier;
+  amountLamports: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  activatedAt?: string;
+  expiresAt?: string;
+  completedAt?: string;
+  payerWallet?: string;
+  sessionId?: string;
+  error?: string;
+};
+
 type LivestreamState = {
-  current: {
-    contractAddress: string;
-    tier: "standard" | "priority";
-    status: string;
-    expiresAt?: string;
-    payerWallet?: string;
-  } | null;
-  queue: Array<{ id: string }>;
+  current: LivestreamRequestView | null;
+  queue: LivestreamRequestView[];
+  recentRequests: LivestreamRequestView[];
   deviceAvailable: boolean;
+  treasuryWallet: string;
   standardPriceSol: string;
   priorityPriceSol: string;
+  sessionSeconds: number;
+  requesterCooldownSeconds: number;
+  contractCooldownSeconds: number;
+  paymentWindowSeconds: number;
+  embedUrl: string;
 };
 
 const DEFAULT_CONTRACT_ADDRESS = DEFAULT_PUMP_TOKEN_MINT;
@@ -77,6 +96,17 @@ function readStoredContractAddress() {
   return window.localStorage.getItem(SHARED_CONTRACT_ADDRESS_STORAGE_KEY)?.trim() || "";
 }
 
+function shortenValue(value?: string | null) {
+  if (!value) return "Waiting";
+  if (value.length < 10) return value;
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
+}
+
+function lamportsToSol(value: string) {
+  const sol = Number(BigInt(value)) / 1_000_000_000;
+  return sol.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+}
+
 export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
   const isTokenControlPage = variant === "goonclaw";
   const [deviceForm, setDeviceForm] = useState<DeviceFormState>(initialDeviceState);
@@ -89,6 +119,9 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
   const [publicStreamSlug, setPublicStreamSlug] = useState("");
   const [publicMediaUrl, setPublicMediaUrl] = useState(defaultMediaUrl);
   const [chartLookupAddress, setChartLookupAddress] = useState("");
+  const [tier, setTier] = useState<LivestreamTier>("standard");
+  const [signature, setSignature] = useState("");
+  const [checkout, setCheckout] = useState<LivestreamRequestView | null>(null);
   const [mode, setMode] = useState<SessionMode>("live");
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
@@ -145,6 +178,17 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     });
   }, [activeSession?.updatedAt, sessions]);
   const activeChartAddress = chartLookupAddress.trim() || focusContractAddress;
+  const checkoutPriceSol = useMemo(
+    () => (checkout ? lamportsToSol(checkout.amountLamports) : ""),
+    [checkout],
+  );
+  const sessionMinutes = useMemo(
+    () =>
+      livestreamState?.sessionSeconds
+        ? Math.max(1, Math.round(livestreamState.sessionSeconds / 60))
+        : 2,
+    [livestreamState?.sessionSeconds],
+  );
   const pageFaqItems = useMemo(
     () =>
       isTokenControlPage
@@ -237,6 +281,13 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
 
     const payload = (await response.json()) as LivestreamState;
     setLivestreamState(payload);
+    setCheckout((current) =>
+      current
+        ? payload.recentRequests.find((item) => item.id === current.id) ?? current
+        : payload.recentRequests.find(
+            (item) => item.status === "pending" && !item.payerWallet,
+          ) ?? null,
+    );
   }
 
   const refreshPublicStream = useCallback(async () => {
@@ -588,6 +639,85 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     }
   }
 
+  async function createLivestreamCheckout() {
+    setLoading("livestream-request");
+    setNotice(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/livestream/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contractAddress: activeChartAddress,
+          tier,
+        }),
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        item?: LivestreamRequestView;
+        state?: LivestreamState;
+      };
+      if (!response.ok || !payload.item || !payload.state) {
+        throw new Error(payload.error || "Couldn't create payment details");
+      }
+
+      setCheckout(payload.item);
+      setLivestreamState(payload.state);
+      setSignature("");
+      setNotice("Payment memo ready. Send the transfer, then confirm the signature.");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Couldn't create payment details",
+      );
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function verifyLivestreamCheckout() {
+    if (!checkout || !signature.trim()) {
+      return;
+    }
+
+    setLoading("livestream-verify");
+    setNotice(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/livestream/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: checkout.id,
+          signature: signature.trim(),
+        }),
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        item?: LivestreamRequestView | null;
+        state?: LivestreamState;
+      };
+      if (!response.ok || !payload.state) {
+        throw new Error(payload.error || "Couldn't confirm payment");
+      }
+
+      setLivestreamState(payload.state);
+      setCheckout(payload.item ?? checkout);
+      setNotice("Payment confirmed. Your chart job is now in the session queue.");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Couldn't confirm payment",
+      );
+    } finally {
+      setLoading(null);
+    }
+  }
+
   const savedDevicesSection = isUserWorkspace ? (
     <div className="go-live-subsection">
       <div className="panel-header go-live-subheader">
@@ -771,7 +901,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             <div className="panel-header">
               <div>
                 <p className="eyebrow">Public room</p>
-                <h2>Live room</h2>
+                <h2>Chart payment</h2>
               </div>
             </div>
 
@@ -785,11 +915,15 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                 />
               </label>
               <div className="summary-card">
-                <span>Fixed relay device</span>
-                <strong>Autoblow public room</strong>
-                <p>One fixed device runs this room.</p>
+                <span>Current chart</span>
+                <strong>{activeChartAddress}</strong>
+                <p>Pay to put this chart on GoonClaw.</p>
               </div>
             </div>
+
+            <p className="panel-lead">
+              Session state is purchasable. Revenue routes to the GoonClaw wallet.
+            </p>
 
             <div className="button-row">
               <button
@@ -801,28 +935,118 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               </button>
             </div>
 
-            <dl className="detail-list compact">
-              <div className="detail">
-                <dt>Default stream</dt>
-                <dd>https://kick.com/goonclaw</dd>
+            <div className="route-badges">
+              <StatusBadge tone={livestreamState?.deviceAvailable ? "success" : "danger"}>
+                {livestreamState?.deviceAvailable ? "Session purchasable" : "Room busy"}
+              </StatusBadge>
+              <StatusBadge tone="accent">
+                {livestreamState?.standardPriceSol || "0.0069"} SOL / {sessionMinutes} min
+              </StatusBadge>
+              <StatusBadge tone="warning">
+                {livestreamState?.priorityPriceSol || "0.01"} SOL priority
+              </StatusBadge>
+            </div>
+
+            <div className="field-grid">
+              <button
+                className={
+                  tier === "standard"
+                    ? "button button-primary"
+                    : "button button-ghost"
+                }
+                onClick={() => setTier("standard")}
+                type="button"
+              >
+                Standard job
+              </button>
+              <button
+                className={
+                  tier === "priority"
+                    ? "button button-danger"
+                    : "button button-ghost"
+                }
+                onClick={() => setTier("priority")}
+                type="button"
+              >
+                Priority job
+              </button>
+            </div>
+
+            <div className="button-row">
+              <button
+                className="button button-secondary"
+                disabled={loading === "livestream-request" || !activeChartAddress.trim()}
+                onClick={() => void createLivestreamCheckout()}
+                type="button"
+              >
+                {loading === "livestream-request"
+                  ? "Creating memo..."
+                  : "Create chart payment"}
+              </button>
+            </div>
+
+            {checkout ? (
+              <div className="checkout-card">
+                <div className="panel-header">
+                  <div>
+                    <p className="eyebrow">Current job</p>
+                    <h2>{checkout.tier === "priority" ? "Priority" : "Standard"} request</h2>
+                  </div>
+                  <div className="source-pill">{checkout.status}</div>
+                </div>
+
+                <div className="history-list">
+                  <div className="history-item">
+                    <div>
+                      <span>Chart</span>
+                      <strong>{shortenValue(checkout.contractAddress)}</strong>
+                    </div>
+                    <div>
+                      <span>Amount</span>
+                      <strong>{checkoutPriceSol} SOL</strong>
+                    </div>
+                  </div>
+                  <div className="history-item">
+                    <div>
+                      <span>Memo</span>
+                      <strong>{checkout.memo}</strong>
+                    </div>
+                    <div>
+                      <span>Revenue wallet</span>
+                      <strong>{shortenValue(livestreamState?.treasuryWallet)}</strong>
+                    </div>
+                  </div>
+                  <div className="history-item">
+                    <div>
+                      <span>Session time</span>
+                      <strong>{sessionMinutes} minutes</strong>
+                    </div>
+                    <div>
+                      <span>Payment window</span>
+                      <strong>{livestreamState?.paymentWindowSeconds || 900} sec</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <label className="field">
+                  <span>Transaction signature</span>
+                  <input
+                    value={signature}
+                    onChange={(event) => setSignature(event.target.value)}
+                    placeholder="Paste the Solana signature after payment"
+                  />
+                </label>
+
+                <button
+                  className="button button-primary"
+                  disabled={loading === "livestream-verify" || !signature.trim()}
+                  onClick={() => void verifyLivestreamCheckout()}
+                  type="button"
+                >
+                  {loading === "livestream-verify" ? "Confirming..." : "Confirm payment"}
+                </button>
               </div>
-              <div className="detail">
-                <dt>Relay device</dt>
-                <dd>Autoblow relay</dd>
-              </div>
-              <div className="detail">
-                <dt>Room status</dt>
-                <dd>
-                  {livestreamState?.deviceAvailable
-                    ? `Available. Standard ${livestreamState.standardPriceSol} SOL, priority ${livestreamState.priorityPriceSol} SOL.`
-                    : "Busy or offline right now."}
-                </dd>
-              </div>
-              <div className="detail">
-                <dt>Current chart</dt>
-                <dd>{activeChartAddress}</dd>
-              </div>
-            </dl>
+            ) : null}
           </section>
         ) : (
           <section className="panel">
@@ -845,7 +1069,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               <div className="summary-card">
                 <span>Current chart</span>
                 <strong>{activeChartAddress}</strong>
-                <p>DexScreener details and trade buttons stay under the chart.</p>
+                <p>Chart opens first. Trade controls stay below.</p>
               </div>
             </div>
 
@@ -1043,7 +1267,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             </StatusBadge>
             <StatusBadge tone="neutral">
               {isTokenControlPage
-                ? "Autoblow relay fixed"
+                ? "Revenue -> GoonClaw wallet"
                 : selectedDevice
                   ? `${selectedDevice.type} selected`
                   : "No setup selected"}
@@ -1055,26 +1279,29 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           {isTokenControlPage ? (
             <>
               <p className="panel-lead go-live-subsection">
-                This page shows the live token and room status.
+                Technical session state for the public chart queue.
               </p>
 
               {livestreamState ? (
                 <dl className="detail-list compact">
                   <div className="detail">
-                    <dt>Purchasable sync</dt>
+                    <dt>Session state</dt>
                     <dd>
                       {livestreamState.current
-                        ? `${livestreamState.current.tier} sync live on ${livestreamState.current.contractAddress}`
-                        : "No paid sync is active right now."}
+                        ? `${livestreamState.current.tier} job live on ${livestreamState.current.contractAddress}`
+                        : "No paid chart job is active right now."}
                     </dd>
                   </div>
                   <div className="detail">
-                    <dt>Room status</dt>
+                    <dt>Pricing</dt>
                     <dd>
-                      {livestreamState.deviceAvailable
-                        ? `Available. Standard ${livestreamState.standardPriceSol} SOL, priority ${livestreamState.priorityPriceSol} SOL.`
-                        : "The public room is busy or offline right now."}
+                      {livestreamState.standardPriceSol} SOL for {sessionMinutes} minutes.
+                      Priority is {livestreamState.priorityPriceSol} SOL.
                     </dd>
+                  </div>
+                  <div className="detail">
+                    <dt>Revenue wallet</dt>
+                    <dd>{livestreamState.treasuryWallet}</dd>
                   </div>
                 </dl>
               ) : null}
@@ -1085,12 +1312,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                   <dd>{focusContractAddress}</dd>
                 </div>
                 <div className="detail">
-                  <dt>Page mode</dt>
-                  <dd>View only.</dd>
-                </div>
-                <div className="detail">
-                  <dt>User controls</dt>
-                  <dd>Devices and sessions are managed in MyGoonClaw.</dd>
+                  <dt>Queue depth</dt>
+                  <dd>{livestreamState?.queue.length || 0} waiting jobs.</dd>
                 </div>
               </dl>
             </>
@@ -1099,12 +1322,53 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           <div className="go-live-subsection">
             <div className="panel-header go-live-subheader">
               <div>
-                <p className="eyebrow">Recent sessions</p>
-                <h2>Recent activity</h2>
+                <p className="eyebrow">{isTokenControlPage ? "Session jobs" : "Recent sessions"}</p>
+                <h2>{isTokenControlPage ? "Queue and memos" : "Recent activity"}</h2>
               </div>
             </div>
 
-            {sessions.length ? (
+            {isTokenControlPage ? (
+              livestreamState?.queue.length || livestreamState?.recentRequests.length ? (
+                <div className="history-list scroll-feed">
+                  {livestreamState?.queue.map((item, index) => (
+                    <div key={item.id} className="history-item">
+                      <div>
+                        <span>Queue #{index + 1}</span>
+                        <strong>{shortenValue(item.contractAddress)}</strong>
+                      </div>
+                      <div>
+                        <span>Tier</span>
+                        <strong>{item.tier}</strong>
+                      </div>
+                      <div>
+                        <span>Memo</span>
+                        <strong>{item.memo}</strong>
+                      </div>
+                    </div>
+                  ))}
+                  {livestreamState?.recentRequests.map((item) => (
+                    <div key={`recent-${item.id}`} className="history-item">
+                      <div>
+                        <span>{item.status}</span>
+                        <strong>{shortenValue(item.contractAddress)}</strong>
+                      </div>
+                      <div>
+                        <span>Tier</span>
+                        <strong>{item.tier}</strong>
+                      </div>
+                      <div>
+                        <span>Memo</span>
+                        <strong>{item.memo}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-state">
+                  Job memos and queue items will appear here after the first chart payment.
+                </p>
+              )
+            ) : sessions.length ? (
               <div className="history-list scroll-feed">
                 {sessions.map((session) => (
                   <div key={session.id} className="history-item">
