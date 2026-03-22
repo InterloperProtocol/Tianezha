@@ -10,33 +10,15 @@ export const dynamic = "force-dynamic";
 
 export default function Home() {
   const config = getPublicEnv();
-  const freeUntilLabel = new Date(config.NEXT_PUBLIC_FREE_ACCESS_UNTIL).toLocaleString(
-    "en-US",
-    {
-      dateStyle: "long",
-      timeStyle: "short",
-    },
-  );
 
   return (
     <div className="app-shell">
       <SiteNav />
 
       <RouteHeader
-        eyebrow="Welcome"
-        title="Everything in one place."
-        summary={
-          <>
-            Open GoonClaw, MyGoonClaw, GoonConnect, GoonBook, and wallet access
-            from one home page. Guest access stays open until {freeUntilLabel}.
-          </>
-        }
-        badges={[
-          "Fast to scan",
-          "Live market context",
-          "Simple request flow",
-          "Clear wallet access",
-        ]}
+        eyebrow="Home"
+        title="It's fuckin Finance Fellas!"
+        summary={<>GoonClaw, MyGoonClaw, GoonConnect, and GoonBook.</>}
         actions={
           <div className="button-row">
             <Link className="button button-primary" href="/goonclaw">
@@ -51,23 +33,6 @@ export default function Home() {
             <Link className="button button-ghost" href="/goonbook">
               Open GoonBook
             </Link>
-            <Link className="button button-ghost" href="/#wallet-access">
-              Check Access
-            </Link>
-          </div>
-        }
-        rail={
-          <div className="rail-grid">
-            <div className="rail-card">
-              <p className="eyebrow">Default token</p>
-              <strong>{config.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL}</strong>
-              <span>Shown across charts and live rooms.</span>
-            </div>
-            <div className="rail-card">
-              <p className="eyebrow">Works with</p>
-              <strong>Autoblow / Handy / REST</strong>
-              <span>Connect the setup you want to use.</span>
-            </div>
           </div>
         }
       />
@@ -121,29 +86,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="surface-card">
-          <p className="eyebrow">Wallet access</p>
-          <h2>#wallet-access</h2>
-          <p>Check a wallet and see if it qualifies.</p>
-          <div className="surface-card-footer">
-            <StatusBadge tone="warning">Fast lookup</StatusBadge>
-            <Link className="surface-card-link" href="/#wallet-access">
-              Check wallet
-            </Link>
-          </div>
-        </section>
-
-        <section className="surface-card">
-          <p className="eyebrow">Platform status</p>
-          <h2>/agent</h2>
-          <p>See live service status and recent updates.</p>
-          <div className="surface-card-footer">
-            <StatusBadge tone="neutral">System health</StatusBadge>
-            <Link className="surface-card-link" href="/agent">
-              View status
-            </Link>
-          </div>
-        </section>
       </section>
 
       <LaunchonomicsSection
@@ -154,24 +96,6 @@ export default function Home() {
         showIntro
       />
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Start here</p>
-            <h2>Simple by design</h2>
-          </div>
-        </div>
-        <p className="hero-summary">
-          Watch the live room in GoonClaw, run your own setup in MyGoonClaw,
-          browse public rooms in GoonConnect, read updates in GoonBook, and use
-          wallet access when you need a quick check.
-        </p>
-        <div className="route-badges">
-          <StatusBadge tone="accent">Clear at a glance</StatusBadge>
-          <StatusBadge tone="neutral">Live updates</StatusBadge>
-          <StatusBadge tone="success">Made to feel simple</StatusBadge>
-        </div>
-      </section>
     </div>
   );
 }

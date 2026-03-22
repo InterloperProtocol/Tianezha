@@ -38,6 +38,7 @@ function formatDate(value?: string) {
   return new Date(value).toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "America/New_York",
   });
 }
 
@@ -170,230 +171,187 @@ export function LaunchonomicsSection({
 
   return (
     <section id={sectionId}>
-      {showIntro ? (
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <p className="eyebrow">Wallet access</p>
-              <h2>Check access on this page</h2>
-            </div>
-          </div>
-          <p className="panel-lead">
-            Paste a Solana wallet to check access for {accessTokenSymbol}. If it
-            qualifies, you can send access from here.
-          </p>
-          <div className="route-badges">
-            <StatusBadge tone="warning">Fast lookup</StatusBadge>
-            <StatusBadge tone="neutral">No wallet connect required</StatusBadge>
-            <StatusBadge tone="accent">Claim from here</StatusBadge>
-          </div>
-        </section>
-      ) : null}
-
       {notice ? <p className="toast-banner">{notice}</p> : null}
       {error ? <p className="error-banner">{error}</p> : null}
 
-      <section className="dashboard-grid">
-        <div className="dashboard-column">
-          <section className="panel">
-            <div className="panel-header">
+      <section className="panel launchonomics-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Wallet access</p>
+            <h2>{showIntro ? "Check Eligibility" : "Check access"}</h2>
+          </div>
+        </div>
+
+        <p className="panel-lead">Check access on this page.</p>
+
+        <div className="field-grid">
+          <label className="field">
+            <span>Solana wallet</span>
+            <input
+              value={wallet}
+              onChange={(event) => setWallet(event.target.value)}
+              placeholder="Paste a wallet address"
+            />
+          </label>
+          <div className="summary-card">
+            <span>Access token</span>
+            <strong>{accessTokenSymbol}</strong>
+            <p>No wallet connect required.</p>
+          </div>
+        </div>
+
+        <div className="button-row">
+          <button
+            className="button button-primary"
+            disabled={loading || !wallet.trim()}
+            onClick={() => void lookup()}
+          >
+            {loading ? "Checking..." : "Check wallet"}
+          </button>
+          {result ? (
+            <button
+              className="button button-secondary"
+              disabled={!canClaim || claiming}
+              onClick={() => void claimSubscriptionCnft()}
+            >
+              {claiming ? "Sending..." : "Send access"}
+            </button>
+          ) : null}
+        </div>
+
+        <div className="history-list">
+          <div className="history-item">
+            <div>
+              <span>Open access ends</span>
+              <strong>{freeUntilLabel}</strong>
+            </div>
+            <div>
+              <span>Launch window starts</span>
+              <strong>{launchAt ? launchAtLabel : "Awaiting config"}</strong>
+            </div>
+          </div>
+          <div className="history-item">
+            <div>
+              <span>0-10 minutes</span>
+              <strong>5-year subscription</strong>
+            </div>
+            <div>
+              <span>Window end</span>
+              <strong>
+                {windows ? formatDate(windows.first10MinutesEndsAt) : "Not configured"}
+              </strong>
+            </div>
+          </div>
+          <div className="history-item">
+            <div>
+              <span>0-1 hour</span>
+              <strong>Yearly subscription</strong>
+            </div>
+            <div>
+              <span>Window end</span>
+              <strong>
+                {windows ? formatDate(windows.firstHourEndsAt) : "Not configured"}
+              </strong>
+            </div>
+          </div>
+          <div className="history-item">
+            <div>
+              <span>0-12 hours</span>
+              <strong>Monthly subscription</strong>
+            </div>
+            <div>
+              <span>Window end</span>
+              <strong>
+                {windows ? formatDate(windows.first12HoursEndsAt) : "Not configured"}
+              </strong>
+            </div>
+          </div>
+          <div className="history-item">
+            <div>
+              <span>Hold through 24h</span>
+              <strong>Lifetime + verified badge</strong>
+            </div>
+            <div>
+              <span>Hold deadline</span>
+              <strong>
+                {windows ? formatDate(windows.first24HoursEndsAt) : "Not configured"}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        {result ? (
+          <>
+            <div className="session-card">
               <div>
-                <p className="eyebrow">Wallet lookup</p>
-                <h2>Check access</h2>
+                <span>Tier</span>
+                <strong>{tierLabels[result.tier]}</strong>
+              </div>
+              <div>
+                <span>Badge</span>
+                <strong>{result.badge === "none" ? "None" : result.badge}</strong>
+              </div>
+              <div>
+                <span>First trade</span>
+                <strong>{formatDate(result.firstTradeAt)}</strong>
+              </div>
+              <div>
+                <span>24h hold</span>
+                <strong>{result.heldThrough24Hours ? "Yes" : "No"}</strong>
               </div>
             </div>
 
-            <label className="field">
-              <span>Solana wallet</span>
-              <input
-                value={wallet}
-                onChange={(event) => setWallet(event.target.value)}
-                placeholder="Paste a wallet address"
-              />
-            </label>
-
-            <div className="button-row">
-              <button
-                className="button button-primary"
-                disabled={loading || !wallet.trim()}
-                onClick={() => void lookup()}
-              >
-                {loading ? "Checking..." : "Check wallet"}
-              </button>
-            </div>
-          </section>
-
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Access windows</p>
-                <h2>Launch timeline</h2>
-              </div>
-            </div>
+            <p className="hero-summary">{result.summary}</p>
 
             <div className="history-list">
               <div className="history-item">
                 <div>
-                  <span>Open access ends</span>
-                  <strong>{freeUntilLabel}</strong>
+                  <span>Qualifying trades</span>
+                  <strong>{result.qualifyingTradeCount}</strong>
                 </div>
                 <div>
-                  <span>Launch window starts</span>
-                  <strong>{launchAt ? launchAtLabel : "Awaiting config"}</strong>
-                </div>
-              </div>
-              <div className="history-item">
-                <div>
-                  <span>0-10 minutes</span>
-                  <strong>5-year subscription</strong>
-                </div>
-                <div>
-                  <span>Window end</span>
+                  <span>Current balance</span>
                   <strong>
-                    {windows ? formatDate(windows.first10MinutesEndsAt) : "Not configured"}
+                    {result.currentBalance !== undefined
+                      ? `${result.currentBalance} ${result.currentBalanceSymbol}`
+                      : "Unknown"}
                   </strong>
                 </div>
               </div>
               <div className="history-item">
                 <div>
-                  <span>0-1 hour</span>
-                  <strong>Yearly subscription</strong>
-                </div>
-                <div>
-                  <span>Window end</span>
+                  <span>Subscription ends</span>
                   <strong>
-                    {windows ? formatDate(windows.firstHourEndsAt) : "Not configured"}
+                    {result.subscriptionEndsAt
+                      ? formatDate(result.subscriptionEndsAt)
+                      : result.tier === "lifetime"
+                        ? "Never"
+                        : "No subscription"}
                   </strong>
                 </div>
-              </div>
-              <div className="history-item">
                 <div>
-                  <span>0-12 hours</span>
-                  <strong>Monthly subscription</strong>
-                </div>
-                <div>
-                  <span>Window end</span>
-                  <strong>
-                    {windows ? formatDate(windows.first12HoursEndsAt) : "Not configured"}
-                  </strong>
-                </div>
-              </div>
-              <div className="history-item">
-                <div>
-                  <span>Hold through 24h</span>
-                  <strong>Lifetime + verified badge</strong>
-                </div>
-                <div>
-                  <span>Hold deadline</span>
-                  <strong>
-                    {windows ? formatDate(windows.first24HoursEndsAt) : "Not configured"}
-                  </strong>
+                  <span>Launch-day trade</span>
+                  <strong>{result.tradedWithin24Hours ? "Yes" : "No"}</strong>
                 </div>
               </div>
             </div>
-          </section>
-        </div>
 
-        <div className="dashboard-column">
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Result</p>
-                <h2>Result</h2>
-              </div>
+            <p className="empty-state">
+              {canClaim ? "This wallet is ready." : "This wallet does not qualify right now."}
+            </p>
+
+            <div className="route-badges">
+              <StatusBadge tone={canClaim ? "success" : "warning"}>
+                {canClaim ? "Access ready" : "No active access"}
+              </StatusBadge>
+              <StatusBadge tone="neutral">
+                {result.badge === "none" ? "No badge" : `${result.badge} badge`}
+              </StatusBadge>
             </div>
-
-            {result ? (
-              <>
-                <div className="session-card">
-                  <div>
-                    <span>Tier</span>
-                    <strong>{tierLabels[result.tier]}</strong>
-                  </div>
-                  <div>
-                    <span>Badge</span>
-                    <strong>{result.badge === "none" ? "None" : result.badge}</strong>
-                  </div>
-                  <div>
-                    <span>First trade</span>
-                    <strong>{formatDate(result.firstTradeAt)}</strong>
-                  </div>
-                  <div>
-                    <span>24h hold</span>
-                    <strong>{result.heldThrough24Hours ? "Yes" : "No"}</strong>
-                  </div>
-                </div>
-
-                <p className="hero-summary">{result.summary}</p>
-
-                <div className="history-list">
-                  <div className="history-item">
-                    <div>
-                      <span>Qualifying trades</span>
-                      <strong>{result.qualifyingTradeCount}</strong>
-                    </div>
-                    <div>
-                      <span>Current balance</span>
-                      <strong>
-                        {result.currentBalance !== undefined
-                          ? `${result.currentBalance} ${result.currentBalanceSymbol}`
-                          : "Unknown"}
-                      </strong>
-                    </div>
-                  </div>
-                  <div className="history-item">
-                    <div>
-                      <span>Subscription ends</span>
-                      <strong>
-                        {result.subscriptionEndsAt
-                          ? formatDate(result.subscriptionEndsAt)
-                          : result.tier === "lifetime"
-                            ? "Never"
-                            : "No subscription"}
-                      </strong>
-                    </div>
-                    <div>
-                      <span>Launch-day trade</span>
-                      <strong>{result.tradedWithin24Hours ? "Yes" : "No"}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="button-row">
-                  <button
-                    className="button button-primary"
-                    disabled={!canClaim || claiming}
-                    onClick={() => void claimSubscriptionCnft()}
-                  >
-                    {claiming ? "Sending..." : "Send access"}
-                  </button>
-                </div>
-
-                {!canClaim ? (
-                  <p className="empty-state">
-                    This wallet does not qualify right now.
-                  </p>
-                ) : (
-                  <p className="empty-state">
-                    This wallet is ready.
-                  </p>
-                )}
-                <div className="route-badges">
-                  <StatusBadge tone={canClaim ? "success" : "warning"}>
-                    {canClaim ? "Access ready" : "No active access"}
-                  </StatusBadge>
-                  <StatusBadge tone="neutral">
-                    {result.badge === "none" ? "No badge" : `${result.badge} badge`}
-                  </StatusBadge>
-                </div>
-              </>
-            ) : (
-              <p className="empty-state">
-                Paste a wallet to see the result.
-              </p>
-            )}
-          </section>
-        </div>
+          </>
+        ) : (
+          <p className="empty-state">Paste a wallet to see the result.</p>
+        )}
       </section>
     </section>
   );

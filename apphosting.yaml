@@ -55,7 +55,12 @@ env:
       - RUNTIME
 
   - variable: GOONCLAW_OWNER_WALLET
-    value: "784GuK5UrT9KsTvUexXmq1G9pLgckUFscth5DEwQGVbZ"
+    value: "67qaLVXSNeRr8wR9R9Pqh7pKak4UokVwFLqdnKEXNL9M"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_CREATOR_FEES_WALLET
+    value: "8y7Qw6CUDjEmnRRVBXtRrqRnYzjUe1CwnSQ41nCzivXd"
     availability:
       - RUNTIME
 
@@ -132,6 +137,12 @@ env:
   - variable: LIVESTREAM_SESSION_SECONDS
     value: "120"
     availability:
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FREE_ACCESS_UNTIL
+    value: "2026-03-24T23:59:00-04:00"
+    availability:
+      - BUILD
       - RUNTIME
 
   - variable: GOONCLAW_X402_BUDGET_USD

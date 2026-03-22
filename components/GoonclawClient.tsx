@@ -876,7 +876,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
   ) : null;
 
   return (
-    <div className="app-shell">
+    <div className={isTokenControlPage ? "app-shell seafoam-theme" : "app-shell"}>
       <SiteNav />
 
       {notice ? <p className="toast-banner">{notice}</p> : null}

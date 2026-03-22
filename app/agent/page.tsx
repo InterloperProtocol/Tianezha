@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default function AgentPage() {
   return (
-    <div className="app-shell">
+    <div className="app-shell seafoam-theme">
       <SiteNav />
 
       <RouteHeader

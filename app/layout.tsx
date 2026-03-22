@@ -17,7 +17,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "GoonClaw",
   description:
-    "A polished dashboard for market watching, live queue management, wallet access checks, and platform status.",
+    "It's fuckin Finance Fellas!",
   icons: {
     icon: "/logo.jpg",
     shortcut: "/logo.jpg",
