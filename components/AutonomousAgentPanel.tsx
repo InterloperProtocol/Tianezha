@@ -178,6 +178,9 @@ export function AutonomousAgentPanel() {
         <StatusBadge tone={status?.treasury.reserveHealthy ? "success" : "danger"}>
           {status?.treasury.reserveHealthy ? "Reserve ok" : "Reserve low"}
         </StatusBadge>
+        <StatusBadge tone={status?.tooling.gmgnConfigured ? "accent" : "neutral"}>
+          {status?.tooling.gmgnConfigured ? "GMGN set" : "GMGN off"}
+        </StatusBadge>
         <StatusBadge tone={status?.tooling.telegramBroadcastEnabled ? "success" : "neutral"}>
           {status?.tooling.telegramBroadcastEnabled ? "Telegram on" : "Telegram off"}
         </StatusBadge>
@@ -230,7 +233,7 @@ export function AutonomousAgentPanel() {
         </div>
         <div className="history-item">
           <div>
-            <span>Wallet</span>
+            <span>Agent wallet</span>
             <strong>
               {status?.tooling.agentWalletAddress
                 ? `${status.tooling.agentWalletAddress.slice(0, 4)}...${status.tooling.agentWalletAddress.slice(-4)}`
@@ -238,10 +241,10 @@ export function AutonomousAgentPanel() {
             </strong>
           </div>
           <div>
-            <span>Payout wallet</span>
+            <span>Revenue wallet</span>
             <strong>
-              {status?.treasury.ownerWallet
-                ? `${status.treasury.ownerWallet.slice(0, 4)}...${status.treasury.ownerWallet.slice(-4)}`
+              {status?.treasury.treasuryWallet
+                ? `${status.treasury.treasuryWallet.slice(0, 4)}...${status.treasury.treasuryWallet.slice(-4)}`
                 : "Waiting"}
             </strong>
           </div>
@@ -250,6 +253,26 @@ export function AutonomousAgentPanel() {
           <div>
             <span>Updates</span>
             <strong>{status?.tooling.telegramBroadcastEnabled ? "Posting to Telegram" : "Feed paused"}</strong>
+          </div>
+          <div>
+            <span>Trading route</span>
+            <strong>
+              {status?.tooling.gmgnConfigured
+                ? status.tooling.gmgnSigningReady
+                  ? "GMGN ready"
+                  : "GMGN waiting for signer"
+                : "Not set"}
+            </strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>GMGN wallet</span>
+            <strong>
+              {status?.tooling.gmgnTradingWallet
+                ? `${status.tooling.gmgnTradingWallet.slice(0, 4)}...${status.tooling.gmgnTradingWallet.slice(-4)}`
+                : "Waiting"}
+            </strong>
           </div>
           <div>
             <span>Safety</span>

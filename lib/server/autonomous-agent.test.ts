@@ -76,7 +76,7 @@ describe("autonomous agent policy", () => {
           source: "goonclaw_chartsync",
           marketMint: "mint-1",
           symbol: "TEST",
-          venue: "pumpfun",
+          venue: "gmgn",
           entryUsdc: 12,
           currentUsdc: 11.5,
           rationale: "test",
@@ -140,7 +140,7 @@ describe("autonomous agent policy", () => {
         isPumpCoin: false,
         portfolioValueUsdc: 100,
         requestedNotionalUsdc: 5,
-        venue: "pumpfun",
+        venue: "gmgn",
       }),
     ).toThrow(/Pump meme coins/i);
 
@@ -150,7 +150,7 @@ describe("autonomous agent policy", () => {
         isPumpCoin: true,
         portfolioValueUsdc: 100,
         requestedNotionalUsdc: 11,
-        venue: "pumpfun",
+        venue: "gmgn",
       }),
     ).toThrow(/10% of the portfolio/i);
   });
@@ -162,9 +162,9 @@ describe("autonomous agent policy", () => {
         isPumpCoin: true,
         portfolioValueUsdc: 100,
         requestedNotionalUsdc: 5,
-        venue: "jupiter",
+        venue: "pumpfun",
       }),
-    ).toThrow(/canonical Pump venues/i);
+    ).toThrow(/GMGN route/i);
   });
 
   it("queues chartsync trade capital until a pump-verified token is supplied", () => {
@@ -194,7 +194,7 @@ describe("autonomous agent policy", () => {
           source: "goonclaw_chartsync",
           marketMint: "mint-4",
           symbol: "TEST",
-          venue: "pumpfun",
+          venue: "gmgn",
           entryUsdc: 4,
           currentUsdc: 5,
           rationale: "test",

@@ -389,7 +389,7 @@ export interface AutonomousTradePosition {
   source: AutonomousRevenueClass | "reserve";
   marketMint: string;
   symbol: string;
-  venue: "pumpfun" | "pumpswap";
+  venue: "gmgn" | "pumpfun" | "pumpswap";
   entryUsdc: number;
   currentUsdc: number;
   rationale: string;
@@ -430,6 +430,9 @@ export interface AutonomousToolingStatus {
   solanaMcpConfigured: boolean;
   dexterX402Installed: boolean;
   dexterX402Version: string | null;
+  gmgnConfigured: boolean;
+  gmgnSigningReady: boolean;
+  gmgnTradingWallet: string | null;
   telegramBroadcastEnabled: boolean;
   telegramChatConfigured: boolean;
   agentWalletAddress: string | null;

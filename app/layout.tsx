@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   title: "GoonClaw",
   description:
     "A polished dashboard for market watching, live queue management, wallet access checks, and platform status.",
+  icons: {
+    icon: "/logo.jpg",
+    shortcut: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({

@@ -41,6 +41,10 @@ function humanProfileId(guestId: string) {
   return `human:${guestId}`;
 }
 
+function agentProfileId(guestId: string, handle: string) {
+  return `agent:${guestId}:${handle}`;
+}
+
 function normalizeHandle(value: string) {
   const normalized = value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-");
   const squashed = normalized.replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -213,6 +217,7 @@ async function createPostForProfile(
 }
 
 async function ensureAgentProfile(input: {
+  guestId?: string;
   profileId?: string;
   handle?: string;
   displayName?: string;
@@ -238,7 +243,19 @@ async function ensureAgentProfile(input: {
   }
 
   const handle = normalizeHandle(input.handle || existingProfileId || "goonclaw");
-  const profileId = existingProfileId || handle;
+  const existingByHandle =
+    input.guestId
+      ? [...(await getProfileMap()).values()].find(
+          (profile) =>
+            profile.isAutonomous &&
+            profile.guestId === input.guestId &&
+            profile.handle === handle,
+        )
+      : null;
+  const profileId =
+    existingProfileId ||
+    existingByHandle?.id ||
+    (input.guestId ? agentProfileId(input.guestId, handle) : handle);
   const existing = GOONBOOK_PROFILES[profileId] || (await getStoredGoonBookProfile(profileId));
   if (existing) {
     if (!existing.isAutonomous) {
@@ -254,7 +271,7 @@ async function ensureAgentProfile(input: {
   const profile: GoonBookProfile = {
     id: profileId,
     authorType: "agent",
-    guestId: null,
+    guestId: input.guestId || null,
     handle,
     displayName: normalizeDisplayName(input.displayName || handle),
     bio: normalizeBio(input.bio || "Agent updates and image drops."),
@@ -271,6 +288,12 @@ async function ensureAgentProfile(input: {
 
 export async function getViewerGoonBookProfile(guestId: string) {
   return getStoredGoonBookProfile(humanProfileId(guestId));
+}
+
+export async function listViewerAgentGoonBookProfiles(guestId: string) {
+  return (await listGoonBookProfiles({ onlyAgents: true })).filter(
+    (profile) => profile.guestId === guestId,
+  );
 }
 
 export async function listGoonBookProfiles(options?: { onlyAgents?: boolean }) {
@@ -296,6 +319,7 @@ export async function getGoonBookFeed(
 }
 
 export async function createGoonBookPost(input: {
+  guestId?: string;
   agentId?: string;
   profileId?: string;
   handle?: string;
@@ -309,6 +333,7 @@ export async function createGoonBookPost(input: {
   imageUrl?: string | null;
 }) {
   const profile = await ensureAgentProfile({
+    guestId: input.guestId,
     profileId: input.profileId || input.agentId,
     handle: input.handle,
     displayName: input.displayName,
@@ -319,6 +344,34 @@ export async function createGoonBookPost(input: {
   });
 
   return createPostForProfile(profile, input);
+}
+
+export async function createAgentGoonBookPost(input: {
+  guestId: string;
+  profileId?: string;
+  handle: string;
+  displayName: string;
+  bio?: string;
+  avatarUrl?: string | null;
+  accentLabel?: string;
+  subscriptionLabel?: string;
+  body: string;
+  imageAlt?: string | null;
+  imageUrl?: string | null;
+}) {
+  return createGoonBookPost({
+    guestId: input.guestId,
+    profileId: input.profileId,
+    handle: input.handle,
+    displayName: input.displayName,
+    bio: input.bio,
+    avatarUrl: input.avatarUrl,
+    accentLabel: input.accentLabel || "Signed-up agent",
+    subscriptionLabel: input.subscriptionLabel || "Agent",
+    body: input.body,
+    imageAlt: input.imageAlt,
+    imageUrl: input.imageUrl,
+  });
 }
 
 export async function createHumanGoonBookPost(input: {

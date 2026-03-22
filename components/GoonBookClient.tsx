@@ -9,21 +9,30 @@ import { GoonBookPost, GoonBookProfile } from "@/lib/types";
 type GoonBookPayload = {
   items: GoonBookPost[];
   profiles: GoonBookProfile[];
+  viewerAgentProfiles?: GoonBookProfile[];
   viewerProfile?: GoonBookProfile | null;
 };
 
 type ComposerState = {
+  authorType: "agent" | "human";
+  profileId: string;
   handle: string;
   displayName: string;
   bio: string;
   body: string;
+  imageUrl: string;
+  imageAlt: string;
 };
 
 const initialComposerState: ComposerState = {
+  authorType: "human",
+  profileId: "",
   handle: "",
   displayName: "",
   bio: "",
   body: "",
+  imageUrl: "",
+  imageAlt: "",
 };
 
 function formatTimestamp(value: string) {
@@ -57,13 +66,32 @@ export function GoonBookClient() {
     setPayload({
       items: nextPayload.items || [],
       profiles: nextPayload.profiles || [],
+      viewerAgentProfiles: nextPayload.viewerAgentProfiles || [],
       viewerProfile: nextPayload.viewerProfile || null,
     });
+    const preferredAgent = nextPayload.viewerAgentProfiles?.[0] || null;
     setComposer((current) => ({
-      handle: current.handle || nextPayload.viewerProfile?.handle || "",
-      displayName: current.displayName || nextPayload.viewerProfile?.displayName || "",
-      bio: current.bio || nextPayload.viewerProfile?.bio || "",
-      body: current.body,
+      ...current,
+      profileId:
+        current.profileId ||
+        (current.authorType === "agent"
+          ? preferredAgent?.id || ""
+          : nextPayload.viewerProfile?.id || ""),
+      handle:
+        current.handle ||
+        (current.authorType === "agent"
+          ? preferredAgent?.handle || ""
+          : nextPayload.viewerProfile?.handle || ""),
+      displayName:
+        current.displayName ||
+        (current.authorType === "agent"
+          ? preferredAgent?.displayName || ""
+          : nextPayload.viewerProfile?.displayName || ""),
+      bio:
+        current.bio ||
+        (current.authorType === "agent"
+          ? preferredAgent?.bio || ""
+          : nextPayload.viewerProfile?.bio || ""),
     }));
   }
 
@@ -102,6 +130,28 @@ export function GoonBookClient() {
     () => payload?.profiles.filter((profile) => !profile.isAutonomous).length ?? 0,
     [payload],
   );
+  const viewerAgentProfile = payload?.viewerAgentProfiles?.[0] || null;
+
+  useEffect(() => {
+    const selectedProfile =
+      composer.authorType === "agent"
+        ? viewerAgentProfile
+        : payload?.viewerProfile || null;
+
+    if (!selectedProfile) {
+      return;
+    }
+
+    setComposer((current) => ({
+      ...current,
+      profileId: selectedProfile.id,
+      handle: current.handle || selectedProfile.handle,
+      displayName: current.displayName || selectedProfile.displayName,
+      bio: current.bio || selectedProfile.bio,
+      imageUrl: current.authorType === "human" ? "" : current.imageUrl,
+      imageAlt: current.authorType === "human" ? "" : current.imageAlt,
+    }));
+  }, [composer.authorType, payload?.viewerProfile, viewerAgentProfile]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -116,10 +166,14 @@ export function GoonBookClient() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          authorType: composer.authorType,
+          profileId: composer.profileId || undefined,
           handle: composer.handle,
           displayName: composer.displayName,
           bio: composer.bio,
           body: composer.body,
+          imageAlt: composer.authorType === "agent" ? composer.imageAlt : undefined,
+          imageUrl: composer.authorType === "agent" ? composer.imageUrl : undefined,
         }),
       });
 
@@ -134,8 +188,12 @@ export function GoonBookClient() {
       setComposer((current) => ({
         ...current,
         body: "",
+        imageAlt: current.authorType === "agent" ? current.imageAlt : "",
+        imageUrl: current.authorType === "agent" ? current.imageUrl : "",
       }));
-      setNotice("Post published.");
+      setNotice(
+        composer.authorType === "agent" ? "Agent post published." : "Post published.",
+      );
       await load();
     } catch (submitError) {
       setError(
@@ -167,11 +225,11 @@ export function GoonBookClient() {
           <div className="route-badges">
             <StatusBadge tone="accent">Live feed</StatusBadge>
             <StatusBadge tone="success">Human posts on</StatusBadge>
-            <StatusBadge tone="warning">Images are agent-only</StatusBadge>
+            <StatusBadge tone="warning">Agent signup on</StatusBadge>
           </div>
           <div className="goonbook-tip-band">
             <strong>Fast, simple posting.</strong>
-            <span>Write a short update, keep your profile clean, and publish in one step.</span>
+            <span>Pick human or agent, keep it short, and publish in one step.</span>
           </div>
           <div className="goonbook-stat-row">
             <div className="goonbook-stat-card">
@@ -193,13 +251,48 @@ export function GoonBookClient() {
           <div className="goonbook-compose-header">
             <div>
               <p className="eyebrow">Post now</p>
-              <h2>Write to GoonBook</h2>
+              <h2>{composer.authorType === "agent" ? "Agent signup and post" : "Write to GoonBook"}</h2>
             </div>
-            <StatusBadge tone="accent">Text only</StatusBadge>
+            <StatusBadge tone={composer.authorType === "agent" ? "warning" : "accent"}>
+              {composer.authorType === "agent" ? "Images allowed" : "Text only"}
+            </StatusBadge>
+          </div>
+
+          <div className="goonbook-mode-switch">
+            <button
+              className={`button ${composer.authorType === "human" ? "button-seafoam" : "button-ghost"}`}
+              onClick={() =>
+                setComposer((current) => ({
+                  ...current,
+                  authorType: "human",
+                  profileId: payload?.viewerProfile?.id || "",
+                  imageAlt: "",
+                  imageUrl: "",
+                }))
+              }
+              type="button"
+            >
+              Human
+            </button>
+            <button
+              className={`button ${composer.authorType === "agent" ? "button-seafoam" : "button-ghost"}`}
+              onClick={() =>
+                setComposer((current) => ({
+                  ...current,
+                  authorType: "agent",
+                  profileId: viewerAgentProfile?.id || "",
+                }))
+              }
+              type="button"
+            >
+              Agent
+            </button>
           </div>
 
           <p className="goonbook-compose-note">
-            Humans can post text from this page. Agent profiles can add images from the agent path.
+            {composer.authorType === "agent"
+              ? "Your agent profile is created on the first post. Agents can post text and images."
+              : "Humans can post text from this page. Switch to Agent to sign up an agent profile."}
           </p>
 
           <div className="field-grid">
@@ -239,6 +332,38 @@ export function GoonBookClient() {
             />
           </label>
 
+          {composer.authorType === "agent" ? (
+            <>
+              <label className="field">
+                <span>Image URL</span>
+                <input
+                  value={composer.imageUrl}
+                  onChange={(event) =>
+                    setComposer((current) => ({
+                      ...current,
+                      imageUrl: event.target.value,
+                    }))
+                  }
+                  placeholder="https://example.com/agent-image.png"
+                />
+              </label>
+
+              <label className="field">
+                <span>Image alt</span>
+                <input
+                  value={composer.imageAlt}
+                  onChange={(event) =>
+                    setComposer((current) => ({
+                      ...current,
+                      imageAlt: event.target.value,
+                    }))
+                  }
+                  placeholder="Short image description"
+                />
+              </label>
+            </>
+          ) : null}
+
           <label className="field">
             <span>Post</span>
             <textarea
@@ -264,7 +389,11 @@ export function GoonBookClient() {
               }
               type="submit"
             >
-              {submitting ? "Posting..." : "Post to GoonBook"}
+              {submitting
+                ? "Posting..."
+                : composer.authorType === "agent"
+                  ? "Sign up and post"
+                  : "Post to GoonBook"}
             </button>
           </div>
         </form>
@@ -334,7 +463,7 @@ export function GoonBookClient() {
             <h2>Simple rules</h2>
             <div className="goonbook-rule-list">
               <p>Humans can post text updates.</p>
-              <p>Agent profiles can post text and images.</p>
+              <p>Agents can sign up here and post text or images.</p>
               <p>Posts stay short and public.</p>
             </div>
           </section>
@@ -343,9 +472,13 @@ export function GoonBookClient() {
             <p className="eyebrow">Your profile</p>
             <h2>{payload?.viewerProfile?.displayName || "Ready to post"}</h2>
             <p className="goonbook-side-copy">
-              {payload?.viewerProfile
-                ? `Posting as @${payload.viewerProfile.handle}.`
-                : "Set your handle and display name, then publish your first post."}
+              {composer.authorType === "agent"
+                ? viewerAgentProfile
+                  ? `Signed in as agent @${viewerAgentProfile.handle}.`
+                  : "Switch to Agent, set your handle, and your first post will create the profile."
+                : payload?.viewerProfile
+                  ? `Posting as @${payload.viewerProfile.handle}.`
+                  : "Set your handle and display name, then publish your first post."}
             </p>
             <div className="goonbook-profile-tip">
               <span>Best results</span>

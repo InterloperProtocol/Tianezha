@@ -17,6 +17,7 @@ export type AutonomousTreasuryInstructionKind =
   | "arbitrary_transfer";
 
 export type AutonomousTradeVenue =
+  | "gmgn"
   | "pumpfun"
   | "pumpswap"
   | "jupiter"
@@ -24,7 +25,7 @@ export type AutonomousTradeVenue =
   | "orca"
   | "unknown";
 
-const ALLOWED_PUMP_TRADING_VENUES = ["pumpfun", "pumpswap"] as const;
+const ALLOWED_PUMP_TRADING_VENUES = ["gmgn"] as const;
 
 function getConwayAllowedHosts() {
   const env = getServerEnv();
@@ -54,7 +55,7 @@ export function getAutonomousTransferGuardrails(): AutonomousTransferGuardrails 
       "Configured owner wallet for creator-fee partner payouts only",
       "Treasury-controlled settlement and reserve accounts",
       "Programmatic burn destinations for the GoonClaw token",
-      "Canonical Pump.fun venues required for policy-approved Pump meme coin swaps",
+      "Configured GMGN trading flow for policy-approved Pump meme coin swaps",
       "Allowlisted Conway domains and infrastructure hosts for business-critical services",
     ],
     blockedDestinationClasses: [
@@ -66,7 +67,7 @@ export function getAutonomousTransferGuardrails(): AutonomousTransferGuardrails 
     conwayPaymentsAllowed: true,
     conwayAllowedHosts: getConwayAllowedHosts(),
     notes:
-      "GoonClaw may settle owner payouts, reserves, burns, canonical Pump trades, and allowlisted Conway service payments, but it must refuse any instruction that attempts to move funds to an arbitrary private wallet.",
+      "GoonClaw may settle owner payouts, reserves, burns, GMGN-routed Pump trades, and allowlisted Conway service payments, but it must refuse any instruction that attempts to move funds to an arbitrary private wallet.",
   };
 }
 
@@ -78,9 +79,9 @@ export function getAutonomousTradeGuardrails(): AutonomousTradeGuardrails {
     pumpOnlyTrading: true,
     maxPortfolioAllocationPct,
     allowedTradingVenues: [...ALLOWED_PUMP_TRADING_VENUES],
-    blockedTradingVenues: ["jupiter", "raydium", "orca", "unknown"],
+    blockedTradingVenues: ["pumpfun", "pumpswap", "jupiter", "raydium", "orca", "unknown"],
     notes:
-      "GoonClaw may only buy and sell Pump meme coins on canonical Pump venues, and no single meme coin exposure may exceed 10% of the tracked portfolio value.",
+      "GoonClaw may only buy and sell Pump meme coins through the configured GMGN Solana route, and no single meme coin exposure may exceed 10% of the tracked portfolio value.",
   };
 }
 
@@ -174,10 +175,9 @@ export function assertAutonomousTradeAllowed(args: {
   }
 
   if (
-    args.venue !== "pumpfun" &&
-    args.venue !== "pumpswap"
+    args.venue !== "gmgn"
   ) {
-    throw new Error("GoonClaw may only trade on canonical Pump venues.");
+    throw new Error("GoonClaw may only trade through the configured GMGN route.");
   }
 
   if (requestedNotionalUsdc <= 0) {

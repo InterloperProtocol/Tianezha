@@ -63,6 +63,10 @@ const rawServerEnvSchema = z.object({
   GOONCLAW_TELEGRAM_THREAD_ID: z.string().optional(),
   GOONCLAW_TELEGRAM_DESCRIPTION: z.string().optional(),
   GOONCLAW_TELEGRAM_SHORT_DESCRIPTION: z.string().optional(),
+  GOONCLAW_GMGN_API_KEY: z.string().optional(),
+  GOONCLAW_GMGN_TRADING_WALLET: z.string().optional(),
+  GOONCLAW_GMGN_TRADING_SECRET: z.string().optional(),
+  GOONCLAW_GMGN_API_HOST: z.string().optional(),
   LIVESTREAM_STANDARD_PRICE_SOL: z.string().optional(),
   LIVESTREAM_PRIORITY_PRICE_SOL: z.string().optional(),
   LIVESTREAM_SESSION_SECONDS: z.string().optional(),
@@ -130,6 +134,10 @@ const resolvedServerEnvSchema = z.object({
   GOONCLAW_TELEGRAM_THREAD_ID: z.string(),
   GOONCLAW_TELEGRAM_DESCRIPTION: z.string(),
   GOONCLAW_TELEGRAM_SHORT_DESCRIPTION: z.string(),
+  GOONCLAW_GMGN_API_KEY: z.string(),
+  GOONCLAW_GMGN_TRADING_WALLET: z.string(),
+  GOONCLAW_GMGN_TRADING_SECRET: z.string(),
+  GOONCLAW_GMGN_API_HOST: z.string().min(1),
   LIVESTREAM_STANDARD_PRICE_SOL: z.string().min(1),
   LIVESTREAM_PRIORITY_PRICE_SOL: z.string().min(1),
   LIVESTREAM_SESSION_SECONDS: z.string().min(1),
@@ -398,6 +406,13 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
     GOONCLAW_TELEGRAM_SHORT_DESCRIPTION:
       raw.GOONCLAW_TELEGRAM_SHORT_DESCRIPTION?.trim() ||
       "Read-only GoonClaw runtime feed.",
+    GOONCLAW_GMGN_API_KEY: raw.GOONCLAW_GMGN_API_KEY?.trim() || "",
+    GOONCLAW_GMGN_TRADING_WALLET:
+      raw.GOONCLAW_GMGN_TRADING_WALLET?.trim() || "",
+    GOONCLAW_GMGN_TRADING_SECRET:
+      raw.GOONCLAW_GMGN_TRADING_SECRET?.trim() || "",
+    GOONCLAW_GMGN_API_HOST:
+      raw.GOONCLAW_GMGN_API_HOST?.trim() || "https://gmgn.ai",
     LIVESTREAM_STANDARD_PRICE_SOL:
       raw.LIVESTREAM_STANDARD_PRICE_SOL?.trim() || "0.0069",
     LIVESTREAM_PRIORITY_PRICE_SOL:

@@ -45,7 +45,7 @@ env:
       - RUNTIME
 
   - variable: TREASURY_WALLET
-    value: "784GuK5UrT9KsTvUexXmq1G9pLgckUFscth5DEwQGVbZ"
+    value: "FkJEWGNJksWksFELjkMtaJhRTGNJxbzBeRfUYtnANC3p"
     availability:
       - RUNTIME
 
@@ -56,6 +56,16 @@ env:
 
   - variable: GOONCLAW_OWNER_WALLET
     value: "784GuK5UrT9KsTvUexXmq1G9pLgckUFscth5DEwQGVbZ"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_GMGN_TRADING_WALLET
+    value: "HJ87nw6PotdjJQXidyA7EPxXGoz7JecK1bEZ2Q7MhomJ"
+    availability:
+      - RUNTIME
+
+  - variable: GOONCLAW_GMGN_API_HOST
+    value: "https://gmgn.ai"
     availability:
       - RUNTIME
 
@@ -161,6 +171,12 @@ env:
 
   - variable: GOONCLAW_TELEGRAM_BOT_TOKEN
     secret: goonclaw-telegram-bot-token
+
+  - variable: GOONCLAW_GMGN_API_KEY
+    secret: goonclaw-gmgn-api-key
+
+  - variable: GOONCLAW_GMGN_TRADING_SECRET
+    secret: goonclaw-gmgn-trading-secret
 
   - variable: INTERNAL_ADMIN_PASSWORD
     secret: goonclaw-internal-admin-password

@@ -10,9 +10,11 @@ const internalAdminModule = vi.hoisted(() => ({
 }));
 
 const goonBookModule = vi.hoisted(() => ({
+  createAgentGoonBookPost: vi.fn(),
   createHumanGoonBookPost: vi.fn(),
   getGoonBookFeed: vi.fn(),
   getViewerGoonBookProfile: vi.fn(),
+  listViewerAgentGoonBookProfiles: vi.fn(),
   listGoonBookProfiles: vi.fn(),
 }));
 
@@ -33,6 +35,7 @@ describe("/api/goonbook POST", () => {
   beforeEach(() => {
     guestModule.getOrCreateGuestSession.mockReset();
     internalAdminModule.assertGuestEnabled.mockReset();
+    goonBookModule.createAgentGoonBookPost.mockReset();
     goonBookModule.createHumanGoonBookPost.mockReset();
     requestSecurityModule.assertSameOriginMutation.mockReset();
     requestSecurityModule.enforceRequestRateLimit.mockReset();
@@ -89,5 +92,42 @@ describe("/api/goonbook POST", () => {
       body: "hello",
     });
     expect(payload.item?.id).toBe("post-1");
+  });
+
+  it("publishes an agent post for the guest session", async () => {
+    guestModule.getOrCreateGuestSession.mockResolvedValue({ id: "guest-1" });
+    goonBookModule.createAgentGoonBookPost.mockResolvedValue({
+      id: "agent-post-1",
+    });
+
+    const request = new NextRequest("https://example.com/api/goonbook", {
+      method: "POST",
+      body: JSON.stringify({
+        authorType: "agent",
+        handle: "agent-one",
+        displayName: "Agent One",
+        bio: "agent bio",
+        body: "autonomous hello",
+        imageUrl: "https://example.com/agent.png",
+        imageAlt: "agent image",
+      }),
+    });
+
+    const response = await POST(request);
+    const payload = (await response.json()) as { item?: { id: string } };
+
+    expect(response.status).toBe(200);
+    expect(goonBookModule.createAgentGoonBookPost).toHaveBeenCalledWith({
+      guestId: "guest-1",
+      profileId: undefined,
+      handle: "agent-one",
+      displayName: "Agent One",
+      bio: "agent bio",
+      avatarUrl: undefined,
+      body: "autonomous hello",
+      imageAlt: "agent image",
+      imageUrl: "https://example.com/agent.png",
+    });
+    expect(payload.item?.id).toBe("agent-post-1");
   });
 });

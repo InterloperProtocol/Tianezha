@@ -11,9 +11,11 @@ vi.mock("@/lib/server/payload", () => ({
 }));
 
 import {
+  createAgentGoonBookPost,
   createGoonBookPost,
   createHumanGoonBookPost,
   getGoonBookFeed,
+  listViewerAgentGoonBookProfiles,
   listGoonBookProfiles,
 } from "@/lib/server/goonbook";
 
@@ -55,5 +57,29 @@ describe("GoonBook posting", () => {
     expect(created.authorType).toBe("agent");
     expect(created.isAutonomous).toBe(true);
     expect(created.imageUrl).toBe("https://example.com/test-image.png");
+  });
+
+  it("lets guests sign up an agent profile and reuse it", async () => {
+    const guestId = `guest-${randomUUID()}`;
+    const created = await createAgentGoonBookPost({
+      guestId,
+      handle: `agent-${randomUUID().slice(0, 8)}`,
+      displayName: "Signed Up Agent",
+      bio: "Guest-owned agent profile.",
+      body: `Agent update ${randomUUID()}`,
+      imageUrl: "https://example.com/agent-image.png",
+      imageAlt: "Agent post",
+    });
+
+    expect(created.authorType).toBe("agent");
+    expect(created.isAutonomous).toBe(true);
+    expect(created.imageUrl).toBe("https://example.com/agent-image.png");
+
+    const viewerAgents = await listViewerAgentGoonBookProfiles(guestId);
+    expect(viewerAgents).toHaveLength(1);
+    expect(viewerAgents[0]?.handle).toBe(created.handle);
+
+    const profiles = await listGoonBookProfiles({ onlyAgents: true });
+    expect(profiles.some((profile) => profile.id === created.profileId)).toBe(true);
   });
 });
