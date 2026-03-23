@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { PublicKey } from "@solana/web3.js";
 
 import { getPublicEnv, getServerEnv } from "@/lib/env";
+import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import { fetchWalletAnalytics } from "@/lib/server/goonclaw-smart-wallets";
 import {
   dispatchSessionStart,
@@ -15,6 +16,7 @@ import {
   getSession,
   listLivestreamRequests,
   listLivestreamRequestsForGuest,
+  listRecoverableSessions,
   upsertLivestreamRequest,
 } from "@/lib/server/repository";
 import {
@@ -29,6 +31,7 @@ import {
 } from "@/lib/server/solana";
 import {
   LivestreamRequestRecord,
+  SessionRecord,
   LivestreamTier,
 } from "@/lib/types";
 import { nowIso } from "@/lib/utils";
@@ -106,6 +109,57 @@ function assertContractAddress(contractAddress: string) {
   } catch {
     throw new Error("Enter a valid Solana contract address");
   }
+}
+
+function getDefaultPublicLivestreamContractAddress() {
+  return getServerEnv().BAGSTROKE_TOKEN_MINT || DEFAULT_PUMP_TOKEN_MINT;
+}
+
+function matchesPublicLivestreamSession(session: SessionRecord) {
+  return (
+    session.wallet === PUBLIC_LIVESTREAM_OWNER_ID &&
+    session.deviceId === PUBLIC_LIVESTREAM_DEVICE_ID &&
+    (session.status === "active" || session.status === "starting")
+  );
+}
+
+async function getCurrentPublicLivestreamSession() {
+  const sessions = await listRecoverableSessions();
+  return sessions.find(matchesPublicLivestreamSession) ?? null;
+}
+
+async function startOrReusePublicLivestreamSession(contractAddress: string) {
+  const existing = await getCurrentPublicLivestreamSession();
+  const normalizedContractAddress = assertContractAddress(contractAddress);
+
+  if (
+    existing &&
+    existing.contractAddress === normalizedContractAddress &&
+    existing.mode === "live"
+  ) {
+    return existing;
+  }
+
+  if (existing) {
+    await dispatchSessionStop(existing.id).catch(() => null);
+  }
+
+  return dispatchSessionStart({
+    wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+    contractAddress: normalizedContractAddress,
+    deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+    mode: "live",
+  });
+}
+
+async function ensureIdlePublicLivestreamSession() {
+  if (!getServerEnv().PUBLIC_AUTOBLOW_DEVICE_TOKEN) {
+    return null;
+  }
+
+  return startOrReusePublicLivestreamSession(
+    getDefaultPublicLivestreamContractAddress(),
+  );
 }
 
 async function generateUniqueMemo() {
@@ -306,12 +360,9 @@ export async function syncLivestreamQueue() {
     if (next) {
       try {
         const activatedAt = nowIso();
-        const session = await dispatchSessionStart({
-          wallet: PUBLIC_LIVESTREAM_OWNER_ID,
-          contractAddress: next.contractAddress,
-          deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
-          mode: "live",
-        });
+        const session = await startOrReusePublicLivestreamSession(
+          next.contractAddress,
+        );
 
         active = await upsertLivestreamRequest({
           ...next,
@@ -338,6 +389,8 @@ export async function syncLivestreamQueue() {
             error instanceof Error ? error.message : "Failed to start queue item",
         });
       }
+    } else {
+      await ensureIdlePublicLivestreamSession().catch(() => null);
     }
   }
 }
@@ -375,6 +428,8 @@ function serializeLivestreamRequest(request: LivestreamRequestRecord) {
 }
 
 export async function getLivestreamState(guestId?: string | null) {
+  await syncLivestreamQueue();
+
   const env = getServerEnv();
   const publicEnv = getPublicEnv();
   const [requests, recent] = await Promise.all([

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
+import { syncLivestreamQueue } from "@/lib/server/livestream";
 import {
   PUBLIC_LIVESTREAM_OWNER_ID,
 } from "@/lib/server/runtime-constants";
@@ -93,6 +94,8 @@ export async function saveCurrentPublicStreamProfile(
 }
 
 export async function listActivePublicStreams() {
+  await syncLivestreamQueue();
+
   const [profiles, sessions] = await Promise.all([
     listPublicStreamProfiles(),
     listRecoverableSessions(),
@@ -138,6 +141,8 @@ export async function listActivePublicStreams() {
 export async function getPublicStreamPageState(
   slug: string,
 ): Promise<PublicStreamPageState | null> {
+  await syncLivestreamQueue();
+
   const parsedSlug = publicStreamSlugSchema.safeParse(slug.toLowerCase());
   if (!parsedSlug.success) {
     return null;

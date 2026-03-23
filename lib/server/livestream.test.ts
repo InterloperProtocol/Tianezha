@@ -43,13 +43,20 @@ vi.mock("@/lib/server/solana", () => solanaModule);
 
 import {
   getLivestreamState,
+  syncLivestreamQueue,
   verifyLivestreamRequestPayment,
 } from "@/lib/server/livestream";
 import {
   getLivestreamRequest,
+  upsertSession,
   upsertLivestreamRequest,
 } from "@/lib/server/repository";
 import type { LivestreamRequestRecord } from "@/lib/types";
+import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
+import {
+  PUBLIC_LIVESTREAM_DEVICE_ID,
+  PUBLIC_LIVESTREAM_OWNER_ID,
+} from "@/lib/server/runtime-constants";
 
 function buildRequest(
   overrides: Partial<LivestreamRequestRecord> = {},
@@ -73,6 +80,7 @@ describe("livestream payment verification", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     smartWalletModule.fetchWalletAnalytics.mockResolvedValue(null);
+    workerClientModule.dispatchSessionStop.mockResolvedValue(undefined);
     (globalThis as { __goonclawMemory?: unknown }).__goonclawMemory = undefined;
   });
 
@@ -138,5 +146,109 @@ describe("livestream payment verification", () => {
     expect(saved?.sweepStatus).toBe("failed");
     expect(saved?.sweepError).toBe("sweep exploded");
     expect(saved?.error).toBe("sweep exploded");
+  });
+
+  it("starts an idle public chartsync session when the public Autoblow device is configured", async () => {
+    envModule.getServerEnv.mockReturnValue({
+      ...envModule.getServerEnv(),
+      PUBLIC_AUTOBLOW_DEVICE_TOKEN: "71nt0tdpv35q",
+    });
+    workerClientModule.dispatchSessionStart.mockResolvedValue({
+      id: "public-session-1",
+      wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+      contractAddress: DEFAULT_PUMP_TOKEN_MINT,
+      deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+      deviceType: "autoblow",
+      mode: "live",
+      status: "starting",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    await syncLivestreamQueue();
+
+    expect(workerClientModule.dispatchSessionStart).toHaveBeenCalledWith({
+      wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+      contractAddress: DEFAULT_PUMP_TOKEN_MINT,
+      deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+      mode: "live",
+    });
+  });
+
+  it("reuses an existing idle public chartsync session when it already tracks the default mint", async () => {
+    envModule.getServerEnv.mockReturnValue({
+      ...envModule.getServerEnv(),
+      PUBLIC_AUTOBLOW_DEVICE_TOKEN: "71nt0tdpv35q",
+    });
+    await upsertSession({
+      id: "public-session-existing",
+      wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+      contractAddress: DEFAULT_PUMP_TOKEN_MINT,
+      deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+      deviceType: "autoblow",
+      mode: "live",
+      status: "active",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    await syncLivestreamQueue();
+
+    expect(workerClientModule.dispatchSessionStart).not.toHaveBeenCalled();
+    expect(workerClientModule.dispatchSessionStop).not.toHaveBeenCalled();
+  });
+
+  it("hands the public device from the idle chartsync session to the next paid queue request", async () => {
+    envModule.getServerEnv.mockReturnValue({
+      ...envModule.getServerEnv(),
+      PUBLIC_AUTOBLOW_DEVICE_TOKEN: "71nt0tdpv35q",
+    });
+    await upsertSession({
+      id: "public-session-existing",
+      wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+      contractAddress: DEFAULT_PUMP_TOKEN_MINT,
+      deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+      deviceType: "autoblow",
+      mode: "live",
+      status: "active",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    await upsertLivestreamRequest(
+      buildRequest({
+        id: "queued-request",
+        paymentConfirmedAt: new Date().toISOString(),
+        signature: "paid-signature",
+        sweepStatus: "swept",
+        contractAddress: "So11111111111111111111111111111111111111112",
+      }),
+    );
+    workerClientModule.dispatchSessionStart.mockResolvedValue({
+      id: "public-session-paid",
+      wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+      contractAddress: "So11111111111111111111111111111111111111112",
+      deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+      deviceType: "autoblow",
+      mode: "live",
+      status: "starting",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    await syncLivestreamQueue();
+
+    expect(workerClientModule.dispatchSessionStop).toHaveBeenCalledWith(
+      "public-session-existing",
+    );
+    expect(workerClientModule.dispatchSessionStart).toHaveBeenCalledWith({
+      wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+      contractAddress: "So11111111111111111111111111111111111111112",
+      deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+      mode: "live",
+    });
+
+    const saved = await getLivestreamRequest("queued-request");
+    expect(saved?.status).toBe("active");
+    expect(saved?.sessionId).toBe("public-session-paid");
   });
 });
