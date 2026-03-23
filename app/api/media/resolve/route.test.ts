@@ -56,11 +56,41 @@ describe("/api/media/resolve", () => {
       "https://example.com/clip",
       { label: "Media URL" },
     );
+    expect(mediaModule.resolveMediaSource).toHaveBeenCalledWith(
+      "https://example.com/clip",
+      "example.com",
+    );
     expect(payload).toMatchObject({
       kind: "video",
       method: "yt-dlp",
       provider: "Pornhub",
     });
+  });
+
+  it("falls back to the forwarded host when parentHost is invalid", async () => {
+    mediaModule.resolveMediaSource.mockResolvedValue({
+      kind: "iframe",
+      src: "https://player.example.com/embed/123",
+      provider: "Twitch",
+      method: "embed",
+    });
+
+    const request = new NextRequest(
+      "https://internal.example/api/media/resolve?url=https%3A%2F%2Fexample.com%2Fclip&parentHost=https%3A%2F%2Fevil.example%2Fbad",
+      {
+        headers: {
+          "x-forwarded-host": "preview.example.com",
+        },
+      },
+    );
+
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+    expect(mediaModule.resolveMediaSource).toHaveBeenCalledWith(
+      "https://example.com/clip",
+      "preview.example.com",
+    );
   });
 
   it("returns 404 when no playable source is found", async () => {

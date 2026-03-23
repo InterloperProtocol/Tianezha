@@ -42,6 +42,10 @@ yarn-error.log*
 .pnpm-debug.log*
 firebase-debug.log
 firebase-debug.*.log
+.next-dev.log
+.next-start*.log
+apphosting-debug.txt
+.tmp-*/
 
 # env files (can opt-in for committing if needed)
 .env*

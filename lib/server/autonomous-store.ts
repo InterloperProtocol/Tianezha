@@ -7,6 +7,7 @@ import {
 } from "fs";
 import path from "path";
 
+import { CONSTITUTION } from "@/lib/constitution";
 import {
   AutonomousControlState,
   AutonomousFeedEvent,
@@ -20,6 +21,7 @@ import {
   AutonomousTradePosition,
 } from "@/lib/types";
 import { nowIso } from "@/lib/utils";
+import { createClosedCircuitBreakerState } from "@/workers/security-guards";
 
 type AutonomousAgentSnapshot = {
   heartbeatAt: string;
@@ -58,6 +60,7 @@ function ensureDataDir() {
 
 function createInitialSnapshot(): AutonomousAgentSnapshot {
   const timestamp = nowIso();
+  const nowMs = new Date(timestamp).getTime();
   return {
     heartbeatAt: timestamp,
     runtimePhase: "booting",
@@ -69,8 +72,9 @@ function createInitialSnapshot(): AutonomousAgentSnapshot {
       pauseReason: null,
       lastAction: null,
       lastActionAt: null,
+      circuitBreakerState: createClosedCircuitBreakerState(nowMs),
     },
-    reserveSol: 0.06942,
+    reserveSol: Number(CONSTITUTION.reservePolicy.reserveFloorSol),
     usdcBalance: 0,
     revenueBuckets: {
       ownerUsdc: 0,
@@ -125,6 +129,33 @@ function createInitialSnapshot(): AutonomousAgentSnapshot {
   };
 }
 
+function hydrateControlState(control?: Partial<AutonomousControlState> | null) {
+  return {
+    paused: control?.paused ?? false,
+    pauseReason: control?.pauseReason ?? null,
+    lastAction: control?.lastAction ?? null,
+    lastActionAt: control?.lastActionAt ?? null,
+    circuitBreakerState:
+      control?.circuitBreakerState ||
+      createClosedCircuitBreakerState(
+        control?.lastActionAt ? new Date(control.lastActionAt).getTime() : Date.now(),
+      ),
+  } satisfies AutonomousControlState;
+}
+
+function hydrateSnapshot(snapshot?: Partial<AutonomousAgentSnapshot> | null) {
+  const initialSnapshot = createInitialSnapshot();
+  const mergedSnapshot = {
+    ...initialSnapshot,
+    ...snapshot,
+  } as AutonomousAgentSnapshot;
+
+  return {
+    ...mergedSnapshot,
+    control: hydrateControlState(snapshot?.control),
+  } satisfies AutonomousAgentSnapshot;
+}
+
 function readStoreFromDisk(): AutonomousStoreShape {
   ensureDataDir();
 
@@ -136,7 +167,11 @@ function readStoreFromDisk(): AutonomousStoreShape {
   }
 
   try {
-    return JSON.parse(readFileSync(STORE_PATH, "utf8")) as AutonomousStoreShape;
+    const parsed = JSON.parse(readFileSync(STORE_PATH, "utf8")) as Partial<AutonomousStoreShape>;
+    return {
+      feed: Array.isArray(parsed.feed) ? parsed.feed : [],
+      snapshot: hydrateSnapshot(parsed.snapshot),
+    };
   } catch {
     return {
       feed: [],

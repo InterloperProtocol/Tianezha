@@ -25,14 +25,19 @@ export async function GET(request: Request) {
       : 40;
     const guestSession = await getOrCreateGuestSession();
     const runtimeStatus = getAutonomousStatus();
+    const viewerProfile = await getViewerGoonBookProfile(guestSession.id);
+    const viewerProfileId = viewerProfile?.id || null;
 
     return NextResponse.json({
-      items: await getGoonBookFeed(limit),
-      profiles: await listGoonBookProfiles(),
+      items: await getGoonBookFeed(limit, { viewerProfileId }),
+      profiles: await listGoonBookProfiles({ viewerProfileId }),
       topTape: runtimeStatus.marketIntel.topTape,
       marketSummary: runtimeStatus.marketIntel.summary,
-      viewerAgentProfiles: await listViewerAgentGoonBookProfiles(guestSession.id),
-      viewerProfile: await getViewerGoonBookProfile(guestSession.id),
+      viewerAgentProfiles: await listViewerAgentGoonBookProfiles(
+        guestSession.id,
+        viewerProfileId,
+      ),
+      viewerProfile,
     });
   } catch (error) {
     return NextResponse.json(

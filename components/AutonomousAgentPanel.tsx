@@ -204,6 +204,21 @@ export function AutonomousAgentPanel() {
         <StatusBadge tone={status?.treasury.reserveHealthy ? "success" : "danger"}>
           {status?.treasury.reserveHealthy ? "Reserve healthy" : "Reserve low"}
         </StatusBadge>
+        <StatusBadge
+          tone={
+            status?.circuitBreakerState?.status === "open"
+              ? "danger"
+              : status?.circuitBreakerState?.status === "half_open"
+                ? "warning"
+                : "success"
+          }
+        >
+          {status?.circuitBreakerState?.status === "open"
+            ? "Breaker open"
+            : status?.circuitBreakerState?.status === "half_open"
+              ? "Breaker probing"
+              : "Breaker closed"}
+        </StatusBadge>
         <StatusBadge tone={status?.tooling.gmgnConfigured ? "accent" : "neutral"}>
           {status?.tooling.gmgnConfigured ? "GMGN set" : "GMGN off"}
         </StatusBadge>
@@ -253,7 +268,7 @@ export function AutonomousAgentPanel() {
       <div className="stats-grid">
         <div className="metric-card">
           <span>Reserve floor</span>
-          <strong>{status ? formatNumber(status.treasury.reserveFloorSol, 6) : "0.069420"} SOL</strong>
+          <strong>{status ? formatNumber(status.treasury.reserveFloorSol, 6) : "0.694200"} SOL</strong>
         </div>
         <div className="metric-card">
           <span>Current reserve</span>

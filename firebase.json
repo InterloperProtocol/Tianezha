@@ -16,6 +16,57 @@
         "vendor_solana_mcp_probe",
         "services/goonclaw-automaton/vendor/sendaifun-skills"
       ]
+    },
+    {
+      "backendId": "bolclaw-fun",
+      "rootDir": ".",
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        ".data",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "vendor_automaton_probe",
+        "vendor_sendaifun_skills_probe",
+        "vendor_solana_agent_kit_probe",
+        "vendor_solana_mcp_probe",
+        "services/goonclaw-automaton/vendor/sendaifun-skills"
+      ]
+    },
+    {
+      "backendId": "trenchstroker-fun",
+      "rootDir": ".",
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        ".data",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "vendor_automaton_probe",
+        "vendor_sendaifun_skills_probe",
+        "vendor_solana_agent_kit_probe",
+        "vendor_solana_mcp_probe",
+        "services/goonclaw-automaton/vendor/sendaifun-skills"
+      ]
+    },
+    {
+      "backendId": "outoforder-fun",
+      "rootDir": ".",
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        ".data",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "vendor_automaton_probe",
+        "vendor_sendaifun_skills_probe",
+        "vendor_solana_agent_kit_probe",
+        "vendor_solana_mcp_probe",
+        "services/goonclaw-automaton/vendor/sendaifun-skills"
+      ]
     }
   ],
   "firestore": {

@@ -107,7 +107,9 @@ This repo includes or depends on the following external references requested for
 ## Agent Policy Captured In UI
 
 - subscription cNFTs are now claimed manually after checking wallet eligibility
-- the older app-level Agent Ops surface still shows `50%` creator fees to the cNFT pool and the remainder to buybacks, plus a `1 SOL` reserve default
-- the sovereign automaton runtime under `services/goonclaw-automaton` has its own canonical policy layer: `49%` owner payout, `41%` burn bucket, `10%` trading bucket, and a `0.069420 SOL` reserve floor
+- the canonical constitutional layer now lives in `lib/constitution.ts`, `docs/CONSTITUTION.md`, and `docs/ECONOMIC_POLICY.md`
+- the public constitution snapshot is exposed at `/api/constitution`
+- the HeartBeat status surface at `/api/agent/status` now includes the public constitution snapshot, reserve posture, and runtime bucket/accounting state
+- constitutional defaults now target a `0.69420 SOL` reserve floor, `51%` creator-fee agent share (`40%` buyback+burn, `11%` trading wallet), `0.01 SOL` billboards, and `50/10/40` profit allocation above reserve
 - LaunchONomics decides whether a wallet qualifies for a subscription cNFT
-- the autonomous status panel now reflects constitution hash, reserve posture, and runtime bucket/accounting state
+- the autonomous status panel now reflects constitution hash, reserve posture, runtime bucket/accounting state, and HeartBeat surface metadata

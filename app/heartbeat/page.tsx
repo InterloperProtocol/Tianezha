@@ -1,3 +1,4 @@
+import { CONSTITUTION } from "@/lib/constitution";
 import { AutonomousAgentPanel } from "@/components/AutonomousAgentPanel";
 import { FaqPanel } from "@/components/FaqPanel";
 import { SiteNav } from "@/components/SiteNav";
@@ -44,7 +45,7 @@ export default function HeartbeatPage() {
             </div>
             <div className="rail-card">
               <p className="eyebrow">Reserve</p>
-              <strong>0.069420 SOL</strong>
+              <strong>{CONSTITUTION.reservePolicy.reserveFloorSol} SOL</strong>
               <span>Visible because public systems need visible guardrails.</span>
             </div>
             <div className="rail-card">

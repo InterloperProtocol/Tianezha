@@ -2,32 +2,10 @@ import { lookup } from "dns/promises";
 import { isIP } from "net";
 
 import { getServerEnv } from "@/lib/env";
-
-type RateLimitEntry = {
-  count: number;
-  resetAt: number;
-};
-
-declare global {
-  var __goonclawRateLimitStore: Map<string, RateLimitEntry> | undefined;
-}
-
-function getRateLimitStore() {
-  if (!global.__goonclawRateLimitStore) {
-    global.__goonclawRateLimitStore = new Map();
-  }
-
-  return global.__goonclawRateLimitStore;
-}
-
-function cleanupExpiredRateLimits(now: number) {
-  const store = getRateLimitStore();
-  for (const [key, entry] of store.entries()) {
-    if (entry.resetAt <= now) {
-      store.delete(key);
-    }
-  }
-}
+import {
+  getPersistedRateLimitEntry,
+  setPersistedRateLimitEntry,
+} from "@/lib/server/policy-runtime-store";
 
 function getRequestFingerprint(request: Request, discriminator?: string) {
   const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -243,17 +221,18 @@ export function enforceRequestRateLimit(args: {
   discriminator?: string;
 }) {
   const now = Date.now();
-  cleanupExpiredRateLimits(now);
-
   const key = `${args.scope}:${getRequestFingerprint(args.request, args.discriminator)}`;
-  const store = getRateLimitStore();
-  const current = store.get(key);
+  const current = getPersistedRateLimitEntry(key, now);
 
   if (!current || current.resetAt <= now) {
-    store.set(key, {
-      count: 1,
-      resetAt: now + args.windowMs,
-    });
+    setPersistedRateLimitEntry(
+      key,
+      {
+        count: 1,
+        resetAt: now + args.windowMs,
+      },
+      now,
+    );
     return;
   }
 
@@ -270,8 +249,14 @@ export function enforceRequestRateLimit(args: {
     throw error;
   }
 
-  current.count += 1;
-  store.set(key, current);
+  setPersistedRateLimitEntry(
+    key,
+    {
+      count: current.count + 1,
+      resetAt: current.resetAt,
+    },
+    now,
+  );
 }
 
 export function getRateLimitRetryAfterSeconds(error: unknown) {

@@ -11,13 +11,18 @@ vi.mock("@/lib/server/payload", () => ({
 }));
 
 import {
+  addGoonBookComment,
   authenticateGoonBookAgent,
   createAuthenticatedAgentGoonBookPost,
   createGoonBookPost,
   createHumanGoonBookPost,
   getGoonBookFeed,
+  getViewerGoonBookProfile,
   listGoonBookProfiles,
   registerGoonBookAgent,
+  toggleGoonBookFollow,
+  toggleGoonBookPostLike,
+  upsertHumanGoonBookProfile,
 } from "@/lib/server/goonbook";
 
 describe("GoonBook posting", () => {
@@ -125,5 +130,51 @@ describe("GoonBook posting", () => {
     ).rejects.toThrow(
       "BitClaw allows only safe images and softcore adult images. Hard pornography is not allowed",
     );
+  });
+
+  it("lets humans follow, like, and reply across the shared social graph", async () => {
+    const authorGuestId = `guest-${randomUUID()}`;
+    const viewerGuestId = `guest-${randomUUID()}`;
+    const created = await createHumanGoonBookPost({
+      guestId: authorGuestId,
+      handle: `author-${randomUUID().slice(0, 8)}`,
+      displayName: "Author Human",
+      body: `Original post ${randomUUID()}`,
+    });
+
+    const viewer = await upsertHumanGoonBookProfile({
+      guestId: viewerGuestId,
+      handle: `viewer-${randomUUID().slice(0, 8)}`,
+      displayName: "Viewer Human",
+      bio: "Following and replying from BitClaw.",
+    });
+
+    await toggleGoonBookFollow({
+      actorProfileId: viewer.id,
+      targetProfileId: created.profileId,
+    });
+    await toggleGoonBookPostLike({
+      actorProfileId: viewer.id,
+      postId: created.id,
+    });
+    await addGoonBookComment({
+      actorProfileId: viewer.id,
+      postId: created.id,
+      body: "Replying from the shared graph.",
+    });
+
+    const feed = await getGoonBookFeed(100, { viewerProfileId: viewer.id });
+    const socialPost = feed.find((item) => item.id === created.id);
+
+    expect(socialPost?.likedByViewer).toBe(true);
+    expect(socialPost?.commentCount).toBe(1);
+    expect(socialPost?.comments[0]?.handle).toBe(viewer.handle);
+
+    const profiles = await listGoonBookProfiles({ viewerProfileId: viewer.id });
+    const followedAuthor = profiles.find((profile) => profile.id === created.profileId);
+    expect(followedAuthor?.isFollowedByViewer).toBe(true);
+
+    const decoratedViewer = await getViewerGoonBookProfile(viewerGuestId);
+    expect(decoratedViewer?.followingCount).toBe(1);
   });
 });

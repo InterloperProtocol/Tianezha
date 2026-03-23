@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   applyAutonomousRevenueAllocation,
   getAutonomousFeed,
+  getAutonomousStatus,
   queueAutonomousSelfModificationProposal,
   queueAutonomousTradeDirective,
   publishAutonomousGoonBookPost,
@@ -35,8 +36,8 @@ describe("autonomous agent policy", () => {
     );
 
     expect(result.allocated.ownerUsdc).toBe(49);
-    expect(result.allocated.burnUsdc).toBe(41);
-    expect(result.allocated.tradingUsdc).toBe(10);
+    expect(result.allocated.burnUsdc).toBe(40);
+    expect(result.allocated.tradingUsdc).toBe(11);
     expect(result.allocated.reserveUsdc).toBe(0);
     expect(result.allocated.sessionTradeUsdc).toBe(0);
     expect(result.nextBuckets.totalProcessedUsdc).toBe(100);
@@ -186,7 +187,7 @@ describe("autonomous agent policy", () => {
     expect(next.positions.some((position) => position.marketMint === "pump-mint-2")).toBe(
       true,
     );
-    expect(next.revenueBuckets.tradingUsdc).toBe(9);
+    expect(next.revenueBuckets.tradingUsdc).toBe(10);
   });
 
   it("creates replica child runtimes from owner control", async () => {
@@ -326,5 +327,43 @@ describe("autonomous agent policy", () => {
     });
 
     expect(portfolioValueUsdc).toBe(22);
+  });
+
+  it("opens the persisted circuit breaker after repeated discretionary settlement failures", async () => {
+    const current = getAutonomousSnapshot();
+    setAutonomousSnapshot({
+      ...current,
+      revenueBuckets: {
+        ...current.revenueBuckets,
+        ownerUsdc: 1,
+        totalProcessedUsdc: 1,
+      },
+    });
+
+    let next = getAutonomousSnapshot();
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      next = await performAutonomousControl("force_settle", `breaker-${attempt}`, {
+        executor: {
+          async executeBuybackBurn() {
+            throw new Error("not used");
+          },
+          async executeTrade() {
+            throw new Error("not used");
+          },
+          async liquidateTrade() {
+            throw new Error("not used");
+          },
+          async settleOwnerPayout() {
+            throw new Error("owner payout failed");
+          },
+          async settleReserveRebalance() {
+            throw new Error("not used");
+          },
+        },
+      });
+    }
+
+    expect(next.control.circuitBreakerState?.status).toBe("open");
+    expect(getAutonomousStatus().circuitBreakerState?.status).toBe("open");
   });
 });

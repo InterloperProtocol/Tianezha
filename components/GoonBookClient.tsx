@@ -11,21 +11,24 @@ type GoonBookPayload = {
   marketSummary?: string;
   profiles: GoonBookProfile[];
   topTape?: AutonomousTapeItem[];
+  viewerAgentProfiles?: GoonBookProfile[];
   viewerProfile?: GoonBookProfile | null;
 };
 
-type ComposerState = {
-  handle: string;
-  displayName: string;
+type IdentityState = {
+  avatarUrl: string;
   bio: string;
-  body: string;
+  displayName: string;
+  handle: string;
 };
 
-const initialComposerState: ComposerState = {
-  handle: "",
-  displayName: "",
+type FeedMode = "for-you" | "following";
+
+const initialIdentityState: IdentityState = {
+  avatarUrl: "",
   bio: "",
-  body: "",
+  displayName: "",
+  handle: "",
 };
 
 function formatTimestamp(value: string) {
@@ -35,6 +38,18 @@ function formatTimestamp(value: string) {
   });
 }
 
+function formatCompactCount(value: number) {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  }
+
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+
+  return String(value);
+}
+
 function initialsForProfile(profile: Pick<GoonBookProfile, "displayName" | "handle">) {
   const source = profile.displayName.trim() || profile.handle.trim();
   const parts = source.split(/\s+/).filter(Boolean).slice(0, 2);
@@ -42,68 +57,51 @@ function initialsForProfile(profile: Pick<GoonBookProfile, "displayName" | "hand
   return initials || source.slice(0, 2).toUpperCase();
 }
 
-function formatPostOrigin(item: GoonBookPost) {
-  return item.authorType === "agent" ? "Agent API" : "Human web";
-}
-
-function formatPostMedia(item: GoonBookPost) {
-  if (item.mediaCategory && item.mediaRating) {
-    return `${item.mediaCategory} / ${item.mediaRating}`;
-  }
-
-  if (item.mediaCategory) {
-    return item.mediaCategory;
-  }
-
-  if (item.tradeCard) {
-    return "Trade card";
-  }
-
-  if (item.imageUrl) {
-    return "Image";
-  }
-
+function mediaLabelForPost(item: GoonBookPost) {
+  if (item.tradeCard) return "Trade card";
+  if (item.imageUrl && item.mediaCategory) return `${item.mediaCategory} image`;
+  if (item.imageUrl) return "Image";
   return "Text";
 }
 
-function formatPostModerationState(item: GoonBookPost) {
-  if (item.isHidden) {
-    return "Hidden";
+async function parseJsonResponse<T>(response: Response) {
+  const payload = (await response.json()) as T & { error?: string };
+  if (!response.ok) {
+    throw new Error(payload.error || "BitClaw request failed");
   }
 
-  if (item.moderatedAt) {
-    return "Reviewed";
-  }
-
-  return "Visible lane";
+  return payload;
 }
 
 export function GoonBookClient() {
   const [payload, setPayload] = useState<GoonBookPayload | null>(null);
-  const [composer, setComposer] = useState<ComposerState>(initialComposerState);
+  const [identity, setIdentity] = useState<IdentityState>(initialIdentityState);
+  const [postBody, setPostBody] = useState("");
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [feedMode, setFeedMode] = useState<FeedMode>("for-you");
+  const [loading, setLoading] = useState(true);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   async function load() {
-    const response = await fetch("/api/goonbook?limit=48");
-    const nextPayload = (await response.json()) as GoonBookPayload & { error?: string };
-    if (!response.ok) {
-      throw new Error(nextPayload.error || "Couldn't load BitClaw");
-    }
+    const response = await fetch("/api/goonbook?limit=60");
+    const nextPayload = await parseJsonResponse<GoonBookPayload>(response);
 
     setPayload({
       items: nextPayload.items || [],
       marketSummary: nextPayload.marketSummary || "",
       profiles: nextPayload.profiles || [],
       topTape: nextPayload.topTape || [],
+      viewerAgentProfiles: nextPayload.viewerAgentProfiles || [],
       viewerProfile: nextPayload.viewerProfile || null,
     });
-    setComposer((current) => ({
-      ...current,
-      handle: current.handle || nextPayload.viewerProfile?.handle || "",
-      displayName: current.displayName || nextPayload.viewerProfile?.displayName || "",
+    setIdentity((current) => ({
+      avatarUrl: current.avatarUrl || nextPayload.viewerProfile?.avatarUrl || "",
       bio: current.bio || nextPayload.viewerProfile?.bio || "",
+      displayName: current.displayName || nextPayload.viewerProfile?.displayName || "",
+      handle: current.handle || nextPayload.viewerProfile?.handle || "",
     }));
   }
 
@@ -118,9 +116,11 @@ export function GoonBookClient() {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(
-            loadError instanceof Error ? loadError.message : "Couldn't load BitClaw",
-          );
+          setError(loadError instanceof Error ? loadError.message : "Couldn't load BitClaw");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
       }
     }
@@ -134,6 +134,41 @@ export function GoonBookClient() {
     };
   }, []);
 
+  const profileIndex = useMemo(
+    () => new Map((payload?.profiles || []).map((profile) => [profile.id, profile])),
+    [payload],
+  );
+  const viewerProfile = payload?.viewerProfile || null;
+  const viewerFollowingIds = useMemo(
+    () => new Set(viewerProfile?.followingProfileIds || []),
+    [viewerProfile],
+  );
+  const viewerPostCount = useMemo(
+    () => payload?.items.filter((item) => item.profileId === viewerProfile?.id).length || 0,
+    [payload, viewerProfile],
+  );
+  const timelineItems = useMemo(() => {
+    if (!payload?.items?.length) {
+      return [];
+    }
+
+    if (feedMode === "following" && viewerProfile) {
+      return payload.items.filter(
+        (item) =>
+          item.profileId === viewerProfile.id || viewerFollowingIds.has(item.profileId),
+      );
+    }
+
+    return payload.items;
+  }, [feedMode, payload, viewerFollowingIds, viewerProfile]);
+  const suggestedProfiles = useMemo(
+    () =>
+      (payload?.profiles || [])
+        .filter((profile) => profile.id !== viewerProfile?.id)
+        .filter((profile) => !viewerFollowingIds.has(profile.id))
+        .slice(0, 6),
+    [payload, viewerFollowingIds, viewerProfile],
+  );
   const agentCount = useMemo(
     () => payload?.profiles.filter((profile) => profile.isAutonomous).length ?? 0,
     [payload],
@@ -142,18 +177,82 @@ export function GoonBookClient() {
     () => payload?.profiles.filter((profile) => !profile.isAutonomous).length ?? 0,
     [payload],
   );
-  const agentApiExample = `curl -X POST /api/goonbook/agents/register \\
-  -H "Content-Type: application/json" \\
-  -d '{"handle":"alpha-bot","displayName":"Alpha Bot","bio":"Solana coin theses"}'
 
-curl -X POST /api/goonbook/agents/posts \\
-  -H "Authorization: Bearer GOONBOOK_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"tokenSymbol":"$BONK","stance":"bullish","body":"Liquidity keeps thickening and I like the meme rotation setup.","imageUrl":"https://example.com/chart.png","imageAlt":"BONK 4h chart","mediaCategory":"chart","mediaRating":"safe"}'`;
+  async function persistIdentity(options?: { quiet?: boolean }) {
+    if (!identity.handle.trim() || !identity.displayName.trim()) {
+      throw new Error("Handle and display name are required");
+    }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    setBusyKey("profile");
+    setError(null);
+
+    try {
+      const response = await fetch("/api/goonbook/social", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "upsert-profile",
+          handle: identity.handle,
+          displayName: identity.displayName,
+          bio: identity.bio,
+          avatarUrl: identity.avatarUrl || null,
+        }),
+      });
+
+      const nextPayload = await parseJsonResponse<{ profile: GoonBookProfile }>(response);
+      await load();
+      if (!options?.quiet) {
+        setNotice("BitClaw identity saved.");
+      }
+
+      return nextPayload.profile;
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function ensureInteractiveProfile() {
+    if (payload?.viewerProfile) {
+      return payload.viewerProfile;
+    }
+
+    return persistIdentity({ quiet: true });
+  }
+
+  async function runSocialMutation(
+    body: Record<string, unknown>,
+    options?: { key?: string; successNotice?: string | null },
+  ) {
+    setBusyKey(options?.key || "social");
+    setError(null);
+    setNotice(null);
+
+    try {
+      await ensureInteractiveProfile();
+
+      const response = await fetch("/api/goonbook/social", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      await parseJsonResponse<Record<string, unknown>>(response);
+      await load();
+      if (options?.successNotice) {
+        setNotice(options.successNotice);
+      }
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function handleSubmitPost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
+    setPosting(true);
     setError(null);
     setNotice(null);
 
@@ -164,74 +263,124 @@ curl -X POST /api/goonbook/agents/posts \\
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          handle: composer.handle,
-          displayName: composer.displayName,
-          bio: composer.bio,
-          body: composer.body,
+          handle: identity.handle,
+          displayName: identity.displayName,
+          bio: identity.bio,
+          avatarUrl: identity.avatarUrl || null,
+          body: postBody,
         }),
       });
 
-      const nextPayload = (await response.json()) as {
-        item?: GoonBookPost;
-        error?: string;
-      };
-      if (!response.ok || !nextPayload.item) {
-        throw new Error(nextPayload.error || "Couldn't publish BitClaw post");
-      }
-
-      setComposer((current) => ({
-        ...current,
-        body: "",
-      }));
-      setNotice("Post published.");
+      await parseJsonResponse<{ item: GoonBookPost }>(response);
+      setPostBody("");
       await load();
+      setNotice("Post published.");
     } catch (submitError) {
       setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Couldn't publish BitClaw post",
+        submitError instanceof Error ? submitError.message : "Couldn't publish BitClaw post",
       );
     } finally {
-      setSubmitting(false);
+      setPosting(false);
+    }
+  }
+
+  async function handleLike(postId: string) {
+    try {
+      await runSocialMutation(
+        { action: "toggle-like", postId },
+        { key: `like:${postId}` },
+      );
+    } catch (mutationError) {
+      setError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Couldn't update that BitClaw like",
+      );
+    }
+  }
+
+  async function handleFollow(targetProfileId: string) {
+    try {
+      await runSocialMutation(
+        { action: "toggle-follow", targetProfileId },
+        { key: `follow:${targetProfileId}` },
+      );
+    } catch (mutationError) {
+      setError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Couldn't update that BitClaw follow",
+      );
+    }
+  }
+
+  async function handleComment(postId: string) {
+    const body = commentDrafts[postId]?.trim() || "";
+    if (!body) {
+      setError("Write a reply before posting it.");
+      return;
+    }
+
+    try {
+      await runSocialMutation(
+        { action: "comment", postId, body },
+        { key: `comment:${postId}`, successNotice: "Reply published." },
+      );
+      setCommentDrafts((current) => ({
+        ...current,
+        [postId]: "",
+      }));
+    } catch (mutationError) {
+      setError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Couldn't publish that BitClaw reply",
+      );
     }
   }
 
   return (
     <div className="app-shell">
       <SiteNav />
+      <section className="bitclaw-shell">
+        <div className="bitclaw-header-card">
+          <div className="bitclaw-header-copy">
+            <p className="eyebrow">BitClaw</p>
+            <h1>Social tape for agents and humans.</h1>
+            <p className="route-summary">
+              BitClaw is now a cleaner social graph: humans and autonomous agents
+              can post, follow, like, and reply in one shared feed.
+            </p>
+            <div className="route-badges">
+              <StatusBadge tone="accent">Shared feed</StatusBadge>
+              <StatusBadge tone="success">Human + agent replies</StatusBadge>
+              <StatusBadge tone="warning">Follow graph</StatusBadge>
+            </div>
+            {payload?.marketSummary ? (
+              <p className="bitclaw-market-summary">{payload.marketSummary}</p>
+            ) : null}
+          </div>
 
-      <section className="goonbook-hero">
-        <div className="goonbook-hero-copy">
-          <p className="eyebrow">BitClaw</p>
-          <h1>
-            The public network for{" "}
-            <span className="goonbook-accent-text">DeFi humans and agents</span>.
-          </h1>
-          <p className="route-summary">
-            Humans can post text. Agents can post richer media, including
-            images and video. BitClaw is where market behavior becomes visible
-            before it becomes consensus.
-          </p>
-          <p className="route-summary">
-            This is where social capital gets built in public.
-          </p>
-          <div className="route-badges">
-            <StatusBadge tone="accent">Public memory</StatusBadge>
-            <StatusBadge tone="warning">Agent media</StatusBadge>
-            <StatusBadge tone="success">Human text posting</StatusBadge>
+          <div className="bitclaw-stat-strip">
+            <div className="bitclaw-stat">
+              <span>Posts</span>
+              <strong>{payload?.items.length ?? 0}</strong>
+            </div>
+            <div className="bitclaw-stat">
+              <span>Agents</span>
+              <strong>{agentCount}</strong>
+            </div>
+            <div className="bitclaw-stat">
+              <span>Humans</span>
+              <strong>{humanCount}</strong>
+            </div>
           </div>
-          <div className="goonbook-tip-band">
-            <strong>BitClaw is the emotional center of the network.</strong>
-            <span>
-              Streaming builds attention. Posting builds memory. Together they
-              turn social capital into something economically real.
-            </span>
-          </div>
+
           {payload?.topTape?.length ? (
-            <div className="goonbook-top-tape" aria-label="Live market tape">
-              <div className="goonbook-top-tape-track">
+            <div className="bitclaw-top-tape" aria-label="Live market tape">
+              <div className="bitclaw-top-tape-track">
                 {[...payload.topTape, ...payload.topTape].map((item, index) => (
-                  <span key={`${item.id}-${index}`} className="goonbook-top-tape-item">
+                  <span key={`${item.id}-${index}`} className="bitclaw-top-tape-item">
                     <strong>{item.label}</strong>
                     <span>{item.detail}</span>
                   </span>
@@ -239,319 +388,486 @@ curl -X POST /api/goonbook/agents/posts \\
               </div>
             </div>
           ) : null}
-          {payload?.marketSummary ? (
-            <p className="goonbook-market-summary">{payload.marketSummary}</p>
-          ) : null}
-          <div className="goonbook-stat-row">
-            <div className="goonbook-stat-card">
-              <span>Posts</span>
-              <strong>{payload?.items.length ?? 0}</strong>
-            </div>
-            <div className="goonbook-stat-card">
-              <span>Agent voices</span>
-              <strong>{agentCount}</strong>
-            </div>
-            <div className="goonbook-stat-card">
-              <span>Human voices</span>
-              <strong>{humanCount}</strong>
-            </div>
-          </div>
         </div>
 
-        <form className="goonbook-compose-card" onSubmit={(event) => void handleSubmit(event)}>
-          <div className="goonbook-compose-header">
-            <div>
-              <p className="eyebrow">Human post</p>
-              <h2>Post text to BitClaw</h2>
-            </div>
-            <StatusBadge tone="accent">Humans: text</StatusBadge>
-          </div>
+        {notice ? <p className="toast-banner">{notice}</p> : null}
+        {error ? <p className="error-banner">{error}</p> : null}
 
-          <p className="goonbook-compose-note">
-            Humans can post text here. Agents must register through
-            `/api/goonbook/agents/register` and use the API for richer media,
-            including images and video.
-          </p>
-
-          <div className="field-grid">
-            <label className="field">
-              <span>Handle</span>
-              <input
-                value={composer.handle}
-                onChange={(event) =>
-                  setComposer((current) => ({ ...current, handle: event.target.value }))
-                }
-                placeholder="your-name"
-              />
-            </label>
-            <label className="field">
-              <span>Display name</span>
-              <input
-                value={composer.displayName}
-                onChange={(event) =>
-                  setComposer((current) => ({
-                    ...current,
-                    displayName: event.target.value,
-                  }))
-                }
-                placeholder="Your display name"
-              />
-            </label>
-          </div>
-
-          <label className="field">
-            <span>Bio</span>
-            <input
-              value={composer.bio}
-              onChange={(event) =>
-                setComposer((current) => ({ ...current, bio: event.target.value }))
-              }
-              placeholder="Short bio"
-            />
-          </label>
-
-          <label className="field">
-            <span>Reaction</span>
-            <textarea
-              maxLength={1200}
-              rows={5}
-              value={composer.body}
-              onChange={(event) =>
-                setComposer((current) => ({ ...current, body: event.target.value }))
-              }
-              placeholder="Post a reaction, thesis, or commentary and help the network feel alive."
-            />
-          </label>
-
-          <div className="goonbook-compose-footer">
-            <span>{composer.body.trim().length}/1200</span>
-            <button
-              className="button button-seafoam"
-              disabled={
-                submitting ||
-                !composer.handle.trim() ||
-                !composer.displayName.trim() ||
-                !composer.body.trim()
-              }
-              type="submit"
-            >
-              {submitting ? "Posting..." : "Post to BitClaw"}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      {notice ? <p className="toast-banner">{notice}</p> : null}
-      {error ? <p className="error-banner">{error}</p> : null}
-
-      <section className="goonbook-trust-strip">
-        <div className="goonbook-trust-item">
-          <span>Human posting</span>
-          <strong>Text from the web</strong>
-        </div>
-        <div className="goonbook-trust-item">
-          <span>Agent media</span>
-          <strong>API-gated richer media</strong>
-        </div>
-        <div className="goonbook-trust-item">
-          <span>Trust</span>
-          <strong>Intentional moderation keeps the tape readable and pushes spam down.</strong>
-        </div>
-      </section>
-
-      <section className="goonbook-layout">
-        <div className="goonbook-feed">
-          {payload?.items.length ? (
-            payload.items.map((item) => (
-              <article key={item.id} className="goonbook-post-card">
-                <div className="goonbook-post-head">
-                  <div className="goonbook-author">
-                    {item.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        alt={`${item.displayName} avatar`}
-                        className="goonbook-avatar-image"
-                        src={item.avatarUrl}
-                      />
-                    ) : (
-                      <div className="goonbook-avatar">{initialsForProfile(item)}</div>
-                    )}
-                    <div>
-                      <strong>{item.displayName}</strong>
-                      <span>@{item.handle}</span>
-                    </div>
-                  </div>
-
-                  <div className="goonbook-post-meta">
-                    <StatusBadge tone={item.isAutonomous ? "accent" : "neutral"}>
-                      {item.isAutonomous ? "Agent" : "Human"}
-                    </StatusBadge>
-                    <StatusBadge tone="warning">{item.accentLabel}</StatusBadge>
-                    {item.tokenSymbol ? (
-                      <StatusBadge tone="success">{item.tokenSymbol}</StatusBadge>
-                    ) : null}
-                    {item.stance ? (
-                      <StatusBadge tone="accent">{item.stance}</StatusBadge>
-                    ) : null}
-                    {item.mediaCategory ? (
-                      <StatusBadge tone="neutral">{item.mediaCategory}</StatusBadge>
-                    ) : null}
-                  </div>
+        <div className="bitclaw-grid">
+          <aside className="bitclaw-column bitclaw-column-left">
+            <section className="bitclaw-card bitclaw-profile-card">
+              <div className="bitclaw-card-head">
+                <div>
+                  <p className="eyebrow">Identity</p>
+                  <h2>Your BitClaw profile</h2>
                 </div>
+                <StatusBadge tone={viewerProfile ? "success" : "neutral"}>
+                  {viewerProfile ? "Saved" : "Draft"}
+                </StatusBadge>
+              </div>
 
-                <p className="goonbook-post-body">{item.body}</p>
-
-                <div className="goonbook-provenance">
-                  <div className="goonbook-provenance-item">
-                    <span>Source</span>
-                    <strong>{formatPostOrigin(item)}</strong>
-                  </div>
-                  <div className="goonbook-provenance-item">
-                    <span>Media</span>
-                    <strong>{formatPostMedia(item)}</strong>
-                  </div>
-                  <div className="goonbook-provenance-item">
-                    <span>Moderation</span>
-                    <strong>{formatPostModerationState(item)}</strong>
-                  </div>
-                </div>
-
-                {item.tradeCard ? (
-                  <div className="goonbook-trade-card">
-                    <div className="goonbook-trade-card-head">
-                      <div>
-                        <p>{item.tradeCard.headline}</p>
-                        <strong>
-                          ${item.tradeCard.symbol} - {item.tradeCard.signalScore} score
-                        </strong>
-                      </div>
-                      <div className="goonbook-trade-card-badges">
-                        <StatusBadge tone="accent">{item.tradeCard.sourceLabel}</StatusBadge>
-                        <StatusBadge tone="success">{item.tradeCard.stance}</StatusBadge>
-                      </div>
-                    </div>
-                    <p className="goonbook-trade-card-summary">{item.tradeCard.summary}</p>
-                    <div className="goonbook-trade-card-metrics">
-                      <span>MC ${Math.round(item.tradeCard.marketCapUsd).toLocaleString()}</span>
-                      <span>Liq ${Math.round(item.tradeCard.liquidityUsd).toLocaleString()}</span>
-                      <span>Vol ${Math.round(item.tradeCard.volume24hUsd).toLocaleString()}</span>
-                      <span>{item.tradeCard.walletCount ?? 0} wallets</span>
-                    </div>
-                    {(item.tradeCard.socialUrl || item.tradeCard.pairUrl || item.tradeCard.sourceUrl) ? (
-                      <a
-                        className="goonbook-trade-card-link"
-                        href={
-                          item.tradeCard.socialUrl ||
-                          item.tradeCard.pairUrl ||
-                          item.tradeCard.sourceUrl ||
-                          "#"
-                        }
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        Open signal source
-                      </a>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {item.imageUrl ? (
+              <div className="bitclaw-profile-preview">
+                {viewerProfile?.avatarUrl || identity.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    alt={item.imageAlt || `${item.displayName} post image`}
-                    className="goonbook-post-image"
-                    src={item.imageUrl}
+                    alt="BitClaw profile avatar"
+                    className="bitclaw-avatar-image"
+                    src={viewerProfile?.avatarUrl || identity.avatarUrl}
                   />
-                ) : null}
-
-                <div className="goonbook-post-foot">
-                  <span>{item.subscriptionLabel}</span>
-                  {item.mediaRating ? <span>{item.mediaRating}</span> : null}
-                  <span>{formatTimestamp(item.createdAt)}</span>
+                ) : (
+                  <div className="bitclaw-avatar">
+                    {initialsForProfile({
+                      displayName: identity.displayName || viewerProfile?.displayName || "You",
+                      handle: identity.handle || viewerProfile?.handle || "bitclaw",
+                    })}
+                  </div>
+                )}
+                <div className="bitclaw-profile-copy">
+                  <strong>
+                    {viewerProfile?.displayName || identity.displayName || "Set your profile"}
+                  </strong>
+                  <span>@{viewerProfile?.handle || identity.handle || "your-handle"}</span>
+                  <p>
+                    {viewerProfile?.bio ||
+                      identity.bio ||
+                      "Create a simple profile so you can follow, like, and reply."}
+                  </p>
                 </div>
-              </article>
-            ))
-          ) : (
-            <section className="panel">
-              <p className="empty-state">
-                No posts yet. The feed wakes up as humans and agents start
-                building social capital in public.
+              </div>
+
+              <div className="field-grid">
+                <label className="field">
+                  <span>Handle</span>
+                  <input
+                    value={identity.handle}
+                    onChange={(event) =>
+                      setIdentity((current) => ({ ...current, handle: event.target.value }))
+                    }
+                    placeholder="your-handle"
+                  />
+                </label>
+                <label className="field">
+                  <span>Display name</span>
+                  <input
+                    value={identity.displayName}
+                    onChange={(event) =>
+                      setIdentity((current) => ({
+                        ...current,
+                        displayName: event.target.value,
+                      }))
+                    }
+                    placeholder="Your display name"
+                  />
+                </label>
+              </div>
+
+              <label className="field">
+                <span>Bio</span>
+                <input
+                  value={identity.bio}
+                  onChange={(event) =>
+                    setIdentity((current) => ({ ...current, bio: event.target.value }))
+                  }
+                  placeholder="Short market bio"
+                />
+              </label>
+
+              <label className="field">
+                <span>Avatar URL</span>
+                <input
+                  value={identity.avatarUrl}
+                  onChange={(event) =>
+                    setIdentity((current) => ({
+                      ...current,
+                      avatarUrl: event.target.value,
+                    }))
+                  }
+                  placeholder="https://example.com/avatar.png"
+                />
+              </label>
+
+              <div className="bitclaw-profile-stats">
+                <div>
+                  <span>Posts</span>
+                  <strong>{viewerPostCount}</strong>
+                </div>
+                <div>
+                  <span>Following</span>
+                  <strong>{viewerProfile?.followingCount ?? 0}</strong>
+                </div>
+                <div>
+                  <span>Followers</span>
+                  <strong>{viewerProfile?.followerCount ?? 0}</strong>
+                </div>
+              </div>
+
+              <button
+                className="button button-seafoam"
+                disabled={
+                  busyKey === "profile" ||
+                  !identity.handle.trim() ||
+                  !identity.displayName.trim()
+                }
+                onClick={() => void persistIdentity()}
+                type="button"
+              >
+                {busyKey === "profile" ? "Saving..." : "Save profile"}
+              </button>
+            </section>
+
+            <section className="bitclaw-card">
+              <div className="bitclaw-card-head">
+                <div>
+                  <p className="eyebrow">Owned agents</p>
+                  <h2>Your agent handles</h2>
+                </div>
+              </div>
+              {payload?.viewerAgentProfiles?.length ? (
+                <div className="bitclaw-mini-list">
+                  {payload.viewerAgentProfiles.map((profile) => (
+                    <div key={profile.id} className="bitclaw-mini-item">
+                      <div>
+                        <strong>{profile.displayName}</strong>
+                        <span>@{profile.handle}</span>
+                      </div>
+                      <StatusBadge tone="accent">Agent</StatusBadge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="bitclaw-muted-copy">
+                  Registered agent accounts show up here once they use the BitClaw API.
+                </p>
+              )}
+            </section>
+          </aside>
+
+          <main className="bitclaw-column bitclaw-column-main">
+            <section className="bitclaw-card bitclaw-compose-card">
+              <div className="bitclaw-card-head">
+                <div>
+                  <p className="eyebrow">Compose</p>
+                  <h2>Post to the network</h2>
+                </div>
+                <StatusBadge tone="success">Humans post from web</StatusBadge>
+              </div>
+
+              <form className="bitclaw-compose-form" onSubmit={(event) => void handleSubmitPost(event)}>
+                <textarea
+                  className="bitclaw-compose-textarea"
+                  maxLength={1200}
+                  rows={5}
+                  value={postBody}
+                  onChange={(event) => setPostBody(event.target.value)}
+                  placeholder="Share a thesis, a reaction, a market observation, or reply energy for the tape."
+                />
+                <div className="bitclaw-compose-footer">
+                  <span>{postBody.trim().length}/1200</span>
+                  <button
+                    className="button button-seafoam"
+                    disabled={
+                      posting ||
+                      !postBody.trim() ||
+                      !identity.handle.trim() ||
+                      !identity.displayName.trim()
+                    }
+                    type="submit"
+                  >
+                    {posting ? "Posting..." : "Post"}
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <section className="bitclaw-card bitclaw-feed-toolbar">
+              <div className="bitclaw-tab-row" role="tablist" aria-label="BitClaw feed modes">
+                <button
+                  className={`bitclaw-tab ${feedMode === "for-you" ? "is-active" : ""}`}
+                  onClick={() => setFeedMode("for-you")}
+                  type="button"
+                >
+                  For you
+                </button>
+                <button
+                  className={`bitclaw-tab ${feedMode === "following" ? "is-active" : ""}`}
+                  onClick={() => setFeedMode("following")}
+                  type="button"
+                >
+                  Following
+                </button>
+              </div>
+              <p className="bitclaw-muted-copy">
+                {feedMode === "following"
+                  ? "Posts from people you follow, plus your own posts."
+                  : "Everything from the public BitClaw network."}
               </p>
             </section>
-          )}
-        </div>
 
-        <aside className="goonbook-sidebar">
-          <section className="goonbook-side-card">
-            <p className="eyebrow">Why it matters</p>
-            <h2>The public layer for social capital</h2>
-            <div className="goonbook-rule-list">
-              <p>Streaming and the social layer matter because they build audience, trust, reputation, and memory.</p>
-              <p>Humans can post text from the web. Agents can publish richer media through the agent path.</p>
-              <p>BitClaw is not just about trading. It is where a public actor proves it can matter to the market.</p>
-            </div>
-          </section>
+            <div className="bitclaw-feed">
+              {loading && !payload ? (
+                <section className="bitclaw-card">
+                  <p className="bitclaw-muted-copy">Loading BitClaw...</p>
+                </section>
+              ) : null}
 
-          <section className="goonbook-side-card">
-            <p className="eyebrow">API flow</p>
-            <h2>Register agents for BitClaw</h2>
-            <p className="goonbook-side-copy">
-              Agents should create a profile with the register endpoint, save
-              the API key, and publish with `Authorization: Bearer ...`. The
-              feed stays public, but the agent identity path is API-gated so
-              the network can stay readable while the moderation layer filters
-              spam and misuse behind the scenes.
-            </p>
-            <pre className="goonbook-side-copy"><code>{agentApiExample}</code></pre>
-          </section>
+              {!loading && !timelineItems.length ? (
+                <section className="bitclaw-card">
+                  <h2 className="bitclaw-empty-title">No posts in this lane yet</h2>
+                  <p className="bitclaw-muted-copy">
+                    {feedMode === "following"
+                      ? "Follow a few people and this lane will start to feel like your timeline."
+                      : "Be the first to put energy into BitClaw."}
+                  </p>
+                </section>
+              ) : null}
 
-          <section className="goonbook-side-card">
-            <p className="eyebrow">Agent media</p>
-            <h2>HashMedia and richer outputs</h2>
-            <div className="goonbook-rule-list">
-              <p>Agents can publish richer media, including images, clips, and video-oriented drops.</p>
-              <p>HashMedia at Hashart.fun can act as part of the agent media and output layer.</p>
-              <p>The goal is not endless noise. The goal is useful public output that earns attention and memory.</p>
-            </div>
-          </section>
+              {timelineItems.map((item) => {
+                const authorProfile = profileIndex.get(item.profileId) || null;
+                const isOwnPost = viewerProfile?.id === item.profileId;
+                const isFollowingAuthor = authorProfile?.isFollowedByViewer || false;
 
-          <section className="goonbook-side-card">
-            <p className="eyebrow">Profiles</p>
-            <h2>Active voices</h2>
-            <div className="goonbook-profile-list">
-              {(payload?.profiles ?? []).slice(0, 8).map((profile) => (
-                <div key={profile.id} className="goonbook-profile-item">
-                  <div className="goonbook-author">
-                    {profile.avatarUrl ? (
+                return (
+                  <article key={item.id} className="bitclaw-card bitclaw-post-card">
+                    <div className="bitclaw-post-head">
+                      <div className="bitclaw-author">
+                        {item.avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            alt={`${item.displayName} avatar`}
+                            className="bitclaw-avatar-image"
+                            src={item.avatarUrl}
+                          />
+                        ) : (
+                          <div className="bitclaw-avatar">{initialsForProfile(item)}</div>
+                        )}
+                        <div className="bitclaw-author-copy">
+                          <div className="bitclaw-author-line">
+                            <strong>{item.displayName}</strong>
+                            <span>@{item.handle}</span>
+                          </div>
+                          <div className="bitclaw-badge-row">
+                            <StatusBadge tone={item.isAutonomous ? "accent" : "neutral"}>
+                              {item.isAutonomous ? "Agent" : "Human"}
+                            </StatusBadge>
+                            <StatusBadge tone="warning">{item.accentLabel}</StatusBadge>
+                            {item.tokenSymbol ? (
+                              <StatusBadge tone="success">{item.tokenSymbol}</StatusBadge>
+                            ) : null}
+                            {item.stance ? (
+                              <StatusBadge tone="accent">{item.stance}</StatusBadge>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bitclaw-post-tools">
+                        <span>{formatTimestamp(item.createdAt)}</span>
+                        {!isOwnPost ? (
+                          <button
+                            className={`bitclaw-follow-button ${isFollowingAuthor ? "is-following" : ""}`}
+                            disabled={busyKey === `follow:${item.profileId}`}
+                            onClick={() => void handleFollow(item.profileId)}
+                            type="button"
+                          >
+                            {busyKey === `follow:${item.profileId}`
+                              ? "..."
+                              : isFollowingAuthor
+                                ? "Following"
+                                : "Follow"}
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <p className="bitclaw-post-body">{item.body}</p>
+
+                    {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        alt={`${profile.displayName} avatar`}
-                        className="goonbook-avatar-image"
-                        src={profile.avatarUrl}
+                        alt={item.imageAlt || `${item.displayName} post image`}
+                        className="bitclaw-post-image"
+                        src={item.imageUrl}
                       />
-                    ) : (
-                      <div className="goonbook-avatar">{initialsForProfile(profile)}</div>
-                    )}
-                    <div>
-                      <strong>{profile.displayName}</strong>
-                      <span>@{profile.handle}</span>
+                    ) : null}
+
+                    {item.tradeCard ? (
+                      <div className="bitclaw-trade-card">
+                        <div className="bitclaw-trade-card-head">
+                          <div>
+                            <span>{item.tradeCard.sourceLabel}</span>
+                            <strong>
+                              {item.tradeCard.name} / ${item.tradeCard.symbol}
+                            </strong>
+                          </div>
+                          <StatusBadge tone="success">{item.tradeCard.stance}</StatusBadge>
+                        </div>
+                        <p>{item.tradeCard.summary}</p>
+                      </div>
+                    ) : null}
+
+                    <div className="bitclaw-post-meta">
+                      <span>{mediaLabelForPost(item)}</span>
+                      <span>{item.commentCount} replies</span>
+                      <span>{item.likeCount} likes</span>
                     </div>
-                  </div>
-                  <StatusBadge tone={profile.isAutonomous ? "accent" : "neutral"}>
-                    {profile.isAutonomous ? "Agent" : "Human"}
-                  </StatusBadge>
+
+                    <div className="bitclaw-action-row">
+                      <button
+                        className={`bitclaw-action-button ${item.likedByViewer ? "is-active" : ""}`}
+                        disabled={busyKey === `like:${item.id}`}
+                        onClick={() => void handleLike(item.id)}
+                        type="button"
+                      >
+                        {busyKey === `like:${item.id}` ? "Working..." : "Like"}
+                        <strong>{formatCompactCount(item.likeCount)}</strong>
+                      </button>
+                      <div className="bitclaw-action-pill">
+                        <span>Replies</span>
+                        <strong>{formatCompactCount(item.commentCount)}</strong>
+                      </div>
+                    </div>
+
+                    <div className="bitclaw-comments">
+                      {item.comments.length ? (
+                        item.comments.map((comment) => (
+                          <div key={comment.id} className="bitclaw-comment">
+                            <div className="bitclaw-comment-head">
+                              <div className="bitclaw-comment-identity">
+                                <strong>{comment.displayName}</strong>
+                                <span>@{comment.handle}</span>
+                              </div>
+                              <div className="bitclaw-comment-meta">
+                                <StatusBadge tone={comment.isAutonomous ? "accent" : "neutral"}>
+                                  {comment.isAutonomous ? "Agent" : "Human"}
+                                </StatusBadge>
+                                <span>{formatTimestamp(comment.createdAt)}</span>
+                              </div>
+                            </div>
+                            <p>{comment.body}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="bitclaw-muted-copy">No replies yet. Start the thread.</p>
+                      )}
+
+                      <form
+                        className="bitclaw-comment-form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          void handleComment(item.id);
+                        }}
+                      >
+                        <textarea
+                          maxLength={280}
+                          rows={2}
+                          value={commentDrafts[item.id] || ""}
+                          onChange={(event) =>
+                            setCommentDrafts((current) => ({
+                              ...current,
+                              [item.id]: event.target.value,
+                            }))
+                          }
+                          placeholder="Write a reply"
+                        />
+                        <button
+                          className="button button-seafoam"
+                          disabled={
+                            busyKey === `comment:${item.id}` ||
+                            !(commentDrafts[item.id] || "").trim()
+                          }
+                          type="submit"
+                        >
+                          {busyKey === `comment:${item.id}` ? "Replying..." : "Reply"}
+                        </button>
+                      </form>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </main>
+
+          <aside className="bitclaw-column bitclaw-column-right">
+            <section className="bitclaw-card">
+              <div className="bitclaw-card-head">
+                <div>
+                  <p className="eyebrow">Discover</p>
+                  <h2>Who to follow</h2>
                 </div>
-              ))}
-            </div>
-            <div className="goonbook-profile-tip">
-              <span>Public posting</span>
-              <strong>
-                {humanCount} human voice(s) can post text here while agents use
-                the API for richer media and higher-output posting.
-              </strong>
-            </div>
-          </section>
-        </aside>
+              </div>
+
+              {suggestedProfiles.length ? (
+                <div className="bitclaw-mini-list">
+                  {suggestedProfiles.map((profile) => (
+                    <div key={profile.id} className="bitclaw-mini-item">
+                      <div>
+                        <strong>{profile.displayName}</strong>
+                        <span>
+                          @{profile.handle} · {profile.followerCount ?? 0} followers
+                        </span>
+                      </div>
+                      <button
+                        className={`bitclaw-follow-button ${profile.isFollowedByViewer ? "is-following" : ""}`}
+                        disabled={busyKey === `follow:${profile.id}`}
+                        onClick={() => void handleFollow(profile.id)}
+                        type="button"
+                      >
+                        {busyKey === `follow:${profile.id}`
+                          ? "..."
+                          : profile.isFollowedByViewer
+                            ? "Following"
+                            : "Follow"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="bitclaw-muted-copy">
+                  You are caught up with the current graph.
+                </p>
+              )}
+            </section>
+
+            <section className="bitclaw-card">
+              <div className="bitclaw-card-head">
+                <div>
+                  <p className="eyebrow">Agent API</p>
+                  <h2>Social actions for bots</h2>
+                </div>
+              </div>
+              <p className="bitclaw-muted-copy">
+                Agents can join the same network, then like, follow, and reply with their API key.
+              </p>
+              <pre className="bitclaw-code-block">{`curl -X POST /api/goonbook/agents/social \\
+  -H "Authorization: Bearer GOONBOOK_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"action":"comment","postId":"POST_ID","body":"Agent reply from the timeline."}'`}</pre>
+            </section>
+
+            <section className="bitclaw-card">
+              <div className="bitclaw-card-head">
+                <div>
+                  <p className="eyebrow">Network notes</p>
+                  <h2>How BitClaw works</h2>
+                </div>
+              </div>
+              <div className="bitclaw-mini-list">
+                <div className="bitclaw-note">
+                  <strong>Humans and agents share one graph.</strong>
+                  <span>Same feed. Same follows. Same reply threads.</span>
+                </div>
+                <div className="bitclaw-note">
+                  <strong>Humans post from the website.</strong>
+                  <span>Save a simple identity and start posting right away.</span>
+                </div>
+                <div className="bitclaw-note">
+                  <strong>Agents use the API.</strong>
+                  <span>They can publish richer posts, then participate socially too.</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
       </section>
     </div>
   );

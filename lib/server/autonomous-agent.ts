@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
 
+import { CONSTITUTION } from "@/lib/constitution";
 import { getServerEnv } from "@/lib/env";
 import { getAgentModelStatus } from "@/lib/server/agent-model";
 import {
@@ -57,6 +58,10 @@ import {
   MarketTradeCard,
 } from "@/lib/types";
 import { nowIso } from "@/lib/utils";
+import {
+  createClosedCircuitBreakerState,
+  evaluateCircuitBreaker,
+} from "@/workers/security-guards";
 
 const GOONCLAW_AGENT_ID = "goonclaw-autonomous-agent";
 const GOONCLAW_PURPOSE =
@@ -78,8 +83,149 @@ type ControlOptions = {
   executor?: AutonomousSettlementExecutor;
 };
 
+const DISCRETIONARY_SETTLEMENT_KINDS = new Set<AutonomousSettlementKind>([
+  "owner_payout",
+  "buyback_burn",
+  "treasury_trade",
+  "session_trade",
+]);
+
 function roundUsdc(value: number) {
   return Number(value.toFixed(6));
+}
+
+function getCircuitBreakerState(snapshot: AutonomousSnapshot) {
+  return snapshot.control.circuitBreakerState || createClosedCircuitBreakerState();
+}
+
+function setCircuitBreakerState(
+  snapshot: AutonomousSnapshot,
+  circuitBreakerState: ReturnType<typeof getCircuitBreakerState>,
+) {
+  return {
+    ...snapshot,
+    control: {
+      ...snapshot.control,
+      circuitBreakerState,
+    },
+  };
+}
+
+function isDiscretionarySettlementKind(kind: AutonomousSettlementKind) {
+  return DISCRETIONARY_SETTLEMENT_KINDS.has(kind);
+}
+
+function canExecuteSettlementUnderCircuitBreaker(args: {
+  circuitBreakerState: ReturnType<typeof getCircuitBreakerState>;
+  kind: AutonomousSettlementKind;
+  halfOpenDiscretionaryActions: number;
+}) {
+  if (!isDiscretionarySettlementKind(args.kind)) {
+    return true;
+  }
+
+  if (args.circuitBreakerState.status === "open") {
+    return false;
+  }
+
+  if (args.circuitBreakerState.status === "half_open") {
+    return (
+      args.halfOpenDiscretionaryActions <
+      CONSTITUTION.securityPolicy.circuitBreaker.halfOpenMaxActions
+    );
+  }
+
+  return true;
+}
+
+function emitCircuitBreakerTransition(args: {
+  previous: ReturnType<typeof getCircuitBreakerState>;
+  next: ReturnType<typeof getCircuitBreakerState>;
+  reason: string;
+}) {
+  if (
+    args.previous.status === args.next.status &&
+    args.previous.reason === args.next.reason
+  ) {
+    return;
+  }
+
+  const title =
+    args.next.status === "open"
+      ? "Circuit breaker opened"
+      : args.next.status === "half_open"
+        ? "Circuit breaker probing"
+        : "Circuit breaker reset";
+  const detail =
+    args.next.status === "open"
+      ? args.reason
+      : args.next.status === "half_open"
+        ? "Open-state cooldown elapsed; one discretionary settlement may probe the runtime."
+        : "Discretionary settlement health recovered and the breaker closed.";
+
+  emitAutonomousFeedEvent(
+    createEvent("policy", title, detail, [
+      `previous=${args.previous.status}`,
+      `next=${args.next.status}`,
+      `reason=${args.next.reason || "n/a"}`,
+      `consecutiveFailures=${args.next.consecutiveFailures}`,
+    ]),
+  );
+}
+
+function applyCircuitBreakerState(args: {
+  snapshot: AutonomousSnapshot;
+  circuitBreakerState: ReturnType<typeof getCircuitBreakerState>;
+  reason: string;
+}) {
+  const previousState = getCircuitBreakerState(args.snapshot);
+  emitCircuitBreakerTransition({
+    previous: previousState,
+    next: args.circuitBreakerState,
+    reason: args.reason,
+  });
+  return setCircuitBreakerState(args.snapshot, args.circuitBreakerState);
+}
+
+function recordCircuitBreakerSuccess(snapshot: AutonomousSnapshot) {
+  const currentState = getCircuitBreakerState(snapshot);
+  return applyCircuitBreakerState({
+    snapshot,
+    circuitBreakerState: evaluateCircuitBreaker({
+      state: currentState,
+      consecutiveFailures: 0,
+    }),
+    reason: "A discretionary settlement succeeded.",
+  });
+}
+
+function recordCircuitBreakerFailure(
+  snapshot: AutonomousSnapshot,
+  reason: string,
+) {
+  const nowMs = Date.now();
+  const currentState = getCircuitBreakerState(snapshot);
+  const consecutiveFailures = currentState.consecutiveFailures + 1;
+  const nextState =
+    currentState.status === "half_open"
+      ? {
+          status: "open" as const,
+          openedAtMs: nowMs,
+          reason: "consecutive-failures",
+          consecutiveFailures,
+          lastUpdatedAtMs: nowMs,
+        }
+      : evaluateCircuitBreaker({
+          state: currentState,
+          nowMs,
+          consecutiveFailures,
+        });
+
+  return applyCircuitBreakerState({
+    snapshot,
+    circuitBreakerState: nextState,
+    reason,
+  });
 }
 
 function trimTail<T>(items: T[], limit: number) {
@@ -305,16 +451,22 @@ function incrementDirectiveBucket(
 }
 
 function getRevenuePolicies(): AutonomousRevenuePolicy[] {
+  const creatorFees = CONSTITUTION.treasuryPolicy.creatorFees;
+  const creatorAgentSharePct = Math.round(creatorFees.agentShareBps / 100);
+  const creatorBurnPct = Math.round(creatorFees.buybackBurnBps / 100);
+  const creatorTradingPct = Math.round(creatorFees.tradingWalletBps / 100);
+  const creatorExternalPct = Math.max(0, 100 - creatorAgentSharePct);
+
   return [
     {
       revenueClass: "creator_fee",
-      ownerPct: 49,
-      burnPct: 41,
+      ownerPct: creatorExternalPct,
+      burnPct: creatorBurnPct,
       reservePct: 0,
-      tradingPct: 10,
+      tradingPct: creatorTradingPct,
       sessionTradePct: 0,
       notes:
-        "Creator fees split 49% owner wallet and 51% GoonClaw control: 41% buyback-and-burn plus 10% agent trading.",
+        `Creator fees route ${creatorAgentSharePct}% into GoonClaw control: ${creatorBurnPct}% buyback-and-burn plus ${creatorTradingPct}% agent trading. The remaining ${creatorExternalPct}% currently stays in the external payout bucket.`,
     },
     {
       revenueClass: "goonclaw_chartsync",
@@ -1253,10 +1405,31 @@ async function processSettlementQueue(args: {
     .filter((settlement) => settlement.status === "queued")
     .filter((settlement) =>
       args.onlyKinds ? args.onlyKinds.includes(settlement.kind) : true,
-    )
-    .slice(0, args.maxJobs);
+    );
+  let processedJobs = 0;
+  let halfOpenDiscretionaryActions = 0;
 
   for (const settlement of queuedSettlements) {
+    if (processedJobs >= args.maxJobs) {
+      break;
+    }
+
+    const circuitBreakerState = getCircuitBreakerState(nextSnapshot);
+    if (
+      !canExecuteSettlementUnderCircuitBreaker({
+        circuitBreakerState,
+        kind: settlement.kind,
+        halfOpenDiscretionaryActions,
+      })
+    ) {
+      continue;
+    }
+
+    const discretionarySettlement = isDiscretionarySettlementKind(settlement.kind);
+    if (discretionarySettlement && circuitBreakerState.status === "half_open") {
+      halfOpenDiscretionaryActions += 1;
+    }
+
     nextSnapshot = {
       ...nextSnapshot,
       settlements: replaceSettlements(nextSnapshot.settlements, settlement.id, (current) => ({
@@ -1274,6 +1447,9 @@ async function processSettlementQueue(args: {
         nextSnapshot.settlements.find((item) => item.id === settlement.id)!,
         args.executor,
       );
+      if (discretionarySettlement) {
+        nextSnapshot = recordCircuitBreakerSuccess(nextSnapshot);
+      }
       emitAutonomousFeedEvent(
         createEvent(
           settlementEventKind(settlement.kind),
@@ -1296,6 +1472,9 @@ async function processSettlementQueue(args: {
           updatedAt: nowIso(),
         })),
       };
+      if (discretionarySettlement) {
+        nextSnapshot = recordCircuitBreakerFailure(nextSnapshot, message);
+      }
       emitAutonomousFeedEvent(
         createEvent(
           "decision",
@@ -1312,6 +1491,7 @@ async function processSettlementQueue(args: {
       tradeDirectives: trimTail(nextSnapshot.tradeDirectives, MAX_TRADE_DIRECTIVES),
     };
     setAutonomousSnapshot(nextSnapshot);
+    processedJobs += 1;
   }
 
   return nextSnapshot;
@@ -1713,6 +1893,7 @@ export async function tickAutonomousHeartbeat(
   const executor = options?.executor || createDefaultAutonomousSettlementExecutor();
   const snapshot = getAutonomousSnapshot();
   const timestamp = nowIso();
+  const nowMs = Date.now();
 
   if (snapshot.control.paused) {
     emitAutonomousFeedEvent(
@@ -1731,14 +1912,23 @@ export async function tickAutonomousHeartbeat(
   const initialDecision = reserveHealthy
     ? "Reserve floor healthy; continue autonomous settlement and replication work."
     : "Reserve floor breach detected; discretionary trading remains blocked until reserve recovers.";
+  const refreshedCircuitBreakerState = evaluateCircuitBreaker({
+    state: getCircuitBreakerState(snapshot),
+    nowMs,
+    consecutiveFailures: getCircuitBreakerState(snapshot).consecutiveFailures,
+  });
 
-  let nextSnapshot: AutonomousSnapshot = {
+  let nextSnapshot: AutonomousSnapshot = applyCircuitBreakerState({
+    snapshot: {
     ...snapshot,
     heartbeatAt: timestamp,
     latestPolicyDecision: initialDecision,
     runtimePhase: reserveHealthy ? ("awake" as const) : ("degraded" as const),
     wakeReason: reason,
-  };
+    },
+    circuitBreakerState: refreshedCircuitBreakerState,
+    reason: initialDecision,
+  });
 
   setAutonomousSnapshot(nextSnapshot);
   emitAutonomousFeedEvent(
@@ -1794,16 +1984,21 @@ export function getAutonomousStatus() {
   const reserveFloorSol = Number(env.GOONCLAW_AGENT_RESERVE_FLOOR_SOL);
   const transferGuardrails = getAutonomousTransferGuardrails();
   const tradeGuardrails = getAutonomousTradeGuardrails();
+  const circuitBreakerState = getCircuitBreakerState(snapshot);
 
   return {
     agentId: GOONCLAW_AGENT_ID,
     constitutionHash,
     constitutionPath,
-    control: snapshot.control,
+    control: {
+      ...snapshot.control,
+      circuitBreakerState,
+    },
+    circuitBreakerState,
     feedSize: listAutonomousFeedEvents().length,
     goals: [
       "Maximize sustainable profit inside the human-agent business partnership.",
-      "Protect the 0.069420 SOL reserve floor before discretionary actions.",
+      `Protect the ${env.GOONCLAW_AGENT_RESERVE_FLOOR_SOL} SOL reserve floor before discretionary actions.`,
       "Route enforced buyback-and-burn settlements into the GoonClaw token.",
       "Keep heartbeat, decisions, and tool traces public while private controls stay owner-only.",
       "Trade only Pump meme coins through the configured GMGN Solana route and cap any single meme coin position at 10% of the tracked portfolio value.",

@@ -2519,3 +2519,477 @@ pre.goonbook-side-copy {
     flex-direction: column;
   }
 }
+
+.bitclaw-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.bitclaw-header-card,
+.bitclaw-card {
+  border-radius: 0.32rem;
+  border: 1px solid rgba(155, 200, 192, 0.18);
+  background:
+    linear-gradient(180deg, rgba(155, 200, 192, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(16, 16, 18, 0.9);
+  box-shadow: var(--shadow);
+}
+
+.bitclaw-header-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+  background:
+    radial-gradient(circle at top left, rgba(155, 200, 192, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(242, 161, 74, 0.1), transparent 24%),
+    linear-gradient(180deg, #171413 0%, #0f0d0c 100%);
+}
+
+.bitclaw-header-copy {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.bitclaw-header-copy h1 {
+  margin: 0;
+  max-width: 12ch;
+  font-size: clamp(2.5rem, 4.3vw, 4.8rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+}
+
+.bitclaw-market-summary,
+.bitclaw-muted-copy,
+.bitclaw-note span,
+.bitclaw-profile-copy p,
+.bitclaw-comment p,
+.bitclaw-trade-card p {
+  margin: 0;
+  color: var(--text-subtle);
+  line-height: 1.6;
+}
+
+.bitclaw-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.bitclaw-stat {
+  padding: 0.95rem;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bitclaw-stat span,
+.bitclaw-post-tools span,
+.bitclaw-post-meta span,
+.bitclaw-profile-copy span,
+.bitclaw-mini-item span,
+.bitclaw-comment-meta span,
+.bitclaw-action-pill span,
+.bitclaw-compose-footer span,
+.bitclaw-trade-card span {
+  color: var(--text-dim);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bitclaw-stat strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--seafoam-soft);
+  font-size: 1.2rem;
+}
+
+.bitclaw-top-tape {
+  overflow: hidden;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.18);
+  background:
+    linear-gradient(90deg, rgba(155, 200, 192, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.bitclaw-top-tape-track {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: max-content;
+  min-width: 100%;
+  padding: 0.75rem 1rem;
+  animation: goonbook-tape-scroll 26s linear infinite;
+}
+
+.bitclaw-top-tape-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  color: var(--text-dim);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bitclaw-top-tape-item strong {
+  color: var(--seafoam-soft);
+}
+
+.bitclaw-grid {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.78fr) minmax(0, 1.45fr) minmax(16rem, 0.82fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.bitclaw-column {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.bitclaw-column-left,
+.bitclaw-column-right {
+  position: sticky;
+  top: 1rem;
+}
+
+.bitclaw-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.bitclaw-card-head,
+.bitclaw-post-head,
+.bitclaw-comment-head,
+.bitclaw-trade-card-head,
+.bitclaw-mini-item,
+.bitclaw-profile-preview,
+.bitclaw-action-row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.bitclaw-card-head h2 {
+  margin: 0.2rem 0 0;
+  font-size: 1.08rem;
+}
+
+.bitclaw-profile-preview,
+.bitclaw-author {
+  justify-content: start;
+}
+
+.bitclaw-profile-copy,
+.bitclaw-author-copy,
+.bitclaw-comment-identity {
+  min-width: 0;
+}
+
+.bitclaw-profile-copy strong,
+.bitclaw-author-line strong,
+.bitclaw-mini-item strong,
+.bitclaw-note strong,
+.bitclaw-comment-identity strong {
+  display: block;
+  color: var(--text);
+}
+
+.bitclaw-author-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bitclaw-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+}
+
+.bitclaw-avatar,
+.bitclaw-avatar-image {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.bitclaw-avatar {
+  display: grid;
+  place-items: center;
+  background: rgba(155, 200, 192, 0.12);
+  border: 1px solid var(--seafoam-line);
+  color: var(--seafoam-soft);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bitclaw-avatar-image {
+  object-fit: cover;
+  border: 1px solid var(--seafoam-line);
+}
+
+.bitclaw-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.bitclaw-profile-stats div {
+  padding: 0.75rem;
+  border-radius: 0.22rem;
+  border: 1px solid rgba(155, 200, 192, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bitclaw-profile-stats strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  color: var(--seafoam-soft);
+}
+
+.bitclaw-compose-form,
+.bitclaw-comments,
+.bitclaw-comment,
+.bitclaw-mini-list,
+.bitclaw-feed {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.bitclaw-compose-textarea,
+.bitclaw-comment-form textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.bitclaw-compose-footer,
+.bitclaw-comment-form {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bitclaw-feed-toolbar {
+  gap: 0.65rem;
+}
+
+.bitclaw-tab-row {
+  display: inline-flex;
+  gap: 0.45rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(155, 200, 192, 0.18);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bitclaw-tab,
+.bitclaw-follow-button,
+.bitclaw-action-button {
+  border: 1px solid rgba(155, 200, 192, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.bitclaw-tab {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  font: inherit;
+}
+
+.bitclaw-tab.is-active,
+.bitclaw-follow-button.is-following,
+.bitclaw-action-button.is-active {
+  border-color: rgba(155, 200, 192, 0.4);
+  background: rgba(155, 200, 192, 0.12);
+}
+
+.bitclaw-follow-button {
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  font: inherit;
+}
+
+.bitclaw-post-card {
+  gap: 1rem;
+}
+
+.bitclaw-post-tools,
+.bitclaw-post-meta,
+.bitclaw-comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: end;
+}
+
+.bitclaw-post-body {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.bitclaw-post-image {
+  width: 100%;
+  border-radius: 0.28rem;
+  border: 1px solid var(--seafoam-line);
+  background: rgba(0, 0, 0, 0.25);
+  object-fit: cover;
+  max-height: 34rem;
+}
+
+.bitclaw-trade-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.2);
+  background:
+    linear-gradient(180deg, rgba(155, 200, 192, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(0, 0, 0, 0.12);
+}
+
+.bitclaw-trade-card strong {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--seafoam-soft);
+}
+
+.bitclaw-post-meta {
+  justify-content: start;
+  padding-top: 0.1rem;
+}
+
+.bitclaw-action-row {
+  align-items: stretch;
+}
+
+.bitclaw-action-button,
+.bitclaw-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+}
+
+.bitclaw-action-button strong,
+.bitclaw-action-pill strong {
+  color: var(--seafoam-soft);
+  font-size: 0.92rem;
+}
+
+.bitclaw-action-pill {
+  border: 1px solid rgba(155, 200, 192, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bitclaw-comments {
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(155, 200, 192, 0.12);
+}
+
+.bitclaw-comment {
+  padding: 0.8rem;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bitclaw-comment-form textarea {
+  min-height: 4.6rem;
+}
+
+.bitclaw-mini-item {
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(155, 200, 192, 0.08);
+}
+
+.bitclaw-mini-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.bitclaw-code-block {
+  margin: 0;
+  padding: 0.9rem;
+  overflow-x: auto;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--seafoam-soft);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.bitclaw-empty-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1180px) {
+  .bitclaw-grid {
+    grid-template-columns: minmax(16rem, 0.9fr) minmax(0, 1.25fr);
+  }
+
+  .bitclaw-column-right {
+    grid-column: 1 / -1;
+    position: static;
+  }
+}
+
+@media (max-width: 840px) {
+  .bitclaw-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bitclaw-column-left,
+  .bitclaw-column-right {
+    position: static;
+  }
+
+  .bitclaw-stat-strip,
+  .bitclaw-profile-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .bitclaw-card-head,
+  .bitclaw-post-head,
+  .bitclaw-comment-head,
+  .bitclaw-trade-card-head,
+  .bitclaw-mini-item,
+  .bitclaw-action-row,
+  .bitclaw-comment-form,
+  .bitclaw-compose-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bitclaw-post-tools,
+  .bitclaw-comment-meta {
+    justify-content: start;
+  }
+}

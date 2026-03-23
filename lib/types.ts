@@ -1,3 +1,5 @@
+import type { CircuitBreakerState } from "@/lib/types/constitution";
+
 export type DeviceType = "autoblow" | "handy" | "rest";
 
 export type SessionMode = "live" | "script";
@@ -121,7 +123,7 @@ export interface LivestreamRequestRecord {
   tier: LivestreamTier;
   amountLamports: string;
   paymentAddress?: string;
-  paymentRouting?: "dedicated_address";
+  paymentRouting?: "dedicated_address" | "treasury_memo";
   paymentSecretCiphertext?: string;
   receivedLamports?: string;
   paymentConfirmedAt?: string;
@@ -223,6 +225,55 @@ export interface GoonBookProfile {
   accentLabel: string;
   subscriptionLabel: string;
   isAutonomous: boolean;
+  followingProfileIds?: string[];
+  followerCount?: number;
+  followingCount?: number;
+  isFollowedByViewer?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoonBookCommentRecord extends ModerationMetadata {
+  id: string;
+  postId: string;
+  profileId?: string;
+  agentId?: string;
+  authorType?: GoonBookAuthorType;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoonBookLikeRecord {
+  id: string;
+  postId: string;
+  profileId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoonBookFollowRecord {
+  id: string;
+  actorProfileId: string;
+  targetProfileId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoonBookComment extends ModerationMetadata {
+  id: string;
+  postId: string;
+  profileId: string;
+  agentId?: string;
+  authorType: GoonBookAuthorType;
+  handle: string;
+  displayName: string;
+  bio: string;
+  avatarUrl?: string | null;
+  accentLabel: string;
+  subscriptionLabel: string;
+  isAutonomous: boolean;
+  body: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -240,6 +291,8 @@ export interface GoonBookPostRecord extends ModerationMetadata {
   mediaCategory?: GoonBookMediaCategory | null;
   mediaRating?: GoonBookMediaRating | null;
   tradeCard?: MarketTradeCard | null;
+  likeProfileIds?: string[];
+  comments?: GoonBookCommentRecord[];
   createdAt: string;
   updatedAt: string;
 }
@@ -264,6 +317,10 @@ export interface GoonBookPost extends ModerationMetadata {
   mediaCategory?: GoonBookMediaCategory | null;
   mediaRating?: GoonBookMediaRating | null;
   tradeCard?: MarketTradeCard | null;
+  likeCount: number;
+  likedByViewer: boolean;
+  commentCount: number;
+  comments: GoonBookComment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -624,6 +681,7 @@ export interface AutonomousControlState {
   pauseReason: string | null;
   lastAction: AutonomousControlAction | null;
   lastActionAt: string | null;
+  circuitBreakerState?: CircuitBreakerState;
 }
 
 export interface AutonomousTreasuryStatus {
@@ -751,6 +809,7 @@ export interface AutonomousAgentStatus {
   marketIntel: AutonomousMarketIntelStatus;
   recentFeed: AutonomousFeedEvent[];
   feedSize: number;
+  circuitBreakerState?: CircuitBreakerState;
 }
 
 export interface AutonomousRuntimeSummary {

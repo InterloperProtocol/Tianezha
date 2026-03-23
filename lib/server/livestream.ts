@@ -24,6 +24,7 @@ import {
 import {
   createDedicatedPaymentAddress,
   sweepDedicatedPaymentToTreasury,
+  verifyMemoTransferToTreasury,
   verifyTransferToAddress,
 } from "@/lib/server/solana";
 import {
@@ -50,16 +51,30 @@ function getTierPriceLamports(tier: LivestreamTier) {
   );
 }
 
+function isLegacyTreasuryMemoRequest(request: LivestreamRequestRecord) {
+  return (
+    request.paymentRouting === "treasury_memo" ||
+    (!request.paymentAddress && !request.paymentSecretCiphertext)
+  );
+}
+
+function isRequestReadyForActivation(request: LivestreamRequestRecord) {
+  if (request.status !== "pending" || !request.signature) {
+    return false;
+  }
+
+  if (request.sweepStatus === "swept") {
+    return true;
+  }
+
+  return isLegacyTreasuryMemoRequest(request) && Boolean(request.paymentConfirmedAt);
+}
+
 function getActivationQueue(
   requests: LivestreamRequestRecord[],
 ) {
   return [...requests]
-    .filter(
-      (request) =>
-        request.status === "pending" &&
-        request.signature &&
-        request.sweepStatus === "swept",
-    )
+    .filter(isRequestReadyForActivation)
     .sort((left, right) => {
       if (left.tier !== right.tier) {
         return left.tier === "priority" ? -1 : 1;
@@ -482,7 +497,7 @@ export async function verifyLivestreamRequestPayment(
     throw new Error("This request can no longer be paid");
   }
 
-  if (request.signature && request.sweepStatus === "swept") {
+  if (isRequestReadyForActivation(request)) {
     throw new Error("This request is already paid and queued.");
   }
 
@@ -502,17 +517,24 @@ export async function verifyLivestreamRequestPayment(
     throw new Error("That transaction signature is already tied to another request");
   }
 
-  if (!request.paymentAddress || !request.paymentSecretCiphertext) {
-    throw new Error("This request is missing its dedicated payment wallet.");
-  }
-  const paymentAddress = request.paymentAddress;
-  const paymentSecretCiphertext = request.paymentSecretCiphertext;
+  const legacyTreasuryMemoRequest = isLegacyTreasuryMemoRequest(request);
+  const verification = legacyTreasuryMemoRequest
+    ? await verifyMemoTransferToTreasury(
+        signature,
+        BigInt(request.amountLamports),
+        request.memo,
+      )
+    : await (() => {
+        if (!request.paymentAddress || !request.paymentSecretCiphertext) {
+          throw new Error("This request is missing its dedicated payment wallet.");
+        }
 
-  const verification = await verifyTransferToAddress(
-    signature,
-    BigInt(request.amountLamports),
-    paymentAddress,
-  );
+        return verifyTransferToAddress(
+          signature,
+          BigInt(request.amountLamports),
+          request.paymentAddress,
+        );
+      })();
   if (!verification.ok) {
     throw new Error(verification.error || "Payment verification failed");
   }
@@ -521,34 +543,74 @@ export async function verifyLivestreamRequestPayment(
     ? await fetchWalletAnalytics(verification.payerWallet)
     : null;
   const paymentConfirmedAt = nowIso();
-  const sweep = await sweepDedicatedPaymentToTreasury({
-    paymentSecretCiphertext,
-    expectedMinimumLamports: verification.lamports,
-  });
-
-  if (!sweep.ok) {
-    await upsertLivestreamRequest({
-      ...request,
-      updatedAt: paymentConfirmedAt,
-      receivedLamports: verification.lamports.toString(),
-      paymentConfirmedAt,
-      sweepStatus: "failed",
-      sweptLamports: sweep.sweptLamports.toString(),
-      sweepError: sweep.error || "Failed to sweep the dedicated payment wallet.",
-      error: sweep.error || "Failed to sweep the dedicated payment wallet.",
-    });
-    throw new Error(sweep.error || "Failed to sweep the dedicated payment wallet.");
-  }
-
-  await upsertLivestreamRequest({
+  const verifiedRequest: LivestreamRequestRecord = {
     ...request,
     updatedAt: paymentConfirmedAt,
     signature,
     payerWallet: verification.payerWallet,
     receivedLamports: verification.lamports.toString(),
     paymentConfirmedAt,
+    paymentRouting: legacyTreasuryMemoRequest
+      ? "treasury_memo"
+      : request.paymentRouting || "dedicated_address",
     walletMemo: walletAnalytics?.walletMemo || null,
     walletSummary: walletAnalytics?.narrativeSummary || null,
+    sweepError: undefined,
+    error: undefined,
+  };
+
+  if (legacyTreasuryMemoRequest) {
+    await upsertLivestreamRequest({
+      ...verifiedRequest,
+      sweepStatus: "swept",
+      sweptLamports: verification.lamports.toString(),
+      lastSweepAt: paymentConfirmedAt,
+    });
+
+    await syncLivestreamQueue();
+    return getLivestreamRequest(request.id);
+  }
+
+  await upsertLivestreamRequest({
+    ...verifiedRequest,
+    sweepStatus: "pending",
+  });
+
+  let sweep;
+  try {
+    sweep = await sweepDedicatedPaymentToTreasury({
+      paymentSecretCiphertext: request.paymentSecretCiphertext!,
+      expectedMinimumLamports: verification.lamports,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to sweep the dedicated payment wallet.";
+    await upsertLivestreamRequest({
+      ...verifiedRequest,
+      sweepStatus: "failed",
+      sweptLamports: request.sweptLamports || "0",
+      sweepError: message,
+      error: message,
+    });
+    throw new Error(message);
+  }
+
+  if (!sweep.ok) {
+    const message = sweep.error || "Failed to sweep the dedicated payment wallet.";
+    await upsertLivestreamRequest({
+      ...verifiedRequest,
+      sweepStatus: "failed",
+      sweptLamports: sweep.sweptLamports.toString(),
+      sweepError: message,
+      error: message,
+    });
+    throw new Error(message);
+  }
+
+  await upsertLivestreamRequest({
+    ...verifiedRequest,
     sweepStatus: "swept",
     sweepSignature: sweep.sweepSignature,
     sweptLamports: sweep.sweptLamports.toString(),

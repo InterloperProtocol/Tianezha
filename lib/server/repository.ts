@@ -11,6 +11,9 @@ import {
   DeviceProfile,
   DeviceType,
   GoonBookAgentCredentialRecord,
+  GoonBookCommentRecord,
+  GoonBookFollowRecord,
+  GoonBookLikeRecord,
   GoonBookProfile,
   EntitlementRecord,
   GoonBookPostRecord,
@@ -28,6 +31,9 @@ type MemoryShape = {
   entitlements: Map<string, EntitlementRecord>;
   orders: Map<string, OrderRecord>;
   publicStreamProfiles: Map<string, PublicStreamProfile>;
+  goonBookComments: Map<string, GoonBookCommentRecord>;
+  goonBookFollows: Map<string, GoonBookFollowRecord>;
+  goonBookLikes: Map<string, GoonBookLikeRecord>;
   goonBookProfiles: Map<string, GoonBookProfile>;
   goonBookPosts: Map<string, GoonBookPostRecord>;
   goonBookAgentCredentials: Map<string, GoonBookAgentCredentialRecord>;
@@ -45,6 +51,9 @@ function getMemoryStore(): MemoryShape {
       devices: new Map(),
       entitlements: new Map(),
       goonBookAgentCredentials: new Map(),
+      goonBookComments: new Map(),
+      goonBookFollows: new Map(),
+      goonBookLikes: new Map(),
       goonBookProfiles: new Map(),
       goonBookPosts: new Map(),
       orders: new Map(),
@@ -131,6 +140,14 @@ async function withRepositoryBackend<T>(
     }
     throw error;
   }
+}
+
+function chunkArray<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
 }
 
 function sanitizeDevice(profile: DeviceProfile): SanitizedDeviceProfile {
@@ -494,6 +511,172 @@ export async function upsertGoonBookPost(record: GoonBookPostRecord) {
     async (db) => {
       await db.collection("goonBookPosts").doc(record.id).set(record, { merge: true });
       return record;
+    },
+  );
+}
+
+export async function listGoonBookCommentsForPostIds(postIds: string[]) {
+  const normalizedIds = [...new Set(postIds.map((id) => id.trim()).filter(Boolean))];
+  if (!normalizedIds.length) {
+    return [];
+  }
+
+  return withRepositoryBackend(
+    "listGoonBookCommentsForPostIds",
+    () =>
+      [...getMemoryStore().goonBookComments.values()]
+        .filter((record) => normalizedIds.includes(record.postId))
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    async (db) => {
+      const chunks = chunkArray(normalizedIds, 10);
+      const snapshots = await Promise.all(
+        chunks.map((chunk) =>
+          db.collection("goonBookComments").where("postId", "in", chunk).get(),
+        ),
+      );
+
+      return snapshots
+        .flatMap((snapshot) =>
+          snapshot.docs.map((doc) => doc.data() as GoonBookCommentRecord),
+        )
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    },
+  );
+}
+
+export async function upsertGoonBookComment(record: GoonBookCommentRecord) {
+  return withRepositoryBackend(
+    "upsertGoonBookComment",
+    () => {
+      getMemoryStore().goonBookComments.set(record.id, record);
+      return record;
+    },
+    async (db) => {
+      await db.collection("goonBookComments").doc(record.id).set(record, { merge: true });
+      return record;
+    },
+  );
+}
+
+export async function listGoonBookLikeRecordsForPostIds(postIds: string[]) {
+  const normalizedIds = [...new Set(postIds.map((id) => id.trim()).filter(Boolean))];
+  if (!normalizedIds.length) {
+    return [];
+  }
+
+  return withRepositoryBackend(
+    "listGoonBookLikeRecordsForPostIds",
+    () =>
+      [...getMemoryStore().goonBookLikes.values()]
+        .filter((record) => normalizedIds.includes(record.postId))
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    async (db) => {
+      const chunks = chunkArray(normalizedIds, 10);
+      const snapshots = await Promise.all(
+        chunks.map((chunk) =>
+          db.collection("goonBookLikes").where("postId", "in", chunk).get(),
+        ),
+      );
+
+      return snapshots
+        .flatMap((snapshot) =>
+          snapshot.docs.map((doc) => doc.data() as GoonBookLikeRecord),
+        )
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    },
+  );
+}
+
+export async function getGoonBookLikeRecord(id: string) {
+  return withRepositoryBackend(
+    "getGoonBookLikeRecord",
+    () => getMemoryStore().goonBookLikes.get(id) ?? null,
+    async (db) => {
+      const doc = await db.collection("goonBookLikes").doc(id).get();
+      return doc.exists ? (doc.data() as GoonBookLikeRecord) : null;
+    },
+  );
+}
+
+export async function upsertGoonBookLikeRecord(record: GoonBookLikeRecord) {
+  return withRepositoryBackend(
+    "upsertGoonBookLikeRecord",
+    () => {
+      getMemoryStore().goonBookLikes.set(record.id, record);
+      return record;
+    },
+    async (db) => {
+      await db.collection("goonBookLikes").doc(record.id).set(record, { merge: true });
+      return record;
+    },
+  );
+}
+
+export async function deleteGoonBookLikeRecord(id: string) {
+  return withRepositoryBackend(
+    "deleteGoonBookLikeRecord",
+    () => {
+      getMemoryStore().goonBookLikes.delete(id);
+      return true;
+    },
+    async (db) => {
+      await db.collection("goonBookLikes").doc(id).delete();
+      return true;
+    },
+  );
+}
+
+export async function listGoonBookFollowRecords() {
+  return withRepositoryBackend(
+    "listGoonBookFollowRecords",
+    () =>
+      [...getMemoryStore().goonBookFollows.values()].sort((a, b) =>
+        a.createdAt.localeCompare(b.createdAt),
+      ),
+    async (db) => {
+      const snapshot = await db.collection("goonBookFollows").get();
+      return snapshot.docs
+        .map((doc) => doc.data() as GoonBookFollowRecord)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    },
+  );
+}
+
+export async function getGoonBookFollowRecord(id: string) {
+  return withRepositoryBackend(
+    "getGoonBookFollowRecord",
+    () => getMemoryStore().goonBookFollows.get(id) ?? null,
+    async (db) => {
+      const doc = await db.collection("goonBookFollows").doc(id).get();
+      return doc.exists ? (doc.data() as GoonBookFollowRecord) : null;
+    },
+  );
+}
+
+export async function upsertGoonBookFollowRecord(record: GoonBookFollowRecord) {
+  return withRepositoryBackend(
+    "upsertGoonBookFollowRecord",
+    () => {
+      getMemoryStore().goonBookFollows.set(record.id, record);
+      return record;
+    },
+    async (db) => {
+      await db.collection("goonBookFollows").doc(record.id).set(record, { merge: true });
+      return record;
+    },
+  );
+}
+
+export async function deleteGoonBookFollowRecord(id: string) {
+  return withRepositoryBackend(
+    "deleteGoonBookFollowRecord",
+    () => {
+      getMemoryStore().goonBookFollows.delete(id);
+      return true;
+    },
+    async (db) => {
+      await db.collection("goonBookFollows").doc(id).delete();
+      return true;
     },
   );
 }

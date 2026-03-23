@@ -39,10 +39,11 @@ The public deployment is hosted on Firebase App Hosting in Google Cloud, and the
 
 - subscription cNFTs are now sent manually after an eligibility check
 - public chart jobs now generate a dedicated Solana payment address per request and sweep confirmed funds into the GoonClaw revenue wallet
-- the older app-level Agent Ops scaffold still surfaces `50%` cNFT pool / `50%` buyback defaults with a `1 SOL` reserve
-- the autonomous runtime in `services/goonclaw-automaton` uses a narrower canonical policy envelope: `49%` owner payout, `41%` burn bucket, `10%` trading bucket, and a `0.069420 SOL` reserve floor
+- the canonical constitutional layer now lives in `lib/constitution.ts`, `docs/CONSTITUTION.md`, and `docs/ECONOMIC_POLICY.md`
+- constitutional defaults now target a `0.69420 SOL` reserve floor, `51%` creator-fee agent share (`40%` buyback+burn, `11%` trading wallet), `0.01 SOL` billboards, and `50/10/40` trading-profit allocation above reserve
 - LaunchONomics determines whether a wallet qualifies for a subscription cNFT
-- `/api/agent/status` exposes read-only autonomous runtime status, constitution hash, treasury posture, and revenue buckets
+- `/api/constitution` exposes the public constitution snapshot
+- `/api/agent/status` exposes the HeartBeat runtime payload plus the public constitution snapshot, constitution hash, treasury posture, and revenue buckets
 - `/api/agent/status` now also exposes configured MCP server names plus vendored and locally installed skill inventory for the sovereign runtime toolchain
 - hosted model defaults to `gemini-2.5-flash` on Vertex AI
 
@@ -77,3 +78,4 @@ Start from `.env.example`. The app is ready for later wiring of:
 
 - The news panel is wired against the `cryptocurrency.cv` API surfaced by the `free-crypto-news` reference.
 - The UI theme is tuned toward the Solana Launchpad UI reference, while agent and audit work is documented in `docs/reference-stack.md`.
+- The constitutional source-of-truth docs live in `docs/CONSTITUTION.md`, `docs/ECONOMIC_POLICY.md`, and `docs/IMPLEMENTATION_NOTES.md`.

@@ -1,0 +1,203 @@
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from "fs";
+import path from "path";
+
+import type { AuditEvent } from "@/lib/types/constitution";
+
+export type PersistedRateLimitEntry = {
+  count: number;
+  resetAt: number;
+};
+
+type ExpiringEntry = {
+  expiresAtMs: number;
+};
+
+type PolicyRuntimeState = {
+  auditEvents: AuditEvent[];
+  idempotency: Record<string, ExpiringEntry>;
+  rateLimits: Record<string, PersistedRateLimitEntry>;
+  replay: Record<string, ExpiringEntry>;
+};
+
+declare global {
+  var __goonclawPolicyRuntimeState: PolicyRuntimeState | undefined;
+}
+
+const DATA_DIR = path.join(process.cwd(), ".data");
+const STORE_PATH = path.join(DATA_DIR, "goonclaw-policy-runtime.json");
+const MAX_AUDIT_EVENTS = 2_000;
+
+function ensureDataDir() {
+  if (!existsSync(DATA_DIR)) {
+    mkdirSync(DATA_DIR, { recursive: true });
+  }
+}
+
+function createInitialState(): PolicyRuntimeState {
+  return {
+    auditEvents: [],
+    idempotency: {},
+    rateLimits: {},
+    replay: {},
+  };
+}
+
+function readStateFromDisk(): PolicyRuntimeState {
+  ensureDataDir();
+
+  if (!existsSync(STORE_PATH)) {
+    return createInitialState();
+  }
+
+  try {
+    const parsed = JSON.parse(readFileSync(STORE_PATH, "utf8")) as Partial<PolicyRuntimeState>;
+    return {
+      auditEvents: Array.isArray(parsed.auditEvents) ? parsed.auditEvents : [],
+      idempotency:
+        parsed.idempotency && typeof parsed.idempotency === "object"
+          ? parsed.idempotency
+          : {},
+      rateLimits:
+        parsed.rateLimits && typeof parsed.rateLimits === "object"
+          ? parsed.rateLimits
+          : {},
+      replay:
+        parsed.replay && typeof parsed.replay === "object"
+          ? parsed.replay
+          : {},
+    };
+  } catch {
+    return createInitialState();
+  }
+}
+
+function persistState(state: PolicyRuntimeState) {
+  ensureDataDir();
+  writeFileSync(STORE_PATH, JSON.stringify(state, null, 2));
+}
+
+function getState() {
+  if (!global.__goonclawPolicyRuntimeState) {
+    global.__goonclawPolicyRuntimeState = readStateFromDisk();
+  }
+
+  return global.__goonclawPolicyRuntimeState;
+}
+
+function pruneExpiringEntries(
+  entries: Record<string, ExpiringEntry>,
+  nowMs: number,
+) {
+  let changed = false;
+
+  for (const [key, value] of Object.entries(entries)) {
+    if (value.expiresAtMs <= nowMs) {
+      delete entries[key];
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
+export function getPersistedRateLimitEntry(key: string, nowMs = Date.now()) {
+  const state = getState();
+  let changed = false;
+
+  for (const [entryKey, entry] of Object.entries(state.rateLimits)) {
+    if (entry.resetAt <= nowMs) {
+      delete state.rateLimits[entryKey];
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    persistState(state);
+  }
+
+  return state.rateLimits[key] || null;
+}
+
+export function setPersistedRateLimitEntry(
+  key: string,
+  entry: PersistedRateLimitEntry,
+  nowMs = Date.now(),
+) {
+  const state = getState();
+
+  for (const [entryKey, current] of Object.entries(state.rateLimits)) {
+    if (current.resetAt <= nowMs) {
+      delete state.rateLimits[entryKey];
+    }
+  }
+
+  state.rateLimits[key] = entry;
+  persistState(state);
+}
+
+export function getPersistedIdempotencyEntry(key: string, nowMs = Date.now()) {
+  const state = getState();
+  if (pruneExpiringEntries(state.idempotency, nowMs)) {
+    persistState(state);
+  }
+
+  return state.idempotency[key] || null;
+}
+
+export function setPersistedIdempotencyEntry(
+  key: string,
+  entry: ExpiringEntry,
+  nowMs = Date.now(),
+) {
+  const state = getState();
+  pruneExpiringEntries(state.idempotency, nowMs);
+  state.idempotency[key] = entry;
+  persistState(state);
+}
+
+export function getPersistedReplayEntry(key: string, nowMs = Date.now()) {
+  const state = getState();
+  if (pruneExpiringEntries(state.replay, nowMs)) {
+    persistState(state);
+  }
+
+  return state.replay[key] || null;
+}
+
+export function setPersistedReplayEntry(
+  key: string,
+  entry: ExpiringEntry,
+  nowMs = Date.now(),
+) {
+  const state = getState();
+  pruneExpiringEntries(state.replay, nowMs);
+  state.replay[key] = entry;
+  persistState(state);
+}
+
+export function appendPersistedAuditEvent(event: AuditEvent) {
+  const state = getState();
+  state.auditEvents.push(event);
+  if (state.auditEvents.length > MAX_AUDIT_EVENTS) {
+    state.auditEvents = state.auditEvents.slice(-MAX_AUDIT_EVENTS);
+  }
+  persistState(state);
+  return event;
+}
+
+export function listPersistedAuditEvents(limit = 100) {
+  return getState().auditEvents.slice(-limit).reverse();
+}
+
+export function resetPolicyRuntimeStoreForTests() {
+  global.__goonclawPolicyRuntimeState = createInitialState();
+  if (existsSync(STORE_PATH)) {
+    unlinkSync(STORE_PATH);
+  }
+}

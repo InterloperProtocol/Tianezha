@@ -18,8 +18,9 @@ This directory holds the in-repo autonomous runtime assets for GoonClaw.
 
 ## Canonical policy docs
 
-- `constitution.md` is the runtime constitution for the sovereign automaton surface
-- `economic-policy.md` is the matching treasury and revenue policy for the sovereign automaton surface
+- `../../docs/CONSTITUTION.md` is the canonical constitutional charter for the repo
+- `../../docs/ECONOMIC_POLICY.md` is the canonical treasury and revenue policy for the repo
+- local `constitution.md` and `economic-policy.md` files in this folder are compatibility pointers for older tooling
 - app-level Agent Ops, cNFT, and LaunchONomics settings elsewhere in the repo are adjacent product economics unless explicitly wired into the autonomous runtime
 
 ## Local runtime entrypoint

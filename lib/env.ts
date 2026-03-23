@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { CONSTITUTION } from "@/lib/constitution";
 import {
   DEFAULT_ACCESS_TOKEN_SYMBOL,
   DEFAULT_PUMP_TOKEN_MINT,
@@ -351,7 +352,8 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       raw.GOONCLAW_AGENT_WALLET_SECRET?.trim() ||
       "",
     GOONCLAW_AGENT_RESERVE_FLOOR_SOL:
-      raw.GOONCLAW_AGENT_RESERVE_FLOOR_SOL?.trim() || "0.069420",
+      raw.GOONCLAW_AGENT_RESERVE_FLOOR_SOL?.trim() ||
+      CONSTITUTION.reservePolicy.reserveFloorSol,
     GOONCLAW_SETTLEMENT_INTERVAL_MINUTES:
       raw.GOONCLAW_SETTLEMENT_INTERVAL_MINUTES?.trim() || "15",
     GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT:
@@ -365,7 +367,7 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       "services/goonclaw-automaton/vendor",
     GOONCLAW_AGENT_CONSTITUTION_PATH:
       raw.GOONCLAW_AGENT_CONSTITUTION_PATH?.trim() ||
-      "services/goonclaw-automaton/constitution.md",
+      "docs/CONSTITUTION.md",
     GOONCLAW_CONWAY_ALLOWED_HOSTS:
       raw.GOONCLAW_CONWAY_ALLOWED_HOSTS?.trim() ||
       "conway.tech,*.conway.tech,conway.ai,*.conway.ai",

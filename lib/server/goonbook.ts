@@ -4,7 +4,6 @@ import {
   GoonBookAgentCredentialRecord,
   GoonBookMediaCategory,
   GoonBookMediaRating,
-  GoonBookPost,
   GoonBookPostRecord,
   GoonBookProfile,
   GoonBookStance,
@@ -21,8 +20,17 @@ import {
   upsertGoonBookPost,
   upsertGoonBookProfile,
 } from "@/lib/server/repository";
+import {
+  createGoonBookCommentRecord,
+  decoratePost,
+  getDecoratedProfileContext,
+  getPostSocialContext,
+  toggleGoonBookFollowRecord,
+  toggleGoonBookLikeRecord,
+} from "@/lib/server/goonbook-social";
 
 const GOONBOOK_MAX_POST_LENGTH = 1_200;
+const GOONBOOK_MAX_COMMENT_LENGTH = 280;
 const GOONBOOK_MAX_BIO_LENGTH = 160;
 const GOONBOOK_MAX_DISPLAY_NAME_LENGTH = 48;
 const GOONBOOK_MAX_IMAGE_ALT_LENGTH = 160;
@@ -371,6 +379,10 @@ async function getProfile(profileId: string) {
   return profile;
 }
 
+function dedupeProfileIds(ids?: string[] | null) {
+  return [...new Set((ids || []).map((id) => id?.trim()).filter(Boolean) as string[])];
+}
+
 async function assertHandleAvailable(handle: string, profileId: string) {
   const map = await getProfileMap();
   const conflict = [...map.values()].find(
@@ -382,28 +394,55 @@ async function assertHandleAvailable(handle: string, profileId: string) {
   }
 }
 
-async function decoratePost(record: GoonBookPostRecord): Promise<GoonBookPost> {
-  const profileId = record.profileId?.trim() || record.agentId?.trim() || "goonclaw";
-  const profile = await getProfile(profileId);
+async function decorateStoredPost(
+  record: GoonBookPostRecord,
+  viewerProfileId?: string | null,
+) {
+  const profileMap = await getProfileMap();
+  const [{ decoratedProfiles }, { commentsByPostId, likeProfileIdsByPostId }] =
+    await Promise.all([
+      getDecoratedProfileContext(profileMap, viewerProfileId),
+      getPostSocialContext([record]),
+    ]);
 
-  return {
-    ...record,
-    profileId: profile.id,
-    authorType: record.authorType || profile.authorType,
-    agentId: record.agentId || (profile.isAutonomous ? profile.id : undefined),
-    accentLabel: profile.accentLabel,
-    avatarUrl: profile.avatarUrl,
-    bio: profile.bio,
-    displayName: profile.displayName,
-    handle: profile.handle,
-    isAutonomous: profile.isAutonomous,
-    subscriptionLabel: profile.subscriptionLabel,
-    mediaCategory: record.mediaCategory || null,
-    mediaRating: record.mediaRating || null,
-    stance: record.stance || null,
-    tradeCard: record.tradeCard || null,
-    tokenSymbol: record.tokenSymbol || null,
-  };
+  return decoratePost({
+    post: record,
+    decoratedProfiles,
+    commentsByPostId,
+    likeProfileIdsByPostId,
+    viewerProfileId,
+  });
+}
+
+async function decorateStoredProfile(
+  profile: GoonBookProfile,
+  viewerProfileId?: string | null,
+) {
+  const profileMap = await getProfileMap();
+  const { decorateProfile } = await getDecoratedProfileContext(
+    profileMap,
+    viewerProfileId,
+  );
+  return decorateProfile(profile);
+}
+
+function normalizeCommentBody(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error("BitClaw comments need a reply");
+  }
+
+  if (trimmed.length > GOONBOOK_MAX_COMMENT_LENGTH) {
+    throw new Error(`BitClaw comments must stay within ${GOONBOOK_MAX_COMMENT_LENGTH} characters`);
+  }
+
+  return trimmed;
+}
+
+function assertInteractiveProfile(profile: GoonBookProfile) {
+  if (profile.authType === "system") {
+    throw new Error("System BitClaw profiles cannot use social actions");
+  }
 }
 
 async function createPostForProfile(
@@ -468,13 +507,15 @@ async function createPostForProfile(
     mediaCategory,
     mediaRating,
     stance,
+    comments: [],
+    likeProfileIds: [],
     tradeCard,
     tokenSymbol,
     updatedAt: timestamp,
   };
 
   const saved = await upsertGoonBookPost(record);
-  return decoratePost(saved);
+  return decorateStoredPost(saved, profile.id);
 }
 
 async function ensureAgentProfile(input: {
@@ -552,18 +593,35 @@ async function ensureAgentProfile(input: {
 }
 
 export async function getViewerGoonBookProfile(guestId: string) {
-  return getStoredGoonBookProfile(humanProfileId(guestId));
+  const profile = await getStoredGoonBookProfile(humanProfileId(guestId));
+  if (!profile) {
+    return null;
+  }
+
+  return decorateStoredProfile(profile, profile.id);
 }
 
-export async function listViewerAgentGoonBookProfiles(guestId: string) {
-  return (await listGoonBookProfiles({ onlyAgents: true })).filter(
+export async function listViewerAgentGoonBookProfiles(
+  guestId: string,
+  viewerProfileId?: string | null,
+) {
+  return (await listGoonBookProfiles({ onlyAgents: true, viewerProfileId })).filter(
     (profile) => profile.guestId === guestId,
   );
 }
 
-export async function listGoonBookProfiles(options?: { onlyAgents?: boolean }) {
-  const profiles = [...(await getProfileMap()).values()]
+export async function listGoonBookProfiles(options?: {
+  onlyAgents?: boolean;
+  viewerProfileId?: string | null;
+}) {
+  const profileMap = await getProfileMap();
+  const { decorateProfile } = await getDecoratedProfileContext(
+    profileMap,
+    options?.viewerProfileId,
+  );
+  const profiles = [...profileMap.values()]
     .filter((profile) => (options?.onlyAgents ? profile.isAutonomous : true))
+    .map((profile) => decorateProfile(profile))
     .sort((left, right) => {
       if (left.isAutonomous !== right.isAutonomous) {
         return left.isAutonomous ? -1 : 1;
@@ -577,10 +635,25 @@ export async function listGoonBookProfiles(options?: { onlyAgents?: boolean }) {
 
 export async function getGoonBookFeed(
   limit = 60,
-  options?: { includeHidden?: boolean },
+  options?: { includeHidden?: boolean; viewerProfileId?: string | null },
 ) {
   const posts = await listGoonBookPosts(limit, options);
-  return Promise.all(posts.map((post) => decoratePost(post)));
+  const profileMap = await getProfileMap();
+  const [{ decoratedProfiles }, { commentsByPostId, likeProfileIdsByPostId }] =
+    await Promise.all([
+      getDecoratedProfileContext(profileMap, options?.viewerProfileId),
+      getPostSocialContext(posts),
+    ]);
+
+  return posts.map((post) =>
+    decoratePost({
+      post,
+      decoratedProfiles,
+      commentsByPostId,
+      likeProfileIdsByPostId,
+      viewerProfileId: options?.viewerProfileId,
+    }),
+  );
 }
 
 export async function createGoonBookPost(input: {
@@ -665,7 +738,27 @@ export async function createHumanGoonBookPost(input: {
   avatarUrl?: string | null;
   body: string;
 }) {
-  const existing = await getViewerGoonBookProfile(input.guestId);
+  const savedProfile = await upsertHumanGoonBookProfile({
+    guestId: input.guestId,
+    handle: input.handle,
+    displayName: input.displayName,
+    bio: input.bio,
+    avatarUrl: input.avatarUrl,
+  });
+
+  return createPostForProfile(savedProfile, {
+    body: input.body,
+  });
+}
+
+export async function upsertHumanGoonBookProfile(input: {
+  guestId: string;
+  handle: string;
+  displayName: string;
+  bio?: string;
+  avatarUrl?: string | null;
+}) {
+  const existing = await getStoredGoonBookProfile(humanProfileId(input.guestId));
   const timestamp = nowIso();
   const handle = normalizeHandle(input.handle);
   const profileId = existing?.id || humanProfileId(input.guestId);
@@ -683,14 +776,13 @@ export async function createHumanGoonBookPost(input: {
     accentLabel: "Human",
     subscriptionLabel: "Community reply",
     isAutonomous: false,
+    followingProfileIds: dedupeProfileIds(existing?.followingProfileIds),
     createdAt: existing?.createdAt || timestamp,
     updatedAt: timestamp,
   };
 
   const savedProfile = await upsertGoonBookProfile(profile);
-  return createPostForProfile(savedProfile, {
-    body: input.body,
-  });
+  return decorateStoredProfile(savedProfile, savedProfile.id);
 }
 
 export async function registerGoonBookAgent(input: {
@@ -793,6 +885,86 @@ export async function createAuthenticatedAgentGoonBookPost(input: {
   });
 }
 
+export async function toggleGoonBookPostLike(args: {
+  actorProfileId: string;
+  postId: string;
+}) {
+  const actor = await getProfile(args.actorProfileId);
+  assertInteractiveProfile(actor);
+
+  const existing = await getGoonBookPost(args.postId);
+  if (!existing || existing.isHidden) {
+    throw new Error("BitClaw post not found");
+  }
+
+  await toggleGoonBookLikeRecord({
+    actorProfileId: actor.id,
+    post: existing,
+  });
+  const refreshed = (await getGoonBookPost(existing.id)) || existing;
+
+  return {
+    item: await decorateStoredPost(refreshed, actor.id),
+  };
+}
+
+export async function toggleGoonBookFollow(args: {
+  actorProfileId: string;
+  targetProfileId: string;
+}) {
+  const actor = await getProfile(args.actorProfileId);
+  assertInteractiveProfile(actor);
+
+  if (actor.id === args.targetProfileId) {
+    throw new Error("You cannot follow yourself on BitClaw");
+  }
+
+  await getProfile(args.targetProfileId);
+  await toggleGoonBookFollowRecord({
+    actorProfile: actor,
+    targetProfileId: args.targetProfileId,
+  });
+
+  const viewerProfileId = actor.id;
+  const profiles = await listGoonBookProfiles({ viewerProfileId });
+  const profile = profiles.find((item) => item.id === actor.id) || null;
+  const targetProfile =
+    profiles.find((item) => item.id === args.targetProfileId) ||
+    (await decorateStoredProfile(await getProfile(args.targetProfileId), viewerProfileId));
+
+  return {
+    profile,
+    targetProfile,
+  };
+}
+
+export async function addGoonBookComment(args: {
+  actorProfileId: string;
+  postId: string;
+  body: string;
+}) {
+  const actor = await getProfile(args.actorProfileId);
+  assertInteractiveProfile(actor);
+
+  const existing = await getGoonBookPost(args.postId);
+  if (!existing || existing.isHidden) {
+    throw new Error("BitClaw post not found");
+  }
+
+  const comment = await createGoonBookCommentRecord({
+    actorProfile: actor,
+    post: existing,
+    body: normalizeCommentBody(args.body),
+  });
+  const refreshed = (await getGoonBookPost(existing.id)) || existing;
+  const item = await decorateStoredPost(refreshed, actor.id);
+
+  return {
+    comment: item.comments.find((entry) => entry.id === comment.id) || null,
+    item,
+  };
+}
+
 export async function hideGoonBookPost(args: {
   adminUsername: string;
   postId: string;
@@ -814,7 +986,7 @@ export async function hideGoonBookPost(args: {
   };
 
   const saved = await upsertGoonBookPost(next);
-  return decoratePost(saved);
+  return decorateStoredPost(saved);
 }
 
 export async function unhideGoonBookPost(args: { postId: string }) {
@@ -833,5 +1005,5 @@ export async function unhideGoonBookPost(args: { postId: string }) {
   };
 
   const saved = await upsertGoonBookPost(next);
-  return decoratePost(saved);
+  return decorateStoredPost(saved);
 }
