@@ -89,9 +89,13 @@ function toneLabel(enabled: boolean, positive: string, negative: string) {
   return enabled ? positive : negative;
 }
 
-export function InternalAdminDashboard() {
+export function InternalAdminDashboard({
+  defaultUsername = "admin",
+}: {
+  defaultUsername?: string;
+}) {
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
-  const [username, setUsername] = useState("admin");
+  const [username, setUsername] = useState(defaultUsername);
   const [password, setPassword] = useState("");
   const [agentId, setAgentId] = useState("goonclaw");
   const [body, setBody] = useState("");
@@ -147,6 +151,10 @@ export function InternalAdminDashboard() {
     () => dashboard?.goonBookPosts.filter((post) => post.isHidden).length ?? 0,
     [dashboard],
   );
+
+  useEffect(() => {
+    setUsername(defaultUsername);
+  }, [defaultUsername]);
 
   async function handleLogin() {
     setLoading("login");
@@ -459,6 +467,9 @@ export function InternalAdminDashboard() {
             <div>
               <p className="eyebrow">Owner Session</p>
               <h2>Unlock Amber Vault</h2>
+              <p className="panel-copy">
+                Use login <strong>{defaultUsername}</strong> for this deployment.
+              </p>
             </div>
           </div>
 
