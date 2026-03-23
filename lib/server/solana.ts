@@ -1,6 +1,7 @@
 import bs58 from "bs58";
 import {
   Connection,
+  LAMPORTS_PER_SOL,
   ParsedInstruction,
   ParsedTransactionWithMeta,
   PartiallyDecodedInstruction,
@@ -13,6 +14,16 @@ const MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 
 function getConnection() {
   return new Connection(getServerEnv().SOLANA_RPC_URL, "confirmed");
+}
+
+export async function getWalletSolBalance(wallet: string) {
+  try {
+    const connection = getConnection();
+    const lamports = await connection.getBalance(new PublicKey(wallet), "confirmed");
+    return lamports / LAMPORTS_PER_SOL;
+  } catch {
+    return null;
+  }
 }
 
 function collectParsedInstructions(transaction: ParsedTransactionWithMeta | null) {

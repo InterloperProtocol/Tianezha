@@ -32,6 +32,7 @@ import {
 } from "@/lib/server/goonclaw-telegram";
 import { createGoonBookPost } from "@/lib/server/goonbook";
 import { getSolanaAgentRuntimeStatus } from "@/lib/server/solana-agent-runtime";
+import { getWalletSolBalance } from "@/lib/server/solana";
 import {
   assertAutonomousTradeAllowed,
   assertAutonomousTreasuryInstructionAllowed,
@@ -1874,6 +1875,24 @@ export function getAutonomousStatus() {
       usdcBalance: snapshot.usdcBalance,
     },
     wakeReason: snapshot.wakeReason,
+  } satisfies AutonomousAgentStatus;
+}
+
+export async function getAutonomousStatusWithLiveReserve() {
+  const status = getAutonomousStatus();
+  const liveReserveSol = await getWalletSolBalance(status.treasury.treasuryWallet);
+
+  if (liveReserveSol === null || !Number.isFinite(liveReserveSol)) {
+    return status;
+  }
+
+  return {
+    ...status,
+    treasury: {
+      ...status.treasury,
+      reserveHealthy: liveReserveSol >= status.treasury.reserveFloorSol,
+      reserveSol: liveReserveSol,
+    },
   } satisfies AutonomousAgentStatus;
 }
 

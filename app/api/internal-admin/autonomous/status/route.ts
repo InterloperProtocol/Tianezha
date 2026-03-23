@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getAutonomousStatus } from "@/lib/server/autonomous-agent";
+import { getAutonomousStatusWithLiveReserve } from "@/lib/server/autonomous-agent";
 import { getInternalAdminSession } from "@/lib/server/internal-admin";
 
 export async function GET() {
@@ -13,7 +13,7 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(getAutonomousStatus());
+    return NextResponse.json(await getAutonomousStatusWithLiveReserve());
   } catch (error) {
     return NextResponse.json(
       {

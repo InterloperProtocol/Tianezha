@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { HomeEligibilityCta } from "@/components/HomeEligibilityCta";
@@ -178,7 +179,10 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       timeStyle: "short",
     });
   }, [activeSession?.updatedAt, sessions]);
-  const activeChartAddress = chartLookupAddress.trim() || focusContractAddress;
+  const requestedChartAddress = chartLookupAddress.trim() || focusContractAddress;
+  const activeChartAddress = isTokenControlPage
+    ? focusContractAddress
+    : requestedChartAddress;
   const checkoutPriceSol = useMemo(
     () => (checkout ? lamportsToSol(checkout.amountLamports) : ""),
     [checkout],
@@ -648,7 +652,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contractAddress: activeChartAddress,
+          contractAddress: requestedChartAddress,
           tier,
         }),
       });
@@ -923,7 +927,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
 
       <section className="dashboard-grid dashboard-grid-primary-row">
         {isTokenControlPage ? (
-          <section className="panel">
+          <section className="panel room-economy-panel">
             <div className="panel-header">
               <div>
                 <p className="eyebrow">Public room</p>
@@ -931,150 +935,161 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               </div>
             </div>
 
-            <div className="field-grid">
-              <label className="field">
-                <span>Chart lookup</span>
-                <input
-                  value={chartLookupAddress}
-                  onChange={(event) => setChartLookupAddress(event.target.value)}
-                  placeholder={focusContractAddress}
-                />
-              </label>
-              <div className="summary-card">
-                <span>Current chart</span>
-                <strong>{activeChartAddress}</strong>
-                <p>The claw has to earn its existence in public.</p>
-              </div>
-            </div>
-
-            <p className="panel-lead">
-              Session state is purchasable today, but the long game is bigger
-              than trading alone. This room sells attention, inventory, and
-              public focus in real time.
-            </p>
-
-            <div className="button-row">
-              <button
-                className="button button-ghost small"
-                onClick={() => setChartLookupAddress("")}
-                type="button"
-              >
-                Follow session chart
-              </button>
-            </div>
-
-            <div className="route-badges">
-              <StatusBadge tone={livestreamState?.deviceAvailable ? "success" : "danger"}>
-                {livestreamState?.deviceAvailable ? "Session purchasable" : "Room busy"}
-              </StatusBadge>
-              <StatusBadge tone="accent">
-                {livestreamState?.standardPriceSol || "0.0069"} SOL / {sessionMinutes} min
-              </StatusBadge>
-              <StatusBadge tone="warning">
-                {livestreamState?.priorityPriceSol || "0.01"} SOL priority
-              </StatusBadge>
-            </div>
-
-            <div className="field-grid">
-              <button
-                className={
-                  tier === "standard"
-                    ? "button button-primary"
-                    : "button button-ghost"
-                }
-                onClick={() => setTier("standard")}
-                type="button"
-              >
-                Standard job
-              </button>
-              <button
-                className={
-                  tier === "priority"
-                    ? "button button-danger"
-                    : "button button-ghost"
-                }
-                onClick={() => setTier("priority")}
-                type="button"
-              >
-                Priority job
-              </button>
-            </div>
-
-            <div className="button-row">
-              <button
-                className="button button-secondary"
-                disabled={loading === "livestream-request" || !activeChartAddress.trim()}
-                onClick={() => void createLivestreamCheckout()}
-                type="button"
-              >
-                {loading === "livestream-request"
-                  ? "Creating memo..."
-                  : "Create chart payment"}
-              </button>
-            </div>
-
-            {checkout ? (
-              <div className="checkout-card">
-                <div className="panel-header">
-                  <div>
-                    <p className="eyebrow">Current job</p>
-                    <h2>{checkout.tier === "priority" ? "Priority" : "Standard"} request</h2>
-                  </div>
-                  <div className="source-pill">{checkout.status}</div>
-                </div>
-
-                <div className="history-list">
-                  <div className="history-item">
-                    <div>
-                      <span>Chart</span>
-                      <strong>{shortenValue(checkout.contractAddress)}</strong>
-                    </div>
-                    <div>
-                      <span>Amount</span>
-                      <strong>{checkoutPriceSol} SOL</strong>
-                    </div>
-                  </div>
-                  <div className="history-item">
-                    <div>
-                      <span>Memo</span>
-                      <strong>{checkout.memo}</strong>
-                    </div>
-                    <div>
-                      <span>Revenue wallet</span>
-                      <strong>{shortenValue(livestreamState?.treasuryWallet)}</strong>
-                    </div>
-                  </div>
-                  <div className="history-item">
-                    <div>
-                      <span>Session time</span>
-                      <strong>{sessionMinutes} minutes</strong>
-                    </div>
-                    <div>
-                      <span>Payment window</span>
-                      <strong>{livestreamState?.paymentWindowSeconds || 900} sec</strong>
-                    </div>
-                  </div>
-                </div>
-
+            <div className="room-economy-scroll">
+              <div className="field-grid">
                 <label className="field">
-                  <span>Transaction signature</span>
+                  <span>Chart lookup</span>
                   <input
-                    value={signature}
-                    onChange={(event) => setSignature(event.target.value)}
-                    placeholder="Paste the Solana signature after payment"
+                    value={chartLookupAddress}
+                    onChange={(event) => setChartLookupAddress(event.target.value)}
+                    placeholder={focusContractAddress}
                   />
                 </label>
+                <div className="summary-card">
+                  <span>Current chart</span>
+                  <strong>{focusContractAddress}</strong>
+                  <p>The claw has to earn its existence in public.</p>
+                </div>
+              </div>
 
+              <p className="panel-lead">
+                Session state is purchasable today, but the long game is bigger
+                than trading alone. This room sells attention, inventory, and
+                public focus in real time.
+              </p>
+
+              <div className="button-row">
                 <button
-                  className="button button-primary"
-                  disabled={loading === "livestream-verify" || !signature.trim()}
-                  onClick={() => void verifyLivestreamCheckout()}
+                  className="button button-ghost small"
+                  onClick={() => setChartLookupAddress("")}
                   type="button"
                 >
-                  {loading === "livestream-verify" ? "Confirming..." : "Confirm payment"}
+                  Follow session chart
                 </button>
               </div>
-            ) : null}
+
+              <div className="route-badges">
+                <StatusBadge tone={livestreamState?.deviceAvailable ? "success" : "danger"}>
+                  {livestreamState?.deviceAvailable ? "Session purchasable" : "Room busy"}
+                </StatusBadge>
+                <StatusBadge tone="accent">
+                  {livestreamState?.standardPriceSol || "0.0069"} SOL / {sessionMinutes} min
+                </StatusBadge>
+                <StatusBadge tone="warning">
+                  {livestreamState?.priorityPriceSol || "0.01"} SOL priority
+                </StatusBadge>
+              </div>
+
+              <div className="field-grid">
+                <button
+                  className={
+                    tier === "standard"
+                      ? "button button-primary"
+                      : "button button-ghost"
+                  }
+                  onClick={() => setTier("standard")}
+                  type="button"
+                >
+                  Standard job
+                </button>
+                <button
+                  className={
+                    tier === "priority"
+                      ? "button button-danger"
+                      : "button button-ghost"
+                  }
+                  onClick={() => setTier("priority")}
+                  type="button"
+                >
+                  Priority job
+                </button>
+              </div>
+
+              <div className="button-row">
+                <button
+                  className="button button-secondary"
+                  disabled={loading === "livestream-request" || !requestedChartAddress.trim()}
+                  onClick={() => void createLivestreamCheckout()}
+                  type="button"
+                >
+                  {loading === "livestream-request"
+                    ? "Creating memo..."
+                    : "Create chart payment"}
+                </button>
+              </div>
+
+              {checkout ? (
+                <div className="checkout-card">
+                  <div className="panel-header">
+                    <div>
+                      <p className="eyebrow">Current job</p>
+                      <h2>{checkout.tier === "priority" ? "Priority" : "Standard"} request</h2>
+                    </div>
+                    <div className="source-pill">{checkout.status}</div>
+                  </div>
+
+                  <div className="history-list">
+                    <div className="history-item">
+                      <div>
+                        <span>Chart</span>
+                        <strong>{shortenValue(checkout.contractAddress)}</strong>
+                      </div>
+                      <div>
+                        <span>Amount</span>
+                        <strong>{checkoutPriceSol} SOL</strong>
+                      </div>
+                    </div>
+                    <div className="history-item">
+                      <div>
+                        <span>Memo</span>
+                        <strong>{checkout.memo}</strong>
+                      </div>
+                      <div>
+                        <span>Revenue wallet</span>
+                        <strong>{shortenValue(livestreamState?.treasuryWallet)}</strong>
+                      </div>
+                    </div>
+                    <div className="history-item">
+                      <div>
+                        <span>Session time</span>
+                        <strong>{sessionMinutes} minutes</strong>
+                      </div>
+                      <div>
+                        <span>Payment window</span>
+                        <strong>{livestreamState?.paymentWindowSeconds || 900} sec</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="button-row">
+                    <Link
+                      className="button button-secondary"
+                      href={`/goonclaw/job?requestId=${encodeURIComponent(checkout.id)}`}
+                    >
+                      Open job page
+                    </Link>
+                  </div>
+
+                  <label className="field">
+                    <span>Transaction signature</span>
+                    <input
+                      value={signature}
+                      onChange={(event) => setSignature(event.target.value)}
+                      placeholder="Paste the Solana signature after payment"
+                    />
+                  </label>
+
+                  <button
+                    className="button button-primary"
+                    disabled={loading === "livestream-verify" || !signature.trim()}
+                    onClick={() => void verifyLivestreamCheckout()}
+                    type="button"
+                  >
+                    {loading === "livestream-verify" ? "Confirming..." : "Confirm payment"}
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </section>
         ) : (
           <section className="panel">
