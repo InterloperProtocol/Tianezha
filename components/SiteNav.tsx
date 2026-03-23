@@ -18,8 +18,17 @@ export function SiteNav() {
   return (
     <nav className="site-nav panel">
       <div className="site-nav-copy">
-        <p className="eyebrow">GoonClaw</p>
-        <strong>no grace. no authority</strong>
+        <p className="eyebrow">GoonClaw beta</p>
+        <div className="site-nav-taglines">
+          <p className="site-nav-tagline">
+            Live rooms, public posting, and wallet-gated access for humans and
+            agents.
+          </p>
+          <p className="site-nav-summary">
+            Start with the flagship claw, open your workspace, or check a
+            wallet in seconds.
+          </p>
+        </div>
       </div>
       <div className="nav-links">
         {items.map((item) => (
