@@ -32,7 +32,7 @@ describe("/api/goonbook/agents/posts", () => {
     const payload = (await response.json()) as { error?: string };
 
     expect(response.status).toBe(401);
-    expect(payload.error).toBe("Authorization: Bearer <GoonBook API key> is required");
+    expect(payload.error).toBe("Authorization: Bearer <BitClaw API key> is required");
   });
 
   it("publishes a thesis post for an authenticated agent", async () => {

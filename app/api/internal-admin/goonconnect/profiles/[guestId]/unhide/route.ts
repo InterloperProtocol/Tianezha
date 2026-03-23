@@ -20,7 +20,7 @@ export async function POST(
     const message =
       error instanceof Error
         ? error.message
-        : "Couldn't unhide that GoonConnect profile.";
+        : "Couldn't unhide that BolClaw profile.";
     const status =
       message === "Admin authentication required"
         ? 401

@@ -1,19 +1,42 @@
 import bs58 from "bs58";
 import {
   Connection,
+  Keypair,
   LAMPORTS_PER_SOL,
   ParsedInstruction,
   ParsedTransactionWithMeta,
   PartiallyDecodedInstruction,
   PublicKey,
+  SystemProgram,
+  Transaction,
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
 import { getServerEnv } from "@/lib/env";
+import { decryptJson, encryptJson } from "@/lib/server/crypto";
 
 const MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+type DedicatedPaymentPayload = { secretKey: number[] };
 
 function getConnection() {
   return new Connection(getServerEnv().SOLANA_RPC_URL, "confirmed");
+}
+
+function parseSecretKey(secret: string) {
+  const trimmed = secret.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    if (trimmed.startsWith("[")) {
+      return Uint8Array.from(JSON.parse(trimmed) as number[]);
+    }
+
+    return bs58.decode(trimmed);
+  } catch {
+    return null;
+  }
 }
 
 export async function getWalletSolBalance(wallet: string) {
@@ -96,6 +119,35 @@ function decodeMemo(instruction: ParsedInstruction | PartiallyDecodedInstruction
   }
 }
 
+function decodeDedicatedPaymentSigner(paymentSecretCiphertext: string) {
+  const payload = decryptJson<DedicatedPaymentPayload>(paymentSecretCiphertext);
+  return Keypair.fromSecretKey(Uint8Array.from(payload.secretKey));
+}
+
+function getSweepFeePayer() {
+  const env = getServerEnv();
+  const secretKey = parseSecretKey(
+    env.GOONCLAW_PAYMENT_SWEEP_SECRET || env.GOONCLAW_AGENT_WALLET_SECRET,
+  );
+
+  if (!secretKey) {
+    throw new Error("Sweep signer is not configured for dedicated payment wallets.");
+  }
+
+  return Keypair.fromSecretKey(secretKey);
+}
+
+export function createDedicatedPaymentAddress() {
+  const signer = Keypair.generate();
+
+  return {
+    paymentAddress: signer.publicKey.toBase58(),
+    paymentSecretCiphertext: encryptJson({
+      secretKey: Array.from(signer.secretKey),
+    } satisfies DedicatedPaymentPayload),
+  };
+}
+
 export async function verifyTransferToTreasury(signature: string, wallet: string) {
   const env = getServerEnv();
   const connection = getConnection();
@@ -132,6 +184,59 @@ export async function verifyTransferToTreasury(signature: string, wallet: string
   }
 
   return { ok: true, lamports: matchedLamports };
+}
+
+export async function verifyTransferToAddress(
+  signature: string,
+  expectedLamports: bigint,
+  destinationWallet: string,
+) {
+  const connection = getConnection();
+  const transaction = await connection.getParsedTransaction(signature, {
+    commitment: "confirmed",
+    maxSupportedTransactionVersion: 0,
+  });
+
+  if (!transaction || transaction.meta?.err) {
+    return {
+      ok: false,
+      lamports: BigInt(0),
+      error: "Transaction not confirmed",
+    };
+  }
+
+  const instructions = collectParsedInstructions(transaction);
+  let matchedLamports = BigInt(0);
+  let payerWallet = "";
+
+  for (const instruction of instructions) {
+    if (instruction.program !== "system") continue;
+    const parsed = instruction.parsed as { type?: string; info?: Record<string, unknown> };
+    if (parsed.type !== "transfer" || !parsed.info) continue;
+
+    const from = String(parsed.info.source ?? "");
+    const to = String(parsed.info.destination ?? "");
+    const lamports = parseAmountToBigInt(parsed.info.lamports);
+
+    if (to === destinationWallet) {
+      matchedLamports += lamports;
+      payerWallet ||= from;
+    }
+  }
+
+  if (matchedLamports !== expectedLamports) {
+    return {
+      ok: false,
+      lamports: matchedLamports,
+      error: `Expected exact payment of ${expectedLamports.toString()} lamports`,
+    };
+  }
+
+  return {
+    ok: true,
+    lamports: matchedLamports,
+    payerWallet,
+  };
 }
 
 export async function verifyMemoTransferToTreasury(
@@ -200,6 +305,63 @@ export async function verifyMemoTransferToTreasury(
     ok: true,
     lamports: matchedLamports,
     payerWallet,
+  };
+}
+
+export async function sweepDedicatedPaymentToTreasury(args: {
+  paymentSecretCiphertext: string;
+  expectedMinimumLamports: bigint;
+}) {
+  const env = getServerEnv();
+  const connection = getConnection();
+  const paymentSigner = decodeDedicatedPaymentSigner(args.paymentSecretCiphertext);
+  const feePayer = getSweepFeePayer();
+  const balance = BigInt(await connection.getBalance(paymentSigner.publicKey, "confirmed"));
+
+  if (balance < args.expectedMinimumLamports) {
+    return {
+      ok: false,
+      sweptLamports: balance,
+      error: "Dedicated payment wallet balance is lower than the verified payment.",
+    };
+  }
+
+  if (balance <= 0) {
+    return {
+      ok: false,
+      sweptLamports: balance,
+      error: "Dedicated payment wallet has no lamports to sweep.",
+    };
+  }
+
+  if (balance > BigInt(Number.MAX_SAFE_INTEGER)) {
+    return {
+      ok: false,
+      sweptLamports: balance,
+      error: "Dedicated payment wallet balance is too large to sweep safely.",
+    };
+  }
+
+  const transaction = new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: paymentSigner.publicKey,
+      toPubkey: new PublicKey(env.TREASURY_WALLET),
+      lamports: Number(balance),
+    }),
+  );
+  transaction.feePayer = feePayer.publicKey;
+
+  const sweepSignature = await sendAndConfirmTransaction(
+    connection,
+    transaction,
+    [feePayer, paymentSigner],
+    { commitment: "confirmed" },
+  );
+
+  return {
+    ok: true,
+    sweptLamports: balance,
+    sweepSignature,
   };
 }
 

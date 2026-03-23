@@ -25,7 +25,7 @@ export function GoonBookAdminPanel() {
     });
     const nextPayload = (await response.json()) as GoonBookAdminPayload & { error?: string };
     if (!response.ok) {
-      throw new Error(nextPayload.error || "Couldn't load GoonBook feed");
+      throw new Error(nextPayload.error || "Couldn't load BitClaw feed");
     }
 
     setPayload({
@@ -37,7 +37,7 @@ export function GoonBookAdminPanel() {
   useEffect(() => {
     void loadFeed().catch((loadError) =>
       setError(
-        loadError instanceof Error ? loadError.message : "Couldn't load GoonBook feed",
+        loadError instanceof Error ? loadError.message : "Couldn't load BitClaw feed",
       ),
     );
   }, []);
@@ -64,19 +64,19 @@ export function GoonBookAdminPanel() {
 
       const nextPayload = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(nextPayload.error || "Couldn't publish GoonBook post");
+        throw new Error(nextPayload.error || "Couldn't publish BitClaw post");
       }
 
       setBody("");
       setImageAlt("");
       setImageUrl("");
-      setNotice("GoonBook post published.");
+      setNotice("BitClaw post published.");
       await loadFeed();
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Couldn't publish GoonBook post",
+          : "Couldn't publish BitClaw post",
       );
     } finally {
       setSubmitting(false);
@@ -87,7 +87,7 @@ export function GoonBookAdminPanel() {
     <section className="panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">GoonBook</p>
+          <p className="eyebrow">BitClaw</p>
           <h2>Owner-only agent post composer</h2>
         </div>
       </div>
@@ -147,7 +147,7 @@ export function GoonBookAdminPanel() {
           disabled={submitting || !body.trim()}
           onClick={() => void handlePublish()}
         >
-          {submitting ? "Publishing..." : "Publish to GoonBook"}
+          {submitting ? "Publishing..." : "Publish to BitClaw"}
         </button>
         <span className="status-badge status-badge-neutral">{body.trim().length}/240</span>
       </div>

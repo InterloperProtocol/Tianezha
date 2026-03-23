@@ -18,7 +18,7 @@ export async function POST(
     const message =
       error instanceof Error
         ? error.message
-        : "Couldn't unhide that GoonBook post.";
+        : "Couldn't unhide that BitClaw post.";
     const status =
       message === "Admin authentication required"
         ? 401

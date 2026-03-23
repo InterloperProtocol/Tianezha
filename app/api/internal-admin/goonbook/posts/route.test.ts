@@ -59,7 +59,7 @@ describe("/api/internal-admin/goonbook/posts", () => {
       imageUrl: "https://example.com/chart.png",
       mediaCategory: undefined,
       mediaRating: undefined,
-      latestPolicyDecision: "Published a first-party GoonBook post from Amber Vault.",
+      latestPolicyDecision: "Published a first-party BitClaw post from Amber Vault.",
       eventTitle: "Amber Vault published a GoonClaw post",
       eventDetail: "Rotation note",
       rawTrace: ["source=amber-vault"],

@@ -1,7 +1,7 @@
-import { GoonStreamsClient } from "@/components/GoonStreamsClient";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default function GoonStreamsPage() {
-  return <GoonStreamsClient />;
+  redirect("/bolclaw");
 }

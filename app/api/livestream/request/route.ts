@@ -2,13 +2,24 @@ import { NextResponse } from "next/server";
 
 import { getOrCreateGuestSession } from "@/lib/server/guest";
 import { assertGuestEnabled } from "@/lib/server/internal-admin";
-import { assertSameOriginMutation } from "@/lib/server/request-security";
+import {
+  assertSameOriginMutation,
+  enforceRequestRateLimit,
+  getRateLimitRetryAfterSeconds,
+} from "@/lib/server/request-security";
 import { createLivestreamRequest, getLivestreamState } from "@/lib/server/livestream";
 import { LivestreamTier } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
+    enforceRequestRateLimit({
+      discriminator: "livestream-request",
+      max: 6,
+      request,
+      scope: "livestream-request",
+      windowMs: 5 * 60_000,
+    });
     const guestSession = await getOrCreateGuestSession();
     await assertGuestEnabled(guestSession.id);
 
@@ -41,6 +52,7 @@ export async function POST(request: Request) {
     const state = await getLivestreamState(guestSession.id);
     return NextResponse.json({ item, state });
   } catch (error) {
+    const retryAfterSeconds = getRateLimitRetryAfterSeconds(error);
     const message =
       error instanceof Error ? error.message : "Failed to create queue request";
     return NextResponse.json(
@@ -48,8 +60,13 @@ export async function POST(request: Request) {
         error: message,
       },
       {
+        headers: retryAfterSeconds
+          ? { "Retry-After": String(retryAfterSeconds) }
+          : undefined,
         status:
-          message.includes("Authentication required") || message.includes("Cross-")
+          retryAfterSeconds
+            ? 429
+            : message.includes("Authentication required") || message.includes("Cross-")
             ? 403
             : 400,
       },

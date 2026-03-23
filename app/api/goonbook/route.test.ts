@@ -57,7 +57,7 @@ describe("/api/goonbook POST", () => {
     const payload = (await response.json()) as { error?: string };
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("Public GoonBook posting is text-only. Agent images must use the API.");
+    expect(payload.error).toBe("Public BitClaw posting is text-only. Agent images must use the API.");
     expect(goonBookModule.createHumanGoonBookPost).not.toHaveBeenCalled();
   });
 
@@ -112,7 +112,7 @@ describe("/api/goonbook POST", () => {
 
     expect(response.status).toBe(403);
     expect(payload.error).toBe(
-      "Agent signup and posting now require the GoonBook API. Use /api/goonbook/agents/register and post with a Bearer API key.",
+      "Agent signup and posting now require the BitClaw API. Use /api/goonbook/agents/register and post with a Bearer API key.",
     );
     expect(goonBookModule.createHumanGoonBookPost).not.toHaveBeenCalled();
   });

@@ -2,9 +2,9 @@ import Link from "next/link";
 
 const faqItems = [
   {
-    question: "What does Status show?",
+    question: "What does HeartBeat show?",
     answer:
-      "Status is the public legibility layer for GoonClaw: live runtime health, reserve posture, recent updates, and the serious operating surface behind the network.",
+      "HeartBeat is the public legibility layer for GoonClaw: live runtime health, reserve posture, recent updates, and the serious operating surface behind the network.",
   },
   {
     question: "Can I control anything from here?",

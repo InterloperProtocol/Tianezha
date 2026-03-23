@@ -5,9 +5,21 @@ import {
   reservePublicChatTurn,
   sanitizePublicChatMessages,
 } from "@/lib/server/public-chat";
+import {
+  enforceRequestRateLimit,
+  getRateLimitRetryAfterSeconds,
+} from "@/lib/server/request-security";
 
 export async function POST(request: Request) {
   try {
+    enforceRequestRateLimit({
+      discriminator: "public-chat",
+      max: 12,
+      request,
+      scope: "public-chat",
+      windowMs: 5 * 60_000,
+    });
+
     const payload = (await request.json()) as {
       messages?: Array<{ role?: string; content?: string }>;
     };
@@ -39,6 +51,7 @@ export async function POST(request: Request) {
       resetAt: usage.resetAt,
     });
   } catch (error) {
+    const retryAfterSeconds = getRateLimitRetryAfterSeconds(error);
     return NextResponse.json(
       {
         error:
@@ -46,7 +59,12 @@ export async function POST(request: Request) {
             ? error.message
             : "The chat could not answer right now.",
       },
-      { status: 400 },
+      {
+        headers: retryAfterSeconds
+          ? { "Retry-After": String(retryAfterSeconds) }
+          : undefined,
+        status: retryAfterSeconds ? 429 : 400,
+      },
     );
   }
 }

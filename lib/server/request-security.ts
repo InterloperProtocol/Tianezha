@@ -150,50 +150,59 @@ function isBlockedAddress(ip: string, allowLocalNetwork: boolean) {
   return !allowLocalNetwork && isPrivateIpv4(ip);
 }
 
-function normalizeHttpUrl(rawUrl: string) {
+type SafeExternalHttpUrlOptions = {
+  allowLocalNetwork?: boolean;
+  label?: string;
+};
+
+function normalizeHttpUrl(rawUrl: string, label: string) {
   let parsed: URL;
 
   try {
     parsed = new URL(rawUrl.trim());
   } catch {
-    throw new Error("REST device endpoint must be a valid absolute URL");
+    throw new Error(`${label} must be a valid absolute URL`);
   }
 
   if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new Error("REST device endpoint must use http or https");
+    throw new Error(`${label} must use http or https`);
   }
 
   if (!parsed.hostname) {
-    throw new Error("REST device endpoint must include a hostname");
+    throw new Error(`${label} must include a hostname`);
   }
 
   if (parsed.username || parsed.password) {
-    throw new Error("REST device endpoint must not embed credentials in the URL");
+    throw new Error(`${label} must not embed credentials in the URL`);
   }
 
   parsed.hash = "";
   return parsed;
 }
 
-export async function assertSafeRestEndpointUrl(rawUrl: string) {
-  const parsed = normalizeHttpUrl(rawUrl);
+export async function assertSafeExternalHttpUrl(
+  rawUrl: string,
+  options: SafeExternalHttpUrlOptions = {},
+) {
+  const label = options.label?.trim() || "URL";
+  const parsed = normalizeHttpUrl(rawUrl, label);
   const hostname = parsed.hostname.toLowerCase();
-  const allowLocalNetwork = getServerEnv().NODE_ENV !== "production";
+  const allowLocalNetwork = options.allowLocalNetwork ?? false;
 
   if (hostname === "metadata.google.internal") {
-    throw new Error("REST device endpoint must not target cloud metadata hosts");
+    throw new Error(`${label} must not target cloud metadata hosts`);
   }
 
   if (
     (hostname === "localhost" || hostname.endsWith(".localhost")) &&
     !allowLocalNetwork
   ) {
-    throw new Error("REST device endpoint must not target localhost in production");
+    throw new Error(`${label} must not target localhost`);
   }
 
   if (isIP(hostname)) {
     if (isBlockedAddress(hostname, allowLocalNetwork)) {
-      throw new Error("REST device endpoint must not target private or metadata addresses");
+      throw new Error(`${label} must not target private or metadata addresses`);
     }
 
     return parsed.toString();
@@ -202,21 +211,28 @@ export async function assertSafeRestEndpointUrl(rawUrl: string) {
   try {
     const resolved = await lookup(hostname, { all: true, verbatim: true });
     if (!resolved.length) {
-      throw new Error("REST device endpoint hostname did not resolve");
+      throw new Error(`${label} hostname did not resolve`);
     }
 
     if (resolved.some((entry) => isBlockedAddress(entry.address, allowLocalNetwork))) {
-      throw new Error("REST device endpoint must not resolve to private or metadata addresses");
+      throw new Error(`${label} must not resolve to private or metadata addresses`);
     }
   } catch (error) {
     if (error instanceof Error && error.message.includes("must not")) {
       throw error;
     }
 
-    throw new Error("REST device endpoint could not be resolved safely");
+    throw new Error(`${label} could not be resolved safely`);
   }
 
   return parsed.toString();
+}
+
+export async function assertSafeRestEndpointUrl(rawUrl: string) {
+  return assertSafeExternalHttpUrl(rawUrl, {
+    allowLocalNetwork: getServerEnv().NODE_ENV !== "production",
+    label: "REST device endpoint",
+  });
 }
 
 export function enforceRequestRateLimit(args: {

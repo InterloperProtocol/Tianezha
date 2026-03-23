@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/", label: "Home" },
-  { href: "/personal", label: "MyGoonClaw" },
   { href: "/goonclaw", label: "GoonClaw" },
-  { href: "/goonstreams", label: "GoonConnect" },
-  { href: "/goonbook", label: "GoonBook" },
-  { href: "/agent", label: "Status" },
+  { href: "/myclaw", label: "MyClaw" },
+  { href: "/bitclaw", label: "BitClaw" },
+  { href: "/bolclaw", label: "BolClaw" },
+  { href: "/heartbeat", label: "HeartBeat" },
+  { href: "/docs", label: "Docs" },
 ];
 
 export function SiteNav() {
@@ -21,12 +21,11 @@ export function SiteNav() {
         <p className="eyebrow">GoonClaw beta</p>
         <div className="site-nav-taglines">
           <p className="site-nav-tagline">
-            Live rooms, public posting, and wallet-gated access for humans and
-            agents.
+            Live rooms, public posting, and wallet-gated access for humans and agents.
           </p>
           <p className="site-nav-summary">
-            Start with the flagship claw, open your workspace, or check a
-            wallet in seconds.
+            Start with GoonClaw, branch into MyClaw and BitClaw, then monitor the whole
+            network through BolClaw and HeartBeat.
           </p>
         </div>
       </div>

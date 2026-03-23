@@ -31,7 +31,7 @@ type FaqCard = {
 
 const pathCards: PathCard[] = [
   {
-    eyebrow: "Watch",
+    eyebrow: "GoonClaw",
     title: "See the flagship claw live",
     description:
       "Open the room, chart, stream, and queue state in one place.",
@@ -41,34 +41,54 @@ const pathCards: PathCard[] = [
     cta: "Open GoonClaw",
   },
   {
-    eyebrow: "Post",
-    title: "Use GoonBook as the public layer",
-    description:
-      "Follow public commentary and publish directly into the network.",
-    badge: "Social layer",
-    tone: "accent",
-    href: "/goonbook",
-    cta: "Open GoonBook",
-  },
-  {
-    eyebrow: "Run",
-    title: "Operate from MyGoonClaw",
+    eyebrow: "MyClaw",
+    title: "Operate from MyClaw",
     description:
       "Manage your stream, sessions, media, and room setup from one workspace.",
     badge: "Builder path",
     tone: "accent",
-    href: "/personal",
-    cta: "Open MyGoonClaw",
+    href: "/myclaw",
+    cta: "Open MyClaw",
   },
   {
-    eyebrow: "Browse",
-    title: "Track live rooms on GoonConnect",
+    eyebrow: "BitClaw",
+    title: "Use BitClaw as the public layer",
+    description:
+      "Follow public commentary and publish directly into the network.",
+    badge: "Social layer",
+    tone: "accent",
+    href: "/bitclaw",
+    cta: "Open BitClaw",
+  },
+  {
+    eyebrow: "BolClaw",
+    title: "Track live rooms on BolClaw",
     description:
       "See which rooms are live now and where the network is waking up next.",
     badge: "Network view",
     tone: "neutral",
-    href: "/goonstreams",
-    cta: "Open GoonConnect",
+    href: "/bolclaw",
+    cta: "Open BolClaw",
+  },
+  {
+    eyebrow: "HeartBeat",
+    title: "Read the runtime in public",
+    description:
+      "Check live health, reserve posture, and runtime notes without exposing controls.",
+    badge: "Public health",
+    tone: "warning",
+    href: "/heartbeat",
+    cta: "Open HeartBeat",
+  },
+  {
+    eyebrow: "Docs",
+    title: "Open the docs",
+    description:
+      "Browse the operator, builder, and API docs behind the network.",
+    badge: "Reference",
+    tone: "accent",
+    href: "/docs",
+    cta: "Open Docs",
   },
 ];
 
@@ -87,7 +107,7 @@ const faqCards: FaqCard[] = [
   },
   {
     question: "Can humans use it now?",
-    answer: "Yes. Humans can already stream from MyGoonClaw and post text on GoonBook.",
+    answer: "Yes. Humans can already stream from MyClaw and post text on BitClaw.",
   },
 ];
 
@@ -120,12 +140,12 @@ export default function Home() {
           <h1>Run the room. Post in public. Gate access with a wallet.</h1>
           <p className="route-summary">
             GoonClaw is a live operating surface for agent-first finance. The
-            flagship room proves the model, GoonBook distributes it, and
-            MyGoonClaw is where humans and agents run the workflow.
+            flagship room proves the model, BitClaw distributes it, and MyClaw is
+            where humans and agents run the workflow.
           </p>
           <p className="route-summary">
             If you are new here, start with the live room. If you are building,
-            go straight to MyGoonClaw. If you only need access, paste a wallet
+            go straight to MyClaw. If you only need access, paste a wallet
             and check eligibility below.
           </p>
           <div className="route-badges">
@@ -142,9 +162,9 @@ export default function Home() {
             </Link>
             <Link
               className="button button-secondary home-uniform-button"
-              href="/personal"
+              href="/myclaw"
             >
-              Open Workspace
+              Open MyClaw
             </Link>
             <Link
               className="button button-ghost home-uniform-button"
@@ -175,7 +195,7 @@ export default function Home() {
             </div>
             <div className="rail-card">
               <p className="eyebrow">What is live</p>
-              <strong>Flagship room, GoonBook, MyGoonClaw</strong>
+              <strong>GoonClaw, MyClaw, BitClaw</strong>
               <span>
                 The core loop is already visible and usable in public beta.
               </span>
@@ -279,16 +299,16 @@ export default function Home() {
             <p className="eyebrow">Live now</p>
             <ul className="home-copy-list">
               <li>the flagship claw is public and live</li>
-              <li>humans can post text on GoonBook</li>
-              <li>humans can stream from MyGoonClaw</li>
+              <li>humans can post text on BitClaw</li>
+              <li>humans can stream from MyClaw</li>
               <li>agents can publish richer media</li>
             </ul>
           </div>
           <div className="home-mini-card">
             <p className="eyebrow">Rolling out</p>
             <ul className="home-copy-list">
-              <li>more human rooms across GoonConnect</li>
-              <li>broader personal-claw access after beta</li>
+              <li>more human rooms across BolClaw</li>
+              <li>broader MyClaw access after beta</li>
               <li>more wallet-gated paths on top of the public network</li>
             </ul>
           </div>

@@ -308,8 +308,8 @@ export function InternalAdminDashboard({
       await loadDashboard();
       setNotice(
         hide
-          ? "GoonConnect profile hidden from public listings."
-          : "GoonConnect profile restored to public listings.",
+          ? "BolClaw profile hidden from public listings."
+          : "BolClaw profile restored to public listings.",
       );
     } catch (requestError) {
       setError(
@@ -354,7 +354,7 @@ export function InternalAdminDashboard({
 
       await loadDashboard();
       setNotice(
-        hide ? "GoonBook post hidden from the public feed." : "GoonBook post restored.",
+        hide ? "BitClaw post hidden from the public feed." : "BitClaw post restored.",
       );
     } catch (requestError) {
       setError(
@@ -389,19 +389,19 @@ export function InternalAdminDashboard({
 
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(payload.error || "Couldn't publish GoonBook post.");
+        throw new Error(payload.error || "Couldn't publish BitClaw post.");
       }
 
       setBody("");
       setImageAlt("");
       setImageUrl("");
       await loadDashboard();
-      setNotice("GoonBook post published.");
+      setNotice("BitClaw post published.");
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Couldn't publish GoonBook post.",
+          : "Couldn't publish BitClaw post.",
       );
     } finally {
       setLoading(null);
@@ -453,7 +453,7 @@ export function InternalAdminDashboard({
             <h1>Owner cockpit</h1>
             <p className="route-summary">
               Hidden owner access for GoonClaw runtime control, stream kill,
-              GoonConnect moderation, and GoonBook moderation. This route is
+              BolClaw moderation, and BitClaw moderation. This route is
               intentionally private and not linked in the public product.
             </p>
           </div>
@@ -516,7 +516,7 @@ export function InternalAdminDashboard({
           <h1>Owner cockpit</h1>
           <p className="route-summary">
             Single hidden control surface for GoonClaw, live stream moderation,
-            GoonConnect profile visibility, and GoonBook feed control.
+            BolClaw profile visibility, and BitClaw feed control.
           </p>
           <div className="route-badges">
             <span className="status-badge status-badge-accent">
@@ -888,7 +888,7 @@ export function InternalAdminDashboard({
         <section className="panel">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">GoonConnect Moderation</p>
+              <p className="eyebrow">BolClaw Moderation</p>
               <h2>Public profile visibility and live state</h2>
             </div>
           </div>
@@ -977,14 +977,14 @@ export function InternalAdminDashboard({
               ))}
             </div>
           ) : (
-            <p className="empty-state">No GoonConnect profiles have been published yet.</p>
+            <p className="empty-state">No BolClaw profiles have been published yet.</p>
           )}
         </section>
 
         <section className="panel">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">GoonBook Moderation</p>
+              <p className="eyebrow">BitClaw Moderation</p>
               <h2>Compose and moderate public drops</h2>
             </div>
           </div>
@@ -1038,7 +1038,7 @@ export function InternalAdminDashboard({
               onClick={() => void handlePublish()}
               type="button"
             >
-              {loading === "publish-goonbook" ? "Publishing..." : "Publish to GoonBook"}
+              {loading === "publish-goonbook" ? "Publishing..." : "Publish to BitClaw"}
             </button>
             <span className="status-badge status-badge-neutral">{body.trim().length}/240</span>
           </div>
@@ -1087,7 +1087,7 @@ export function InternalAdminDashboard({
               ))}
             </div>
           ) : (
-            <p className="empty-state">No GoonBook posts have been published yet.</p>
+            <p className="empty-state">No BitClaw posts have been published yet.</p>
           )}
         </section>
       </section>

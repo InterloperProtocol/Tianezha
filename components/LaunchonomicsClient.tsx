@@ -10,15 +10,6 @@ type Props = {
   launchAt: string;
 };
 
-function formatDate(value?: string) {
-  if (!value) return "Not configured";
-  return new Date(value).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "America/New_York",
-  });
-}
-
 export function LaunchonomicsClient({
   accessTokenSymbol,
   freeAccessUntil,
@@ -45,14 +36,14 @@ export function LaunchonomicsClient({
         rail={
           <div className="rail-grid">
             <div className="rail-card">
-              <p className="eyebrow">Open access ends</p>
-              <strong>{formatDate(freeAccessUntil)}</strong>
-              <span>Open access stays on until then.</span>
+              <p className="eyebrow">Wallet lookup</p>
+              <strong>Paste a Solana address</strong>
+              <span>Check access without connecting a wallet.</span>
             </div>
             <div className="rail-card">
-              <p className="eyebrow">Launch window starts</p>
-              <strong>{launchAt ? formatDate(launchAt) : "Awaiting config"}</strong>
-              <span>This date sets the access window.</span>
+              <p className="eyebrow">Claim path</p>
+              <strong>Send access from the result</strong>
+              <span>If the wallet qualifies, you can issue access from the same screen.</span>
             </div>
           </div>
         }

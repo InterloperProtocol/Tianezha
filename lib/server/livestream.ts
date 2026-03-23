@@ -21,7 +21,11 @@ import {
   PUBLIC_LIVESTREAM_DEVICE_ID,
   PUBLIC_LIVESTREAM_OWNER_ID,
 } from "@/lib/server/runtime-constants";
-import { verifyMemoTransferToTreasury } from "@/lib/server/solana";
+import {
+  createDedicatedPaymentAddress,
+  sweepDedicatedPaymentToTreasury,
+  verifyTransferToAddress,
+} from "@/lib/server/solana";
 import {
   LivestreamRequestRecord,
   LivestreamTier,
@@ -50,7 +54,12 @@ function getActivationQueue(
   requests: LivestreamRequestRecord[],
 ) {
   return [...requests]
-    .filter((request) => request.status === "pending" && request.signature)
+    .filter(
+      (request) =>
+        request.status === "pending" &&
+        request.signature &&
+        request.sweepStatus === "swept",
+    )
     .sort((left, right) => {
       if (left.tier !== right.tier) {
         return left.tier === "priority" ? -1 : 1;
@@ -63,6 +72,7 @@ function isPaymentWindowExpired(request: LivestreamRequestRecord) {
   return (
     request.status === "pending" &&
     !request.signature &&
+    !request.paymentConfirmedAt &&
     new Date(request.createdAt).getTime() + PAYMENT_WINDOW_MS < Date.now()
   );
 }
@@ -324,6 +334,10 @@ function serializeLivestreamRequest(request: LivestreamRequestRecord) {
     memo: request.memo,
     tier: request.tier,
     amountLamports: request.amountLamports,
+    paymentAddress: request.paymentAddress,
+    paymentRouting: request.paymentRouting,
+    receivedLamports: request.receivedLamports,
+    paymentConfirmedAt: request.paymentConfirmedAt,
     status: request.status,
     createdAt: request.createdAt,
     updatedAt: request.updatedAt,
@@ -336,6 +350,11 @@ function serializeLivestreamRequest(request: LivestreamRequestRecord) {
     sessionId: request.sessionId,
     walletMemo: request.walletMemo,
     walletSummary: request.walletSummary,
+    sweepStatus: request.sweepStatus,
+    sweepSignature: request.sweepSignature,
+    sweptLamports: request.sweptLamports,
+    lastSweepAt: request.lastSweepAt,
+    sweepError: request.sweepError,
     error: request.error,
   };
 }
@@ -427,6 +446,7 @@ export async function createLivestreamRequest(
   }
 
   const timestamp = nowIso();
+  const payment = createDedicatedPaymentAddress();
   const request: LivestreamRequestRecord = {
     id: randomUUID(),
     guestId,
@@ -434,6 +454,12 @@ export async function createLivestreamRequest(
     memo: await generateUniqueMemo(),
     tier,
     amountLamports: getTierPriceLamports(tier).toString(),
+    paymentAddress: payment.paymentAddress,
+    paymentRouting: "dedicated_address",
+    paymentSecretCiphertext: payment.paymentSecretCiphertext,
+    receivedLamports: "0",
+    sweepStatus: "pending",
+    sweptLamports: "0",
     status: "pending",
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -456,6 +482,10 @@ export async function verifyLivestreamRequestPayment(
     throw new Error("This request can no longer be paid");
   }
 
+  if (request.signature && request.sweepStatus === "swept") {
+    throw new Error("This request is already paid and queued.");
+  }
+
   if (isPaymentWindowExpired(request)) {
     await upsertLivestreamRequest({
       ...request,
@@ -464,7 +494,7 @@ export async function verifyLivestreamRequestPayment(
       completedAt: nowIso(),
       error: "Payment window expired",
     });
-    throw new Error("This payment memo expired. Generate a new request.");
+    throw new Error("This payment window expired. Generate a new payment address.");
   }
 
   const duplicateSignature = await getLivestreamRequestBySignature(signature);
@@ -472,10 +502,16 @@ export async function verifyLivestreamRequestPayment(
     throw new Error("That transaction signature is already tied to another request");
   }
 
-  const verification = await verifyMemoTransferToTreasury(
+  if (!request.paymentAddress || !request.paymentSecretCiphertext) {
+    throw new Error("This request is missing its dedicated payment wallet.");
+  }
+  const paymentAddress = request.paymentAddress;
+  const paymentSecretCiphertext = request.paymentSecretCiphertext;
+
+  const verification = await verifyTransferToAddress(
     signature,
     BigInt(request.amountLamports),
-    request.memo,
+    paymentAddress,
   );
   if (!verification.ok) {
     throw new Error(verification.error || "Payment verification failed");
@@ -484,14 +520,40 @@ export async function verifyLivestreamRequestPayment(
   const walletAnalytics = verification.payerWallet
     ? await fetchWalletAnalytics(verification.payerWallet)
     : null;
+  const paymentConfirmedAt = nowIso();
+  const sweep = await sweepDedicatedPaymentToTreasury({
+    paymentSecretCiphertext,
+    expectedMinimumLamports: verification.lamports,
+  });
+
+  if (!sweep.ok) {
+    await upsertLivestreamRequest({
+      ...request,
+      updatedAt: paymentConfirmedAt,
+      receivedLamports: verification.lamports.toString(),
+      paymentConfirmedAt,
+      sweepStatus: "failed",
+      sweptLamports: sweep.sweptLamports.toString(),
+      sweepError: sweep.error || "Failed to sweep the dedicated payment wallet.",
+      error: sweep.error || "Failed to sweep the dedicated payment wallet.",
+    });
+    throw new Error(sweep.error || "Failed to sweep the dedicated payment wallet.");
+  }
 
   await upsertLivestreamRequest({
     ...request,
-    updatedAt: nowIso(),
+    updatedAt: paymentConfirmedAt,
     signature,
     payerWallet: verification.payerWallet,
+    receivedLamports: verification.lamports.toString(),
+    paymentConfirmedAt,
     walletMemo: walletAnalytics?.walletMemo || null,
     walletSummary: walletAnalytics?.narrativeSummary || null,
+    sweepStatus: "swept",
+    sweepSignature: sweep.sweepSignature,
+    sweptLamports: sweep.sweptLamports.toString(),
+    lastSweepAt: paymentConfirmedAt,
+    sweepError: undefined,
   });
 
   await syncLivestreamQueue();

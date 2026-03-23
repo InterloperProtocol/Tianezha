@@ -97,7 +97,7 @@ export function PublicStreamSettingsPanel({
             </div>
             <div className="detail">
               <dt>What goes live</dt>
-              <dd>Your chart focus, current stream, and live session state.</dd>
+              <dd>Your chart focus, current stream, and live session state on BolClaw.</dd>
             </div>
           </dl>
         ) : null}

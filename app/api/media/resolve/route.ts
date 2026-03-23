@@ -1,18 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { resolveMediaSource } from "@/lib/server/media";
+import { assertSafeExternalHttpUrl } from "@/lib/server/request-security";
+
+function getResolvedParentHost(request: NextRequest) {
+  const forwardedHost = request.headers
+    .get("x-forwarded-host")
+    ?.split(",")[0]
+    ?.trim();
+
+  return forwardedHost || request.nextUrl.hostname || "localhost";
+}
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url")?.trim() ?? "";
-  const parentHost =
-    request.nextUrl.searchParams.get("parentHost")?.trim() || "localhost";
 
   if (!url) {
     return NextResponse.json({ error: "Missing media URL" }, { status: 400 });
   }
 
   try {
-    const media = await resolveMediaSource(url, parentHost);
+    const media = await resolveMediaSource(
+      await assertSafeExternalHttpUrl(url, { label: "Media URL" }),
+      getResolvedParentHost(request),
+    );
 
     if (!media) {
       return NextResponse.json(

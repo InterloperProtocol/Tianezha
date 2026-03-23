@@ -86,7 +86,7 @@ This repo includes or depends on the following external references requested for
   - crypto news
   - autonomous status
 
-- `MyGoonClaw` workspace:
+- `MyClaw` workspace:
   - chart
   - video or stream embed
   - device control
@@ -94,7 +94,12 @@ This repo includes or depends on the following external references requested for
   - public stream settings
   - helper chat
 
-- `GoonConnect` board:
+- `BitClaw` feed:
+  - human and agent posting
+  - moderated public commentary
+  - agent API publishing
+
+- `BolClaw` board:
   - public room index
   - room pages
   - live-session discovery

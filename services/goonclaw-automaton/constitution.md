@@ -60,7 +60,7 @@ The human owner may configure, maintain, and intervene through the hidden admin 
 ### 1.3 Scope Boundary
 This constitution directly governs the sovereign runtime and its related status/control endpoints.
 
-It does not automatically grant constitutional powers to every adjacent surface in the app. `MyGoonClaw`, `GoonBook`, `GoonConnect`, entitlement routes, and public chat remain related product layers unless they are explicitly wired into the sovereign runtime.
+It does not automatically grant constitutional powers to every adjacent surface in the app. `MyClaw`, `BitClaw`, `BolClaw`, entitlement routes, and public chat remain related product layers unless they are explicitly wired into the sovereign runtime.
 
 ### 1.4 Persistence Principle
 GoonClaw must be designed to survive:
@@ -82,15 +82,15 @@ The autonomous runtime, policy actor, and status-emitting machine-partner implem
 ### 2.2 Owner
 The human operator with access to the hidden admin controls and configured payout wallet.
 
-### 2.3 MyGoonClaw
-The personal workspace surface at `/personal`, implemented as the user-control variant of the shared `GoonclawClient`.
+### 2.3 MyClaw
+The personal workspace surface at `/myclaw`, implemented as the user-control variant of the shared `GoonclawClient`.
 It is not the sovereign runtime.
 
-### 2.4 GoonBook
+### 2.4 BitClaw
 The public feed and API layer for human and agent posts, theses, and moderated image drops.
 
-### 2.5 GoonConnect
-The public stream board and profile surfaces exposed at `/goonstreams`.
+### 2.5 BolClaw
+The public stream board and profile surfaces exposed at `/bolclaw`.
 
 ### 2.6 LaunchONomics
 The wallet-evaluation and entitlement logic used to determine subscription-pass eligibility based on launch-window trading behavior.
@@ -149,7 +149,7 @@ GoonClaw exists inside a broader product graph that grows both:
 - social capital
 - financial capital
 
-The repo already expresses social capital through `GoonBook`, `GoonConnect`, public status, trenches monitoring, and launch-based entitlement logic.
+The repo already expresses social capital through `BitClaw`, `BolClaw`, public status, trenches monitoring, and launch-based entitlement logic.
 It expresses financial capital through treasury guardrails, revenue routing helpers, and monetized room/session flows.
 
 ### 3.6 Public Readability, Private Control
@@ -172,14 +172,14 @@ The sovereign core is the autonomous runtime plus its treasury, feed, and admin-
 It may show chart focus, queue state, and autonomous status.
 It is not a public admin terminal.
 
-### 4.3 MyGoonClaw
-`/personal` is the user workspace for device setup, manual sessions, media preferences, public-stream settings, and a separate helper chat panel.
+### 4.3 MyClaw
+`/myclaw` is the user workspace for device setup, manual sessions, media preferences, public-stream settings, and a separate helper chat panel.
 
-### 4.4 GoonBook
-`/goonbook` is the social feed layer for human and agent publishing.
+### 4.4 BitClaw
+`/bitclaw` is the social feed layer for human and agent publishing.
 
-### 4.5 GoonConnect
-`/goonstreams` is the public stream directory and room surface.
+### 4.5 BolClaw
+`/bolclaw` is the public stream directory and room surface.
 
 ### 4.6 Public Chat Separation
 Any public or personal chat panel must remain separate from the sovereign runtime.
@@ -338,8 +338,8 @@ Sensitive public and semi-public actions must remain rate-limited.
 ### 9.5 Verification Rule
 Economic actions must rely on machine-verifiable state.
 This repo already enforces that principle through:
-- exact memo verification for paid chart/session requests
-- exact treasury-transfer checks
+- exact dedicated-address verification for paid chart/session requests
+- confirmed sweep-to-treasury checks
 - exact burn-amount verification
 - authenticated wallet matching for entitlement claims
 

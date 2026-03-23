@@ -154,6 +154,9 @@ export interface StreamerControl {
   disabledAt?: string | null;
   disabledBy?: string | null;
   reason?: string | null;
+  hiddenAt?: string | null;
+  hiddenBy?: string | null;
+  hiddenReason?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -266,6 +269,9 @@ export interface StreamerControlsSelect<T extends boolean = true> {
   disabledAt?: T;
   disabledBy?: T;
   reason?: T;
+  hiddenAt?: T;
+  hiddenBy?: T;
+  hiddenReason?: T;
   updatedAt?: T;
   createdAt?: T;
 }

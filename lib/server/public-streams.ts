@@ -40,7 +40,7 @@ export function normalizePublicStreamSlug(value: string) {
 }
 
 export function buildPublicStreamPath(slug: string) {
-  return `/goonstreams/${slug}`;
+  return `/bolclaw/${slug}`;
 }
 
 export async function getCurrentPublicStreamProfile(guestId: string) {

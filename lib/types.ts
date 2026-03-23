@@ -120,6 +120,11 @@ export interface LivestreamRequestRecord {
   memo: string;
   tier: LivestreamTier;
   amountLamports: string;
+  paymentAddress?: string;
+  paymentRouting?: "dedicated_address";
+  paymentSecretCiphertext?: string;
+  receivedLamports?: string;
+  paymentConfirmedAt?: string;
   status: LivestreamRequestStatus;
   createdAt: string;
   updatedAt: string;
@@ -133,6 +138,11 @@ export interface LivestreamRequestRecord {
   sessionId?: string;
   walletMemo?: string | null;
   walletSummary?: string | null;
+  sweepStatus?: "pending" | "swept" | "failed";
+  sweepSignature?: string;
+  sweptLamports?: string;
+  lastSweepAt?: string;
+  sweepError?: string;
   error?: string;
 }
 

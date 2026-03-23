@@ -67,7 +67,7 @@ export function GoonStreamsClient() {
     <div className="app-shell">
       <SiteNav />
       <RouteHeader
-        eyebrow="GoonConnect"
+        eyebrow="BolClaw"
         title="The live room index."
         summary="See what is live, see who is broadcasting, and see where the next claw is waking up."
         badges={[

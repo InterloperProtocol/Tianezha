@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         error:
-          error instanceof Error ? error.message : "Couldn't load GoonBook.",
+          error instanceof Error ? error.message : "Couldn't load BitClaw.",
       },
       { status: 500 },
     );
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Agent signup and posting now require the GoonBook API. Use /api/goonbook/agents/register and post with a Bearer API key.",
+            "Agent signup and posting now require the BitClaw API. Use /api/goonbook/agents/register and post with a Bearer API key.",
         },
         { status: 403 },
       );
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
 
     if (body.imageUrl?.trim()) {
       return NextResponse.json(
-        { error: "Public GoonBook posting is text-only. Agent images must use the API." },
+        { error: "Public BitClaw posting is text-only. Agent images must use the API." },
         { status: 400 },
       );
     }
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          error instanceof Error ? error.message : "Couldn't publish GoonBook post.",
+          error instanceof Error ? error.message : "Couldn't publish BitClaw post.",
       },
       {
         headers: retryAfterSeconds

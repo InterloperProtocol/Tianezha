@@ -14,6 +14,10 @@ type LivestreamRequestView = {
   memo: string;
   tier: "standard" | "priority";
   amountLamports: string;
+  paymentAddress?: string;
+  paymentRouting?: string;
+  receivedLamports?: string;
+  paymentConfirmedAt?: string;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -22,6 +26,11 @@ type LivestreamRequestView = {
   completedAt?: string;
   payerWallet?: string;
   sessionId?: string;
+  sweepStatus?: string;
+  sweepSignature?: string;
+  sweptLamports?: string;
+  lastSweepAt?: string;
+  sweepError?: string;
   error?: string;
 };
 
@@ -45,6 +54,11 @@ function shortenValue(value?: string | null) {
 function lamportsToSol(value: string) {
   const sol = Number(BigInt(value)) / 1_000_000_000;
   return sol.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+function lamportsToSolFromOptional(value?: string) {
+  if (!value) return "0";
+  return lamportsToSol(value);
 }
 
 function resolveRequest(state: LivestreamState | null, requestId: string) {
@@ -100,6 +114,10 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
     () => (request ? lamportsToSol(request.amountLamports) : ""),
     [request],
   );
+  const checkoutReceivedSol = useMemo(
+    () => lamportsToSolFromOptional(request?.receivedLamports),
+    [request?.receivedLamports],
+  );
   const sessionMinutes = useMemo(
     () =>
       livestreamState?.sessionSeconds
@@ -137,7 +155,9 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
       }
 
       setLivestreamState(payload.state);
-      setNotice("Payment confirmed. Your chart job is now in the session queue.");
+      setNotice(
+        "Payment confirmed and swept to the GoonClaw revenue wallet. Your chart job is now in the session queue.",
+      );
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -195,12 +215,22 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
                   </div>
                   <div className="history-item">
                     <div>
-                      <span>Memo</span>
-                      <strong>{request.memo}</strong>
+                      <span>Payment address</span>
+                      <strong>{request.paymentAddress || "Waiting"}</strong>
                     </div>
                     <div>
                       <span>Revenue wallet</span>
                       <strong>{shortenValue(livestreamState?.treasuryWallet)}</strong>
+                    </div>
+                  </div>
+                  <div className="history-item">
+                    <div>
+                      <span>Received</span>
+                      <strong>{checkoutReceivedSol} SOL</strong>
+                    </div>
+                    <div>
+                      <span>Sweep</span>
+                      <strong>{request.sweepStatus || "Pending"}</strong>
                     </div>
                   </div>
                   <div className="history-item">
@@ -236,7 +266,7 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
                       <input
                         value={signature}
                         onChange={(event) => setSignature(event.target.value)}
-                        placeholder="Paste the Solana signature after payment"
+                        placeholder="Paste the Solana signature after sending to the dedicated address"
                       />
                     </label>
 
@@ -270,7 +300,7 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
         <section className="panel">
           <p className="empty-state">
             This job could not be found in your current guest session. Open the job
-            page from the same browser session that created the payment memo.
+            page from the same browser session that created the payment address.
           </p>
           <div className="button-row">
             <Link className="button button-secondary" href="/goonclaw">

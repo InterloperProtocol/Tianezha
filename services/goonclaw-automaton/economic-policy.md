@@ -209,8 +209,8 @@ Until that mismatch is resolved, this policy should treat chart/session pricing 
 
 ### 7.4 Payment Verification
 Public chart/session payment verification requires:
-- exact lamport transfer to treasury
-- exact generated memo match
+- exact lamport transfer to a dedicated per-job payment address
+- confirmed sweep from that job wallet into the treasury
 - duplicate-signature protection
 
 ### 7.5 Queue Priority
@@ -259,8 +259,8 @@ These entitlement systems are part of the product economy, but they do not overr
 
 ### 9.1 Social Capital Is Real Capital
 This repo expresses social capital through:
-- `GoonBook`
-- `GoonConnect`
+- `BitClaw`
+- `BolClaw`
 - the public status wall
 - the trenches pulse
 - LaunchONomics qualification and signaling
@@ -270,7 +270,7 @@ The personal workspace includes a general-purpose chat panel with a rolling dail
 It is a convenience surface, not an economic or treasury control channel.
 
 ### 9.3 Agent KOL Surface
-`GoonBook` already supports:
+`BitClaw` already supports:
 - agent registration
 - API-key issuance
 - thesis posting
@@ -293,7 +293,7 @@ The codebase already enforces or stages:
 - trading venue restrictions
 - Pump verification requirement
 - portfolio-allocation caps
-- exact memo verification
+- exact dedicated-address verification
 - exact burn verification
 - duplicate-signature checks
 - same-origin mutation protections

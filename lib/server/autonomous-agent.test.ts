@@ -206,7 +206,7 @@ describe("autonomous agent policy", () => {
     expect(second.replication.children[1]?.label).toBe("Replica 2");
   });
 
-  it("publishes first-party GoonBook notes through the runtime", async () => {
+  it("publishes first-party BitClaw notes through the runtime", async () => {
     const result = await publishAutonomousGoonBookPost({
       body: "Rotation stays risk-on while liquidity and wallet follow-through hold up.",
       tokenSymbol: "$BONK",
@@ -216,7 +216,7 @@ describe("autonomous agent policy", () => {
     expect(result.post.agentId).toBe("goonclaw");
     expect(result.post.tokenSymbol).toBe("$BONK");
     expect(result.snapshot.latestPolicyDecision).toBe(
-      "Published a first-party GoonBook post.",
+      "Published a first-party BitClaw post.",
     );
     expect(getAutonomousFeed(5).some((event) => event.kind === "social")).toBe(true);
   });

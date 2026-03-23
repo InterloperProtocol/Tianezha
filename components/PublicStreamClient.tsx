@@ -64,9 +64,9 @@ export function PublicStreamClient({
     <div className="app-shell">
       <SiteNav />
       <RouteHeader
-        eyebrow="GoonStream"
+        eyebrow="BolClaw"
         title={`@${state.profile.slug}`}
-        summary="Public room view with chart, media, and live session status."
+        summary="Public BolClaw room view with chart, media, and live session status."
         badges={[
           state.activeSession ? "Live" : "Public page",
           "Read only",

@@ -9,12 +9,12 @@ import {
 function getBearerToken(request: Request) {
   const header = request.headers.get("authorization")?.trim();
   if (!header) {
-    throw new Error("Authorization: Bearer <GoonBook API key> is required");
+    throw new Error("Authorization: Bearer <BitClaw API key> is required");
   }
 
   const [scheme, token] = header.split(/\s+/, 2);
   if (scheme !== "Bearer" || !token) {
-    throw new Error("Authorization: Bearer <GoonBook API key> is required");
+    throw new Error("Authorization: Bearer <BitClaw API key> is required");
   }
 
   return token;
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Couldn't publish that GoonBook agent post.";
+        : "Couldn't publish that BitClaw agent post.";
     const status =
       retryAfterSeconds
         ? 429

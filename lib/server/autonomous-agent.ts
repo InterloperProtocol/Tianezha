@@ -177,14 +177,14 @@ export async function publishAutonomousGoonBookPost(input: {
   const nextSnapshot: AutonomousSnapshot = {
     ...(input.snapshot ?? getAutonomousSnapshot()),
     latestPolicyDecision:
-      input.latestPolicyDecision?.trim() || "Published a first-party GoonBook post.",
+      input.latestPolicyDecision?.trim() || "Published a first-party BitClaw post.",
   };
   setAutonomousSnapshot(nextSnapshot);
 
   emitAutonomousFeedEvent(
     createEvent(
       "social",
-      input.eventTitle?.trim() || "GoonBook post published",
+      input.eventTitle?.trim() || "BitClaw post published",
       input.eventDetail?.trim() || summarizeAutonomousSocialPost(post.body),
       [
         `postId=${post.id}`,
@@ -1499,7 +1499,7 @@ async function refreshMarketIntelSnapshot(
     ) {
       const postedDecision = preservePrimaryDecision
         ? snapshot.latestPolicyDecision
-        : `Posted ${topCard.symbol} market card to GoonBook.`;
+        : `Posted ${topCard.symbol} market card to BitClaw.`;
       const { post, snapshot: postedSnapshot } = await publishAutonomousGoonBookPost({
         snapshot: nextSnapshot,
         body: buildMarketCardPostBody(topCard),
@@ -1507,7 +1507,7 @@ async function refreshMarketIntelSnapshot(
         tokenSymbol: `$${topCard.symbol}`,
         tradeCard: topCard,
         latestPolicyDecision: postedDecision,
-        eventTitle: "GoonBook trade card posted",
+        eventTitle: "BitClaw trade card posted",
         eventDetail: `Posted ${topCard.symbol} from the live heartbeat tape.`,
         rawTrace: [
           `candidateMint=${topCard.mint}`,
@@ -1521,7 +1521,7 @@ async function refreshMarketIntelSnapshot(
         ...postedSnapshot,
         marketIntel: {
           ...postedSnapshot.marketIntel,
-          lastOutcome: `Heartbeat posted ${topCard.symbol} to GoonBook.`,
+          lastOutcome: `Heartbeat posted ${topCard.symbol} to BitClaw.`,
           lastPostedAt: post.createdAt,
           lastPostedTradeCardKey: topKey,
         },

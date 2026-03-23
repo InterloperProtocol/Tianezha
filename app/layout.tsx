@@ -16,8 +16,7 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "GoonClaw",
-  description:
-    "It's fuckin Finance Fellas!",
+  description: "It's Fuckin Finance Fellas!",
   icons: {
     icon: "/logo.jpg",
     shortcut: "/logo.jpg",
@@ -32,7 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${mono.variable}`}>{children}</body>
+      <body className={`${display.variable} ${mono.variable} seafoam-theme`}>
+        {children}
+      </body>
     </html>
   );
 }

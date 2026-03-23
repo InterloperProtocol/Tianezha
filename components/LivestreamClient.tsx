@@ -19,6 +19,10 @@ type LivestreamRequestView = {
   memo: string;
   tier: LivestreamTier;
   amountLamports: string;
+  paymentAddress?: string;
+  paymentRouting?: string;
+  receivedLamports?: string;
+  paymentConfirmedAt?: string;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +31,11 @@ type LivestreamRequestView = {
   completedAt?: string;
   payerWallet?: string;
   sessionId?: string;
+  sweepStatus?: string;
+  sweepSignature?: string;
+  sweptLamports?: string;
+  lastSweepAt?: string;
+  sweepError?: string;
   error?: string;
 };
 
@@ -49,6 +58,11 @@ const DEFAULT_CONTRACT_ADDRESS = DEFAULT_PUMP_TOKEN_MINT;
 
 function lamportsToSol(value: string) {
   return (Number(BigInt(value)) / 1_000_000_000).toFixed(3);
+}
+
+function lamportsToSolFromOptional(value?: string) {
+  if (!value) return "0.000";
+  return lamportsToSol(value);
 }
 
 function shorten(value?: string) {
@@ -95,6 +109,10 @@ export function LivestreamClient() {
     if (!checkout) return "";
     return lamportsToSol(checkout.amountLamports);
   }, [checkout]);
+  const checkoutReceived = useMemo(
+    () => lamportsToSolFromOptional(checkout?.receivedLamports),
+    [checkout?.receivedLamports],
+  );
 
   const focusContractAddress =
     contractAddress.trim() ||
@@ -129,7 +147,7 @@ export function LivestreamClient() {
       setState(payload.state);
       setSignature("");
       setNotice(
-        "Payment details are ready. Pay from your Solana wallet, then paste the confirmed signature below.",
+        "Dedicated payment address ready. Send the exact amount there, then paste the confirmed signature below.",
       );
     } catch (requestError) {
       setError(
@@ -170,7 +188,7 @@ export function LivestreamClient() {
       setState(payload.state);
       setCheckout(payload.item ?? checkout);
       setNotice(
-        "Payment confirmed. If the room is open, your request will start right away.",
+        "Payment confirmed and swept to the GoonClaw revenue wallet. If the room is open, your request will start right away.",
       );
     } catch (requestError) {
       setError(
@@ -288,7 +306,7 @@ export function LivestreamClient() {
             <button
               className={
                 tier === "priority"
-                  ? "button button-danger"
+                  ? "button button-gold"
                   : "button button-ghost"
               }
               onClick={() => setTier("priority")}
@@ -304,7 +322,7 @@ export function LivestreamClient() {
               disabled={loading === "request"}
               onClick={() => void createRequest()}
             >
-              {loading === "request" ? "Creating..." : "Generate payment details"}
+              {loading === "request" ? "Generating address..." : "Generate payment address"}
             </button>
           </div>
 
@@ -330,14 +348,24 @@ export function LivestreamClient() {
                     <strong>{checkoutPrice} SOL</strong>
                   </div>
                   <div>
-                    <span>Payment memo</span>
-                    <strong>{checkout.memo}</strong>
+                    <span>Payment address</span>
+                    <strong>{checkout.paymentAddress || "Waiting"}</strong>
                   </div>
                 </div>
                 <div className="history-item">
                   <div>
                     <span>Treasury</span>
                     <strong>{shorten(state?.treasuryWallet)}</strong>
+                  </div>
+                  <div>
+                    <span>Sweep</span>
+                    <strong>{checkout.sweepStatus || "Pending"}</strong>
+                  </div>
+                </div>
+                <div className="history-item">
+                  <div>
+                    <span>Received</span>
+                    <strong>{checkoutReceived} SOL</strong>
                   </div>
                   <div>
                     <span>Payment window</span>
@@ -351,7 +379,7 @@ export function LivestreamClient() {
                 <input
                   value={signature}
                   onChange={(event) => setSignature(event.target.value)}
-                  placeholder="Paste the confirmed Solana signature"
+                  placeholder="Paste the confirmed Solana signature after sending to the dedicated address"
                 />
               </label>
 
@@ -430,8 +458,8 @@ export function LivestreamClient() {
                       <strong>{item.tier}</strong>
                     </div>
                     <div>
-                      <span>Memo</span>
-                      <strong>{item.memo}</strong>
+                      <span>Address</span>
+                      <strong>{shorten(item.paymentAddress)}</strong>
                     </div>
                   </div>
                 ))}
@@ -464,8 +492,8 @@ export function LivestreamClient() {
                       <strong>{item.tier}</strong>
                     </div>
                     <div>
-                      <span>Memo</span>
-                      <strong>{item.memo}</strong>
+                      <span>Sweep</span>
+                      <strong>{item.sweepStatus || "Pending"}</strong>
                     </div>
                   </div>
                 ))}

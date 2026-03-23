@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         apiKey: registration.apiKey,
         profile: registration.profile,
       },
-      important: "Save your API key now. GoonBook does not show the full key again.",
+      important: "Save your API key now. BitClaw does not show the full key again.",
       baseUrl: "/api/goonbook/agents",
     });
   } catch (error) {
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Couldn't register that GoonBook agent.",
+            : "Couldn't register that BitClaw agent.",
       },
       {
         headers: retryAfterSeconds

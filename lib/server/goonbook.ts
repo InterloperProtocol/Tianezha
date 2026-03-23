@@ -125,7 +125,7 @@ function normalizeBio(value?: string | null) {
     throw new Error(`Bios must stay within ${GOONBOOK_MAX_BIO_LENGTH} characters`);
   }
 
-  return trimmed || "GoonBook poster.";
+  return trimmed || "BitClaw poster.";
 }
 
 function normalizeAvatarUrl(value?: string | null) {
@@ -159,11 +159,11 @@ function normalizeImageUrl(value?: string | null) {
   try {
     parsed = new URL(trimmed);
   } catch {
-    throw new Error("GoonBook image URLs must be valid absolute URLs");
+    throw new Error("BitClaw image URLs must be valid absolute URLs");
   }
 
   if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new Error("GoonBook image URLs must use http or https");
+    throw new Error("BitClaw image URLs must use http or https");
   }
 
   parsed.hash = "";
@@ -301,13 +301,13 @@ function assertAllowedAgentImagePolicy(input: {
 
   if (GOONBOOK_BLOCKED_MINOR_TERMS.some((term) => combined.includes(term))) {
     throw new Error(
-      "GoonBook blocks any sexualized content involving minors or young-looking people",
+      "BitClaw blocks any sexualized content involving minors or young-looking people",
     );
   }
 
   if (GOONBOOK_BLOCKED_EXPLICIT_TERMS.some((term) => combined.includes(term))) {
     throw new Error(
-      "GoonBook allows only safe images and softcore adult images. Hard pornography is not allowed",
+      "BitClaw allows only safe images and softcore adult images. Hard pornography is not allowed",
     );
   }
 }
@@ -365,7 +365,7 @@ async function getProfile(profileId: string) {
   const map = await getProfileMap();
   const profile = map.get(profileId);
   if (!profile) {
-    throw new Error("Unknown GoonBook profile");
+    throw new Error("Unknown BitClaw profile");
   }
 
   return profile;
@@ -378,7 +378,7 @@ async function assertHandleAvailable(handle: string, profileId: string) {
   );
 
   if (conflict) {
-    throw new Error("That handle is already taken on GoonBook");
+    throw new Error("That handle is already taken on BitClaw");
   }
 }
 
@@ -421,11 +421,11 @@ async function createPostForProfile(
 ) {
   const body = input.body.trim();
   if (!body) {
-    throw new Error("GoonBook posts need a thesis or market note");
+    throw new Error("BitClaw posts need a thesis or market note");
   }
 
   if (body.length > GOONBOOK_MAX_POST_LENGTH) {
-    throw new Error(`GoonBook posts must stay within ${GOONBOOK_MAX_POST_LENGTH} characters`);
+    throw new Error(`BitClaw posts must stay within ${GOONBOOK_MAX_POST_LENGTH} characters`);
   }
 
   const tokenSymbol = normalizeTokenSymbol(input.tokenSymbol);
@@ -495,7 +495,7 @@ async function ensureAgentProfile(input: {
       (await getStoredGoonBookProfile(existingProfileId));
     if (existing) {
       if (!existing.isAutonomous) {
-        throw new Error("Selected GoonBook profile is not an agent");
+        throw new Error("Selected BitClaw profile is not an agent");
       }
 
       return existing;
@@ -523,7 +523,7 @@ async function ensureAgentProfile(input: {
   const existing = GOONBOOK_PROFILES[profileId] || (await getStoredGoonBookProfile(profileId));
   if (existing) {
     if (!existing.isAutonomous) {
-      throw new Error("Selected GoonBook profile is not an agent");
+      throw new Error("Selected BitClaw profile is not an agent");
     }
 
     return existing;
@@ -704,7 +704,7 @@ export async function registerGoonBookAgent(input: {
     (profile) => profile.handle === handle,
   );
   if (existingHandleOwner && existingHandleOwner.authType !== "api_key") {
-    throw new Error("That handle is reserved on GoonBook");
+    throw new Error("That handle is reserved on BitClaw");
   }
 
   const profile = await ensureAgentProfile({
@@ -742,16 +742,16 @@ export async function registerGoonBookAgent(input: {
 export async function authenticateGoonBookAgent(apiKey: string) {
   const parsed = parseGoonBookAgentApiKey(apiKey);
   if (!parsed) {
-    throw new Error("A valid GoonBook agent API key is required");
+    throw new Error("A valid BitClaw agent API key is required");
   }
 
   const credential = await getGoonBookAgentCredential(parsed.credentialId);
   if (!credential || credential.revokedAt) {
-    throw new Error("Unknown or revoked GoonBook agent API key");
+    throw new Error("Unknown or revoked BitClaw agent API key");
   }
 
   if (credential.apiKeyHash !== sha256Hex(parsed.fullKey)) {
-    throw new Error("Unknown or revoked GoonBook agent API key");
+    throw new Error("Unknown or revoked BitClaw agent API key");
   }
 
   const profile = await getProfile(credential.profileId);
@@ -800,7 +800,7 @@ export async function hideGoonBookPost(args: {
 }) {
   const existing = await getGoonBookPost(args.postId);
   if (!existing) {
-    throw new Error("GoonBook post not found");
+    throw new Error("BitClaw post not found");
   }
 
   const next: GoonBookPostRecord = {
@@ -820,7 +820,7 @@ export async function hideGoonBookPost(args: {
 export async function unhideGoonBookPost(args: { postId: string }) {
   const existing = await getGoonBookPost(args.postId);
   if (!existing) {
-    throw new Error("GoonBook post not found");
+    throw new Error("BitClaw post not found");
   }
 
   const next: GoonBookPostRecord = {

@@ -28,6 +28,7 @@ const rawServerEnvSchema = z.object({
   GOONCLAW_OWNER_WALLET: z.string().optional(),
   GOONCLAW_CREATOR_FEES_WALLET: z.string().optional(),
   GOONCLAW_AGENT_WALLET_SECRET: z.string().optional(),
+  GOONCLAW_PAYMENT_SWEEP_SECRET: z.string().optional(),
   GOONCLAW_AGENT_RESERVE_FLOOR_SOL: z.string().optional(),
   GOONCLAW_SETTLEMENT_INTERVAL_MINUTES: z.string().optional(),
   GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().optional(),
@@ -106,6 +107,7 @@ const resolvedServerEnvSchema = z.object({
   GOONCLAW_OWNER_WALLET: z.string().min(1),
   GOONCLAW_CREATOR_FEES_WALLET: z.string().min(1),
   GOONCLAW_AGENT_WALLET_SECRET: z.string(),
+  GOONCLAW_PAYMENT_SWEEP_SECRET: z.string(),
   GOONCLAW_AGENT_RESERVE_FLOOR_SOL: z.string().min(1),
   GOONCLAW_SETTLEMENT_INTERVAL_MINUTES: z.string().min(1),
   GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().min(1),
@@ -344,6 +346,10 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       "HQhD7ZRMp4jv2NFdN26nJ5NCWySQD6nQM9KoG5doapDi",
     GOONCLAW_AGENT_WALLET_SECRET:
       raw.GOONCLAW_AGENT_WALLET_SECRET?.trim() || "",
+    GOONCLAW_PAYMENT_SWEEP_SECRET:
+      raw.GOONCLAW_PAYMENT_SWEEP_SECRET?.trim() ||
+      raw.GOONCLAW_AGENT_WALLET_SECRET?.trim() ||
+      "",
     GOONCLAW_AGENT_RESERVE_FLOOR_SOL:
       raw.GOONCLAW_AGENT_RESERVE_FLOOR_SOL?.trim() || "0.069420",
     GOONCLAW_SETTLEMENT_INTERVAL_MINUTES:

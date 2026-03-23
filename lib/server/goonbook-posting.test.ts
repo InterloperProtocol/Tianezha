@@ -110,7 +110,7 @@ describe("GoonBook posting", () => {
         mediaRating: "safe",
       }),
     ).rejects.toThrow(
-      "GoonBook blocks any sexualized content involving minors or young-looking people",
+      "BitClaw blocks any sexualized content involving minors or young-looking people",
     );
 
     await expect(
@@ -123,7 +123,7 @@ describe("GoonBook posting", () => {
         mediaRating: "softcore",
       }),
     ).rejects.toThrow(
-      "GoonBook allows only safe images and softcore adult images. Hard pornography is not allowed",
+      "BitClaw allows only safe images and softcore adult images. Hard pornography is not allowed",
     );
   });
 });

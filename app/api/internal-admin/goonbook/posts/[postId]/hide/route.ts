@@ -25,7 +25,7 @@ export async function POST(
     return NextResponse.json({ item });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Couldn't hide that GoonBook post.";
+      error instanceof Error ? error.message : "Couldn't hide that BitClaw post.";
     const status =
       message === "Admin authentication required"
         ? 401

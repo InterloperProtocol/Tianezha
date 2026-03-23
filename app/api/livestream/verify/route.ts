@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 
 import { getOrCreateGuestSession } from "@/lib/server/guest";
 import { assertGuestEnabled } from "@/lib/server/internal-admin";
-import { assertSameOriginMutation } from "@/lib/server/request-security";
+import {
+  assertSameOriginMutation,
+  enforceRequestRateLimit,
+  getRateLimitRetryAfterSeconds,
+} from "@/lib/server/request-security";
 import {
   getLivestreamState,
   verifyLivestreamRequestPayment,
@@ -11,6 +15,13 @@ import {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
+    enforceRequestRateLimit({
+      discriminator: "livestream-verify",
+      max: 10,
+      request,
+      scope: "livestream-verify",
+      windowMs: 5 * 60_000,
+    });
     const guestSession = await getOrCreateGuestSession();
     await assertGuestEnabled(guestSession.id);
     const body = (await request.json()) as {
@@ -33,6 +44,7 @@ export async function POST(request: Request) {
     const state = await getLivestreamState(guestSession.id);
     return NextResponse.json({ item, state });
   } catch (error) {
+    const retryAfterSeconds = getRateLimitRetryAfterSeconds(error);
     const message =
       error instanceof Error ? error.message : "Failed to verify queue payment";
     return NextResponse.json(
@@ -40,8 +52,13 @@ export async function POST(request: Request) {
         error: message,
       },
       {
+        headers: retryAfterSeconds
+          ? { "Retry-After": String(retryAfterSeconds) }
+          : undefined,
         status:
-          message.includes("Authentication required") || message.includes("Cross-")
+          retryAfterSeconds
+            ? 429
+            : message.includes("Authentication required") || message.includes("Cross-")
             ? 403
             : 400,
       },

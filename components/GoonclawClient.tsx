@@ -51,6 +51,10 @@ type LivestreamRequestView = {
   memo: string;
   tier: LivestreamTier;
   amountLamports: string;
+  paymentAddress?: string;
+  paymentRouting?: string;
+  receivedLamports?: string;
+  paymentConfirmedAt?: string;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -59,6 +63,11 @@ type LivestreamRequestView = {
   completedAt?: string;
   payerWallet?: string;
   sessionId?: string;
+  sweepStatus?: string;
+  sweepSignature?: string;
+  sweptLamports?: string;
+  lastSweepAt?: string;
+  sweepError?: string;
   error?: string;
 };
 
@@ -107,6 +116,11 @@ function shortenValue(value?: string | null) {
 function lamportsToSol(value: string) {
   const sol = Number(BigInt(value)) / 1_000_000_000;
   return sol.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+function lamportsToSolFromOptional(value?: string) {
+  if (!value) return "0";
+  return lamportsToSol(value);
 }
 
 export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
@@ -187,6 +201,10 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     () => (checkout ? lamportsToSol(checkout.amountLamports) : ""),
     [checkout],
   );
+  const checkoutReceivedSol = useMemo(
+    () => lamportsToSolFromOptional(checkout?.receivedLamports),
+    [checkout?.receivedLamports],
+  );
   const sessionMinutes = useMemo(
     () =>
       livestreamState?.sessionSeconds
@@ -220,20 +238,20 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           ]
         : [
             {
-              question: "What is MyGoonClaw for?",
+              question: "What is MyClaw for?",
               answer:
-                "MyGoonClaw is where a human stops being just a spectator and starts operating with agent leverage.",
+                "MyClaw is where a human stops being just a spectator and starts operating with agent leverage.",
             },
             {
               question: "What can I do right now?",
               answer:
-                "Embed your stream, manage sessions and media, prepare your room, publish live to GoonConnect, and build audience and revenue beyond trading alone.",
+                "Embed your stream, manage sessions and media, prepare your room, publish live to BolClaw, and build audience and revenue beyond trading alone.",
             },
             {
               question: "What is my room status?",
               answer: publicStream?.isPublic
                 ? `Your public streamer page is live at @${publicStream.slug}.`
-                : "Your room is private until you publish it to GoonConnect.",
+                : "Your room is private until you publish it to BolClaw.",
             },
             {
               question: "Do humans stay spectators here?",
@@ -668,7 +686,9 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       setCheckout(payload.item);
       setLivestreamState(payload.state);
       setSignature("");
-      setNotice("Payment memo ready. Send the transfer, then confirm the signature.");
+      setNotice(
+        "Dedicated payment address ready. Send the exact amount there, then confirm the signature.",
+      );
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -709,7 +729,9 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
 
       setLivestreamState(payload.state);
       setCheckout(payload.item ?? checkout);
-      setNotice("Payment confirmed. Your chart job is now in the session queue.");
+      setNotice(
+        "Payment confirmed and swept to the GoonClaw revenue wallet. Your chart job is now in the session queue.",
+      );
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -886,7 +908,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       {error ? <p className="error-banner">{error}</p> : null}
 
       <RouteHeader
-        eyebrow={isTokenControlPage ? "GoonClaw" : "MyGoonClaw"}
+        eyebrow={isTokenControlPage ? "GoonClaw" : "MyClaw"}
         title={
           isTokenControlPage
             ? "The flagship live room."
@@ -895,7 +917,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
         summary={
           isTokenControlPage
             ? "This is the first live public claw. Watch the stream, follow the active chart, monitor the queue, and see how the flagship builds attention, trust, and revenue in public."
-            : "MyGoonClaw is the workspace for embedding your stream, managing sessions and media, preparing your room, publishing live to GoonConnect, and moving from spectator to operator."
+            : "MyClaw is the workspace for embedding your stream, managing sessions and media, preparing your room, publishing live to BolClaw, and moving from spectator to operator."
         }
         badges={
           isTokenControlPage
@@ -995,7 +1017,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                 <button
                   className={
                     tier === "priority"
-                      ? "button button-danger"
+                      ? "button button-gold"
                       : "button button-ghost"
                   }
                   onClick={() => setTier("priority")}
@@ -1013,8 +1035,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                   type="button"
                 >
                   {loading === "livestream-request"
-                    ? "Creating memo..."
-                    : "Create chart payment"}
+                    ? "Generating address..."
+                    : "Generate payment address"}
                 </button>
               </div>
 
@@ -1027,6 +1049,11 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                     </div>
                     <div className="source-pill">{checkout.status}</div>
                   </div>
+
+                  <p className="panel-lead">
+                    Send exactly {checkoutPriceSol} SOL to the dedicated job address below.
+                    After confirmation, the funds sweep into the GoonClaw revenue wallet.
+                  </p>
 
                   <div className="history-list">
                     <div className="history-item">
@@ -1041,12 +1068,22 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                     </div>
                     <div className="history-item">
                       <div>
-                        <span>Memo</span>
-                        <strong>{checkout.memo}</strong>
+                        <span>Payment address</span>
+                        <strong>{checkout.paymentAddress || "Waiting"}</strong>
                       </div>
                       <div>
                         <span>Revenue wallet</span>
                         <strong>{shortenValue(livestreamState?.treasuryWallet)}</strong>
+                      </div>
+                    </div>
+                    <div className="history-item">
+                      <div>
+                        <span>Received</span>
+                        <strong>{checkoutReceivedSol} SOL</strong>
+                      </div>
+                      <div>
+                        <span>Sweep</span>
+                        <strong>{checkout.sweepStatus || "Pending"}</strong>
                       </div>
                     </div>
                     <div className="history-item">
@@ -1075,7 +1112,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                     <input
                       value={signature}
                       onChange={(event) => setSignature(event.target.value)}
-                      placeholder="Paste the Solana signature after payment"
+                      placeholder="Paste the Solana signature after sending to the dedicated address"
                     />
                   </label>
 
@@ -1136,7 +1173,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                 <dd>
                   {publicStream?.isPublic
                     ? `Public page live at @${publicStream.slug}.`
-                    : "Private until you publish your room to GoonConnect."}
+                    : "Private until you publish your room to BolClaw."}
                 </dd>
               </div>
               <div className="detail">
@@ -1150,8 +1187,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
         {isTokenControlPage ? (
           <AutonomousStatusPreviewPanel
             eyebrow="Agent status"
-            title="GoonClaw status"
-            description="Live status only."
+            title="GoonClaw heartbeat"
+            description="Heartbeat only."
           />
         ) : (
           <PublicChatPanel
@@ -1219,7 +1256,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           <p className="inline-note">
             {isTokenControlPage
               ? "This page is the public proof surface for the flagship claw."
-              : "MyGoonClaw starts with the same token focus as GoonClaw, then turns that attention into your own operating loop."}
+              : "MyClaw starts with the same token focus as GoonClaw, then turns that attention into your own operating loop."}
           </p>
 
           {!isTokenControlPage ? (
@@ -1343,11 +1380,11 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                       Priority is {livestreamState.priorityPriceSol} SOL.
                     </dd>
                   </div>
-                  <div className="detail">
-                    <dt>Revenue wallet</dt>
-                    <dd>{livestreamState.treasuryWallet}</dd>
-                  </div>
-                </dl>
+              <div className="detail">
+                <dt>Revenue wallet</dt>
+                <dd>{livestreamState.treasuryWallet}</dd>
+              </div>
+            </dl>
               ) : null}
 
               <dl className="detail-list compact">
@@ -1367,7 +1404,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             <div className="panel-header go-live-subheader">
               <div>
                 <p className="eyebrow">{isTokenControlPage ? "Session jobs" : "Recent sessions"}</p>
-                <h2>{isTokenControlPage ? "Queue and memos" : "Recent activity"}</h2>
+                <h2>{isTokenControlPage ? "Queue and payments" : "Recent activity"}</h2>
               </div>
             </div>
 
@@ -1385,8 +1422,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                         <strong>{item.tier}</strong>
                       </div>
                       <div>
-                        <span>Memo</span>
-                        <strong>{item.memo}</strong>
+                        <span>Address</span>
+                        <strong>{shortenValue(item.paymentAddress)}</strong>
                       </div>
                     </div>
                   ))}
@@ -1401,15 +1438,15 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
                         <strong>{item.tier}</strong>
                       </div>
                       <div>
-                        <span>Memo</span>
-                        <strong>{item.memo}</strong>
+                        <span>Sweep</span>
+                        <strong>{item.sweepStatus || "Pending"}</strong>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="empty-state">
-                  Job memos and queue items will appear here after the first chart payment.
+                  Dedicated payment jobs and queue items will appear here after the first chart payment.
                 </p>
               )
             ) : sessions.length ? (
@@ -1476,7 +1513,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           <div>
             <p className="eyebrow">FAQ</p>
             <h2>
-              {isTokenControlPage ? "How GoonClaw works" : "How MyGoonClaw works"}
+              {isTokenControlPage ? "How GoonClaw works" : "How MyClaw works"}
             </h2>
           </div>
         </div>

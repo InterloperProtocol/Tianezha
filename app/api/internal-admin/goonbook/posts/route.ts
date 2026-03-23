@@ -55,7 +55,7 @@ export async function POST(request: Request) {
             imageUrl: body.imageUrl,
             mediaCategory: body.mediaCategory,
             mediaRating: body.mediaRating,
-            latestPolicyDecision: "Published a first-party GoonBook post from Amber Vault.",
+            latestPolicyDecision: "Published a first-party BitClaw post from Amber Vault.",
             eventTitle: "Amber Vault published a GoonClaw post",
             eventDetail: body.body,
             rawTrace: ["source=amber-vault"],
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ item });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Couldn't publish GoonBook post.";
+      error instanceof Error ? error.message : "Couldn't publish BitClaw post.";
     const status =
       message === "Admin authentication required"
         ? 401

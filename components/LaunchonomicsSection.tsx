@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -15,6 +15,7 @@ type Props = {
   freeAccessUntil: string;
   launchAt: string;
   sectionId?: string;
+  panelClassName?: string;
   showIntro?: boolean;
   eyebrow?: string;
   title?: string;
@@ -52,19 +53,10 @@ function formatDate(value?: string) {
   });
 }
 
-function plusMinutes(iso: string, minutes: number) {
-  return new Date(new Date(iso).getTime() + minutes * 60_000).toISOString();
-}
-
-function plusHours(iso: string, hours: number) {
-  return new Date(new Date(iso).getTime() + hours * 60 * 60_000).toISOString();
-}
-
 export function LaunchonomicsSection({
   accessTokenSymbol,
-  freeAccessUntil,
-  launchAt,
   sectionId,
+  panelClassName,
   showIntro = false,
   eyebrow = "Wallet access",
   title,
@@ -88,23 +80,6 @@ export function LaunchonomicsSection({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const freeUntilLabel = formatDate(freeAccessUntil);
-  const launchAtLabel = launchAt ? formatDate(launchAt) : "Not configured";
-
-  const fallbackWindows = useMemo(
-    () =>
-      launchAt
-        ? {
-            first10MinutesEndsAt: plusMinutes(launchAt, 10),
-            firstHourEndsAt: plusHours(launchAt, 1),
-            first12HoursEndsAt: plusHours(launchAt, 12),
-            first24HoursEndsAt: plusHours(launchAt, 24),
-          }
-        : null,
-    [launchAt],
-  );
-
-  const windows = result?.windows ?? fallbackWindows;
   const canClaim = Boolean(result && result.tier !== "none");
 
   const lookup = useCallback(async (targetWallet = wallet.trim()) => {
@@ -194,7 +169,9 @@ export function LaunchonomicsSection({
       {notice ? <p className="toast-banner">{notice}</p> : null}
       {error ? <p className="error-banner">{error}</p> : null}
 
-      <section className="panel launchonomics-panel">
+      <section
+        className={`panel launchonomics-panel${panelClassName ? ` ${panelClassName}` : ""}`}
+      >
         <div className="panel-header">
           <div>
             <p className="eyebrow">{eyebrow}</p>
@@ -216,7 +193,7 @@ export function LaunchonomicsSection({
           <div className="summary-card">
             <span>{accessTokenLabel}</span>
             <strong>{accessTokenSymbol}</strong>
-            <p>{accessTokenHint}</p>
+            {accessTokenHint ? <p>{accessTokenHint}</p> : null}
           </div>
         </div>
 
@@ -237,67 +214,6 @@ export function LaunchonomicsSection({
               {claiming ? claimingButtonLabel : claimButtonLabel}
             </button>
           ) : null}
-        </div>
-
-        <div className="history-list">
-          <div className="history-item">
-            <div>
-              <span>Open access ends</span>
-              <strong>{freeUntilLabel}</strong>
-            </div>
-            <div>
-              <span>Launch window starts</span>
-              <strong>{launchAt ? launchAtLabel : "Awaiting config"}</strong>
-            </div>
-          </div>
-          <div className="history-item">
-            <div>
-              <span>0-10 minutes</span>
-              <strong>5-year subscription</strong>
-            </div>
-            <div>
-              <span>Window end</span>
-              <strong>
-                {windows ? formatDate(windows.first10MinutesEndsAt) : "Not configured"}
-              </strong>
-            </div>
-          </div>
-          <div className="history-item">
-            <div>
-              <span>0-1 hour</span>
-              <strong>Yearly subscription</strong>
-            </div>
-            <div>
-              <span>Window end</span>
-              <strong>
-                {windows ? formatDate(windows.firstHourEndsAt) : "Not configured"}
-              </strong>
-            </div>
-          </div>
-          <div className="history-item">
-            <div>
-              <span>0-12 hours</span>
-              <strong>Monthly subscription</strong>
-            </div>
-            <div>
-              <span>Window end</span>
-              <strong>
-                {windows ? formatDate(windows.first12HoursEndsAt) : "Not configured"}
-              </strong>
-            </div>
-          </div>
-          <div className="history-item">
-            <div>
-              <span>Hold through 24h</span>
-              <strong>Lifetime + verified badge</strong>
-            </div>
-            <div>
-              <span>Hold deadline</span>
-              <strong>
-                {windows ? formatDate(windows.first24HoursEndsAt) : "Not configured"}
-              </strong>
-            </div>
-          </div>
         </div>
 
         {result ? (

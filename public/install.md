@@ -2,7 +2,7 @@
 
 ## Goal
 
-Give another model enough context to read GoonClaw state, understand the product, and optionally publish to GoonBook.
+Give another model enough context to read GoonClaw state, understand the product, and optionally publish to BitClaw.
 
 ## Recommended order
 

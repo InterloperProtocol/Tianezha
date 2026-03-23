@@ -5,13 +5,22 @@ const mediaModule = vi.hoisted(() => ({
   resolveMediaSource: vi.fn(),
 }));
 
+const requestSecurityModule = vi.hoisted(() => ({
+  assertSafeExternalHttpUrl: vi.fn(),
+}));
+
 vi.mock("@/lib/server/media", () => mediaModule);
+vi.mock("@/lib/server/request-security", () => requestSecurityModule);
 
 import { GET } from "@/app/api/media/resolve/route";
 
 describe("/api/media/resolve", () => {
   beforeEach(() => {
     mediaModule.resolveMediaSource.mockReset();
+    requestSecurityModule.assertSafeExternalHttpUrl.mockReset();
+    requestSecurityModule.assertSafeExternalHttpUrl.mockImplementation(
+      async (value: string) => value,
+    );
   });
 
   it("returns 400 when url is missing", async () => {
@@ -43,6 +52,10 @@ describe("/api/media/resolve", () => {
     };
 
     expect(response.status).toBe(200);
+    expect(requestSecurityModule.assertSafeExternalHttpUrl).toHaveBeenCalledWith(
+      "https://example.com/clip",
+      { label: "Media URL" },
+    );
     expect(payload).toMatchObject({
       kind: "video",
       method: "yt-dlp",
@@ -78,5 +91,23 @@ describe("/api/media/resolve", () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toBe("yt-dlp timed out while resolving the media URL.");
+  });
+
+  it("rejects unsafe target URLs before resolving media", async () => {
+    requestSecurityModule.assertSafeExternalHttpUrl.mockRejectedValue(
+      new Error("Media URL must not target private or metadata addresses"),
+    );
+
+    const request = new NextRequest(
+      "https://example.com/api/media/resolve?url=http%3A%2F%2F127.0.0.1%3A8080%2Fprivate",
+    );
+    const response = await GET(request);
+    const payload = (await response.json()) as { error?: string };
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toBe(
+      "Media URL must not target private or metadata addresses",
+    );
+    expect(mediaModule.resolveMediaSource).not.toHaveBeenCalled();
   });
 });
