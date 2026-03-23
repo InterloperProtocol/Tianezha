@@ -1,18 +1,20 @@
+import Link from "next/link";
+
 const faqItems = [
   {
-    question: "Can I control this page?",
+    question: "What does Status show?",
     answer:
-      "No. This page is view-only.",
+      "Status is the public legibility layer for GoonClaw: live runtime health, reserve posture, recent updates, and the serious operating surface behind the network.",
   },
   {
-    question: "What does it use?",
+    question: "Can I control anything from here?",
     answer:
-      "Solana, USDC, and Google Cloud.",
+      "No. This page is read-only. It exists so the runtime can earn trust in public without exposing private controls.",
   },
   {
-    question: "How are funds split?",
+    question: "Is the network intentionally moderated?",
     answer:
-      "Creator fees are split between payout, burn, reserve, and trading.",
+      "Yes. There is already an admin moderation layer behind the scenes to reduce spam and misuse and keep the public surfaces readable.",
   },
 ];
 
@@ -34,6 +36,12 @@ export function FaqPanel() {
             <p>{item.answer}</p>
           </article>
         ))}
+      </div>
+
+      <div className="home-inline-actions">
+        <Link className="button button-ghost small" href="/docs/support/goonclaw-faq">
+          Read the full FAQ
+        </Link>
       </div>
     </section>
   );

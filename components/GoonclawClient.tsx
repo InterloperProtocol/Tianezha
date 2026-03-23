@@ -11,6 +11,7 @@ import { PublicStreamSettingsPanel } from "@/components/PublicStreamSettingsPane
 import { SimpleStreamEmbedPanel } from "@/components/SimpleStreamEmbedPanel";
 import { SiteNav } from "@/components/SiteNav";
 import { TrenchesPanel } from "@/components/TrenchesPanel";
+import { RouteHeader } from "@/components/ui/RouteHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
 import {
@@ -194,22 +195,22 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       isTokenControlPage
         ? [
             {
-              question: "What is GoonClaw for?",
+              question: "What is GoonClaw?",
               answer:
-                "GoonClaw is the live room page. You can watch it here.",
+                "GoonClaw is a framework for agentic commerce. This page is the flagship live room where the thesis gets proved in public.",
             },
             {
-              question: "Which token is shown here?",
+              question: "Is this only about trading?",
               answer:
-                "This page shows the current room token.",
+                "No. The claw has to earn its existence in public through streaming, services, access, social capital, and useful output, not trading alone.",
             },
             {
-              question: "Can I control this page?",
+              question: "Why do social and streaming matter?",
               answer:
-                "No. This page is view-only.",
+                "Because finance is not just execution. Social presence and streaming build audience, trust, memory, and economic weight.",
             },
             {
-              question: "What was the latest activity?",
+              question: "What was the latest public move?",
               answer: lastActivityLabel,
             },
           ]
@@ -217,30 +218,28 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             {
               question: "What is MyGoonClaw for?",
               answer:
-                "MyGoonClaw is your workspace for devices, sessions, media, and your public page.",
+                "MyGoonClaw is where a human stops being just a spectator and starts operating with agent leverage.",
             },
             {
-              question: "What is my streamer status?",
+              question: "What can I do right now?",
+              answer:
+                "Embed your stream, manage sessions and media, prepare your room, publish live to GoonConnect, and build audience and revenue beyond trading alone.",
+            },
+            {
+              question: "What is my room status?",
               answer: publicStream?.isPublic
                 ? `Your public streamer page is live at @${publicStream.slug}.`
-                : "Your page is private until you publish it.",
+                : "Your room is private until you publish it to GoonConnect.",
             },
             {
-              question: "What mode am I in?",
+              question: "Do humans stay spectators here?",
               answer:
-                mode === "live"
-                  ? "Live mode is on."
-                  : "Pattern mode is on.",
-            },
-            {
-              question: "What was the latest activity?",
-              answer: lastActivityLabel,
+                "No. Humans begin by collaborating with agents, then end up running agents of their own.",
             },
           ],
     [
       isTokenControlPage,
       lastActivityLabel,
-      mode,
       publicStream?.isPublic,
       publicStream?.slug,
     ],
@@ -722,8 +721,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
     <div className="go-live-subsection">
       <div className="panel-header go-live-subheader">
         <div>
-          <p className="eyebrow">Saved devices</p>
-          <h2>Manage devices</h2>
+          <p className="eyebrow">Operator setups</p>
+          <h2>Manage devices and relays</h2>
         </div>
       </div>
 
@@ -772,7 +771,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
         </div>
       ) : (
         <p className="empty-state">
-          No saved device yet. Add one below when you are ready.
+          No operator setup yet. Add one below when you are ready.
         </p>
       )}
 
@@ -882,14 +881,41 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
       {notice ? <p className="toast-banner">{notice}</p> : null}
       {error ? <p className="error-banner">{error}</p> : null}
 
+      <RouteHeader
+        eyebrow={isTokenControlPage ? "GoonClaw" : "MyGoonClaw"}
+        title={
+          isTokenControlPage
+            ? "The flagship live room."
+            : "Where humans and agents build together."
+        }
+        summary={
+          isTokenControlPage
+            ? "This is the first live public claw. Watch the stream, follow the active chart, monitor the queue, and see how the flagship builds attention, trust, and revenue in public."
+            : "MyGoonClaw is the workspace for embedding your stream, managing sessions and media, preparing your room, publishing live to GoonConnect, and moving from spectator to operator."
+        }
+        badges={
+          isTokenControlPage
+            ? [
+                "Flagship proof",
+                "Public loop",
+                "Machine-shaped finance",
+              ]
+            : [
+                "Operator bridge",
+                "Human + agent workflows",
+                "Audience + revenue",
+              ]
+        }
+      />
+
       <section className="dashboard-grid dashboard-grid-primary-row">
         <PriceChart contractAddress={activeChartAddress} />
         <SimpleStreamEmbedPanel
-          title={isTokenControlPage ? "Live stream" : "Your stream"}
+          title={isTokenControlPage ? "Flagship stream" : "Your stream"}
           description={
             isTokenControlPage
-              ? "Simple Kick embed for the public room."
-              : "Simple stream player for your page."
+              ? "Watch the flagship claw build in public."
+              : "Stream, publish, and turn your room into a live operator surface."
           }
           url={publicStream?.mediaUrl || publicMediaUrl || defaultMediaUrl}
         />
@@ -901,7 +927,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             <div className="panel-header">
               <div>
                 <p className="eyebrow">Public room</p>
-                <h2>Chart payment</h2>
+                <h2>Flagship room economy</h2>
               </div>
             </div>
 
@@ -917,12 +943,14 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               <div className="summary-card">
                 <span>Current chart</span>
                 <strong>{activeChartAddress}</strong>
-                <p>Pay to put this chart on GoonClaw.</p>
+                <p>The claw has to earn its existence in public.</p>
               </div>
             </div>
 
             <p className="panel-lead">
-              Session state is purchasable. Revenue routes to the GoonClaw wallet.
+              Session state is purchasable today, but the long game is bigger
+              than trading alone. This room sells attention, inventory, and
+              public focus in real time.
             </p>
 
             <div className="button-row">
@@ -1052,8 +1080,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           <section className="panel">
             <div className="panel-header">
               <div>
-                <p className="eyebrow">Chart focus</p>
-                <h2>Current token</h2>
+                <p className="eyebrow">Operator path</p>
+                <h2>Bridge from spectator to operator</h2>
               </div>
             </div>
 
@@ -1069,7 +1097,7 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
               <div className="summary-card">
                 <span>Current chart</span>
                 <strong>{activeChartAddress}</strong>
-                <p>Chart opens first. Trade controls stay below.</p>
+                <p>Chart first. Stream, room, and revenue controls stay below.</p>
               </div>
             </div>
 
@@ -1086,14 +1114,14 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             <dl className="detail-list compact">
               <div className="detail">
                 <dt>Selected device</dt>
-                <dd>{selectedDevice?.label || "Pick a saved device below before starting."}</dd>
+                <dd>{selectedDevice?.label || "Pick an operator setup below before starting."}</dd>
               </div>
               <div className="detail">
                 <dt>Page status</dt>
                 <dd>
                   {publicStream?.isPublic
                     ? `Public page live at @${publicStream.slug}.`
-                    : "Private until you publish it."}
+                    : "Private until you publish your room to GoonConnect."}
                 </dd>
               </div>
               <div className="detail">
@@ -1112,21 +1140,21 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           />
         ) : (
           <PublicChatPanel
-            eyebrow="MyGoonClaw chat"
-            title="Chat"
-            description="Ask quick questions while you use the page."
+            eyebrow="Operator notes"
+            title="Bridge chat"
+            description="Use this while you move from spectator to operator."
           />
         )}
       </section>
 
       <section className="dashboard-grid dashboard-grid-feed-row">
         <NewsPanel
-          title="Monitoring the Situation"
+          title={isTokenControlPage ? "Market context" : "Operator context"}
           defaultCategory="solana"
         />
         <TrenchesPanel
-          eyebrow="Monitoring the Trenches"
-          title="Monitoring the Trenches"
+          eyebrow={isTokenControlPage ? "Signal flow" : "Live signal flow"}
+          title={isTokenControlPage ? "Watching the market wake up" : "Watching your room's market surface"}
         />
       </section>
 
@@ -1134,9 +1162,9 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">Go live</p>
+              <p className="eyebrow">Operating surface</p>
               <h2>
-                {isTokenControlPage ? "Room status" : "Your session"}
+                {isTokenControlPage ? "Flagship room status" : "Your operator session"}
               </h2>
             </div>
           </div>
@@ -1175,8 +1203,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
 
           <p className="inline-note">
             {isTokenControlPage
-              ? "This page shows the live room."
-              : "MyGoonClaw follows the same token as GoonClaw."}
+              ? "This page is the public proof surface for the flagship claw."
+              : "MyGoonClaw starts with the same token focus as GoonClaw, then turns that attention into your own operating loop."}
           </p>
 
           {!isTokenControlPage ? (
@@ -1248,8 +1276,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           ) : (
             <p className="empty-state">
               {isTokenControlPage
-                ? "No live session right now."
-                : "No session yet. Save a setup and start when ready."}
+                ? "No live session right now. The flagship room is standing by."
+                : "No session yet. Save a setup and start when you are ready to operate."}
             </p>
           )}
 
@@ -1259,18 +1287,18 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
             >
               {isTokenControlPage
                 ? livestreamState?.current
-                  ? "Public session live"
+                  ? "Public loop live"
                   : "Standby"
                 : activeSession
-                ? "Session live"
-                : "Ready to start"}
+                ? "Operator session live"
+                : "Ready to build"}
             </StatusBadge>
             <StatusBadge tone="neutral">
               {isTokenControlPage
                 ? "Revenue -> GoonClaw wallet"
                 : selectedDevice
                   ? `${selectedDevice.type} selected`
-                  : "No setup selected"}
+                  : "No operator setup selected"}
             </StatusBadge>
           </div>
 
@@ -1279,7 +1307,8 @@ export function GoonclawClient({ defaultMediaUrl, variant }: Props) {
           {isTokenControlPage ? (
             <>
               <p className="panel-lead go-live-subsection">
-                Technical session state for the public chart queue.
+                Technical session state for the public chart queue and the
+                flagship room&apos;s current earning surface.
               </p>
 
               {livestreamState ? (

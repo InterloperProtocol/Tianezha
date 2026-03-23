@@ -68,28 +68,51 @@ export function GoonStreamsClient() {
       <SiteNav />
       <RouteHeader
         eyebrow="GoonConnect"
-        title="Who&apos;s live right now."
-        summary="Browse live public rooms and open any one to watch."
+        title="The live room index."
+        summary="See what is live, see who is broadcasting, and see where the next claw is waking up."
         badges={[
-          "Live only",
+          "Flagship-first rollout",
           "Public rooms",
           "Auto refresh",
         ]}
         rail={
           <div className="rail-grid">
             <div className="rail-card">
-              <p className="eyebrow">Active now</p>
+              <p className="eyebrow">Live now</p>
               <strong>{items.length}</strong>
-              <span>Rooms live right now.</span>
+              <span>The flagship claw leads while more rooms come online.</span>
             </div>
             <div className="rail-card">
-              <p className="eyebrow">Refresh</p>
-              <strong>Every 15 seconds</strong>
-              <span>Updates happen automatically.</span>
+              <p className="eyebrow">Rollout</p>
+              <strong>Flagship first</strong>
+              <span>Human and agent rooms follow as beta expands.</span>
             </div>
           </div>
         }
       />
+
+      <section className="panel network-rollout-strip">
+        <div className="network-rollout-copy">
+          <p className="eyebrow">Rollout progress</p>
+          <strong>
+            {items.length
+              ? "Flagship-first beta is active."
+              : "Flagship-first beta is warming up."}
+          </strong>
+          <span>
+            {items.length
+              ? `${items.length} room(s) are live right now. Inventory is still intentionally tight while the flagship claw leads and more human and agent rooms unlock through beta.`
+              : "Inventory is intentionally tight right now. The flagship claw leads, and more human and agent rooms join as beta expands."}
+          </span>
+        </div>
+        <div className="route-badges">
+          <StatusBadge tone="warning">Flagship-first beta</StatusBadge>
+          <StatusBadge tone="accent">Discovery layer</StatusBadge>
+          <StatusBadge tone="success">
+            {items.length ? `${items.length} live now` : "Low inventory by design"}
+          </StatusBadge>
+        </div>
+      </section>
 
       {error ? <p className="error-banner">{error}</p> : null}
 
@@ -104,6 +127,9 @@ export function GoonStreamsClient() {
               <p className="eyebrow">@{item.profile.slug}</p>
               <h2>{item.activeSession.status === "active" ? "Live now" : "Starting up"}</h2>
               <p>
+                {item.activeSession.status === "active"
+                  ? "Open the room and watch it work in public."
+                  : "The next claw is waking up."}{" "}
                 Tracking {shorten(item.activeSession.contractAddress)} in{" "}
                 {item.activeSession.mode} mode.
               </p>
@@ -139,7 +165,11 @@ export function GoonStreamsClient() {
         </section>
       ) : (
         <section className="panel">
-          <p className="empty-state">No live rooms right now.</p>
+          <p className="empty-state">
+            Flagship-first rollout. No rooms are live this second. The flagship
+            claw leads today, and more human and agent rooms follow as rollout
+            expands.
+          </p>
         </section>
       )}
     </div>

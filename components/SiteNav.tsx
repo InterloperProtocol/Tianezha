@@ -19,7 +19,7 @@ export function SiteNav() {
     <nav className="site-nav panel">
       <div className="site-nav-copy">
         <p className="eyebrow">GoonClaw</p>
-        <strong>It&apos;s fuckin Finance Fellas!</strong>
+        <strong>no grace. no authority</strong>
       </div>
       <div className="nav-links">
         {items.map((item) => (

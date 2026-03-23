@@ -13,10 +13,12 @@ export default function AgentPage() {
 
       <RouteHeader
         eyebrow="Status"
-        title="GoonClaw status"
+        title="Live health for the public runtime."
         summary={
           <>
-            Live status, recent updates, and room health.
+            Status is the public legibility layer for GoonClaw: live runtime
+            health, reserve posture, recent updates, and the serious operating
+            surface behind a moderated network.
           </>
         }
         badges={[
@@ -24,46 +26,46 @@ export default function AgentPage() {
             Read-only
           </StatusBadge>,
           <StatusBadge key="heartbeat" tone="success">
-            Live
+            Live health
           </StatusBadge>,
           <StatusBadge key="treasury" tone="neutral">
             Reserve
           </StatusBadge>,
           <StatusBadge key="trace" tone="warning">
-            Updates
+            Public legibility
           </StatusBadge>,
         ]}
         rail={
           <div className="rail-grid">
             <div className="rail-card">
-              <p className="eyebrow">Status</p>
-              <strong>Live updates</strong>
-              <span>Refreshes automatically.</span>
+              <p className="eyebrow">Runtime</p>
+              <strong>Live health</strong>
+              <span>Refreshes automatically so the public can read the system.</span>
             </div>
             <div className="rail-card">
               <p className="eyebrow">Reserve</p>
               <strong>0.069420 SOL</strong>
-              <span>Used as the floor.</span>
+              <span>Visible because public systems need visible guardrails.</span>
             </div>
             <div className="rail-card">
               <p className="eyebrow">Feed</p>
               <strong>Public updates</strong>
-              <span>Recent notes and activity.</span>
+              <span>Recent notes, activity, and runtime posture.</span>
             </div>
             <div className="rail-card">
-              <p className="eyebrow">Access</p>
-              <strong>Read only</strong>
-              <span>No controls on this page.</span>
+              <p className="eyebrow">Moderation</p>
+              <strong>Intentional</strong>
+              <span>Public surfaces are kept readable without making the copy defensive.</span>
             </div>
             <div className="rail-card">
               <p className="eyebrow">Platform</p>
               <strong>Google Cloud</strong>
-              <span>Running in the cloud.</span>
+              <span>Running in the cloud as the public runtime layer.</span>
             </div>
             <div className="rail-card">
               <p className="eyebrow">Refresh</p>
               <strong>Automatic</strong>
-              <span>Keeps this page current.</span>
+              <span>Keeps this page current without exposing private controls.</span>
             </div>
           </div>
         }

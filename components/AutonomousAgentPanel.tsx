@@ -183,7 +183,7 @@ export function AutonomousAgentPanel() {
       <div className="panel-header">
         <div>
           <p className="eyebrow">Live status</p>
-          <h2>Recent status and activity</h2>
+          <h2>Runtime health and public activity</h2>
         </div>
         <div className="source-pill">
           <span className="status-dot" />
@@ -192,8 +192,9 @@ export function AutonomousAgentPanel() {
       </div>
 
       <p className="panel-lead">
-        This page shows live status, reserve health, open trades, and recent
-        public updates. It is view-only.
+        This page shows live runtime health, reserve posture, open trades, and
+        recent public updates so the network can be legible in public. It is
+        view-only.
       </p>
 
       <div className="route-badges">
@@ -201,7 +202,7 @@ export function AutonomousAgentPanel() {
           {status ? status.runtimePhase : "Loading"}
         </StatusBadge>
         <StatusBadge tone={status?.treasury.reserveHealthy ? "success" : "danger"}>
-          {status?.treasury.reserveHealthy ? "Reserve ok" : "Reserve low"}
+          {status?.treasury.reserveHealthy ? "Reserve healthy" : "Reserve low"}
         </StatusBadge>
         <StatusBadge tone={status?.tooling.gmgnConfigured ? "accent" : "neutral"}>
           {status?.tooling.gmgnConfigured ? "GMGN set" : "GMGN off"}
@@ -281,11 +282,11 @@ export function AutonomousAgentPanel() {
         </div>
         <div className="history-item">
           <div>
-            <span>Latest note</span>
+            <span>Latest runtime note</span>
             <strong>{status?.latestPolicyDecision || "Waiting"}</strong>
           </div>
           <div>
-            <span>Feed mode</span>
+            <span>Public trace mode</span>
             <strong>{status?.publicTraceMode || "Waiting"}</strong>
           </div>
         </div>
@@ -309,7 +310,7 @@ export function AutonomousAgentPanel() {
         </div>
         <div className="history-item">
           <div>
-            <span>Updates</span>
+            <span>Broadcast route</span>
             <strong>{status?.tooling.telegramBroadcastEnabled ? "Posting to Telegram" : "Feed paused"}</strong>
           </div>
           <div>

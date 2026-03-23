@@ -16,6 +16,16 @@ type Props = {
   launchAt: string;
   sectionId?: string;
   showIntro?: boolean;
+  eyebrow?: string;
+  title?: string;
+  lead?: string;
+  walletLabel?: string;
+  walletPlaceholder?: string;
+  accessTokenLabel?: string;
+  accessTokenHint?: string;
+  checkButtonLabel?: string;
+  claimButtonLabel?: string;
+  claimingButtonLabel?: string;
 };
 
 type ClaimResponse = {
@@ -56,6 +66,16 @@ export function LaunchonomicsSection({
   launchAt,
   sectionId,
   showIntro = false,
+  eyebrow = "Wallet access",
+  title,
+  lead = "Check access on this page.",
+  walletLabel = "Solana wallet",
+  walletPlaceholder = "Paste a wallet address",
+  accessTokenLabel = "Access token",
+  accessTokenHint = "No wallet connect required.",
+  checkButtonLabel = "Check wallet",
+  claimButtonLabel = "Send access",
+  claimingButtonLabel = "Sending...",
 }: Props) {
   const searchParams = useSearchParams();
   const queryWallet = searchParams.get("wallet")?.trim() || "";
@@ -177,26 +197,26 @@ export function LaunchonomicsSection({
       <section className="panel launchonomics-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">Wallet access</p>
-            <h2>{showIntro ? "Check Eligibility" : "Check access"}</h2>
+            <p className="eyebrow">{eyebrow}</p>
+            <h2>{title ?? (showIntro ? "Check Eligibility" : "Check access")}</h2>
           </div>
         </div>
 
-        <p className="panel-lead">Check access on this page.</p>
+        <p className="panel-lead">{lead}</p>
 
         <div className="field-grid">
           <label className="field">
-            <span>Solana wallet</span>
+            <span>{walletLabel}</span>
             <input
               value={wallet}
               onChange={(event) => setWallet(event.target.value)}
-              placeholder="Paste a wallet address"
+              placeholder={walletPlaceholder}
             />
           </label>
           <div className="summary-card">
-            <span>Access token</span>
+            <span>{accessTokenLabel}</span>
             <strong>{accessTokenSymbol}</strong>
-            <p>No wallet connect required.</p>
+            <p>{accessTokenHint}</p>
           </div>
         </div>
 
@@ -206,7 +226,7 @@ export function LaunchonomicsSection({
             disabled={loading || !wallet.trim()}
             onClick={() => void lookup()}
           >
-            {loading ? "Checking..." : "Check wallet"}
+            {loading ? "Checking..." : checkButtonLabel}
           </button>
           {result ? (
             <button
@@ -214,7 +234,7 @@ export function LaunchonomicsSection({
               disabled={!canClaim || claiming}
               onClick={() => void claimSubscriptionCnft()}
             >
-              {claiming ? "Sending..." : "Send access"}
+              {claiming ? claimingButtonLabel : claimButtonLabel}
             </button>
           ) : null}
         </div>
