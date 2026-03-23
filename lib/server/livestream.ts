@@ -41,6 +41,10 @@ const LIVESTREAM_MEMO_PREFIX = "PUMP";
 const MINIMUM_GUARANTEED_DISPLAY_MS = 120_000;
 const PREEMPT_COOLDOWN_MS = 120_000;
 
+declare global {
+  var __goonclawLivestreamQueueSync: Promise<void> | undefined;
+}
+
 function toLamports(sol: string) {
   return BigInt(Math.round(Number(sol) * 1_000_000_000));
 }
@@ -361,7 +365,7 @@ async function preemptActiveRequest(request: LivestreamRequestRecord) {
   });
 }
 
-export async function syncLivestreamQueue() {
+async function runLivestreamQueueSync() {
   const env = getServerEnv();
   let requests = await listLivestreamRequests();
   await expireStaleRequests(requests);
@@ -426,6 +430,21 @@ export async function syncLivestreamQueue() {
       await ensureIdlePublicLivestreamSession().catch(() => null);
     }
   }
+}
+
+export async function syncLivestreamQueue() {
+  if (global.__goonclawLivestreamQueueSync) {
+    return global.__goonclawLivestreamQueueSync;
+  }
+
+  const syncPromise = runLivestreamQueueSync().finally(() => {
+    if (global.__goonclawLivestreamQueueSync === syncPromise) {
+      global.__goonclawLivestreamQueueSync = undefined;
+    }
+  });
+  global.__goonclawLivestreamQueueSync = syncPromise;
+
+  return syncPromise;
 }
 
 function serializeLivestreamRequest(request: LivestreamRequestRecord) {

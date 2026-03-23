@@ -82,6 +82,8 @@ describe("livestream payment verification", () => {
     smartWalletModule.fetchWalletAnalytics.mockResolvedValue(null);
     workerClientModule.dispatchSessionStop.mockResolvedValue(undefined);
     (globalThis as { __goonclawMemory?: unknown }).__goonclawMemory = undefined;
+    (globalThis as { __goonclawLivestreamQueueSync?: Promise<void> }).__goonclawLivestreamQueueSync =
+      undefined;
   });
 
   it("accepts legacy treasury-memo requests and re-queues them", async () => {
@@ -337,5 +339,66 @@ describe("livestream payment verification", () => {
     const saved = await getLivestreamRequest("queued-request");
     expect(saved?.status).toBe("active");
     expect(saved?.sessionId).toBe("public-session-paid");
+  });
+
+  it("serializes concurrent queue syncs so the public chartsync session only starts once", async () => {
+    envModule.getServerEnv.mockReturnValue({
+      ...envModule.getServerEnv(),
+      PUBLIC_AUTOBLOW_DEVICE_TOKEN: "71nt0tdpv35q",
+    });
+
+    let resolveStart!: (value: {
+      id: string;
+      wallet: string;
+      contractAddress: string;
+      deviceId: string;
+      deviceType: string;
+      mode: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }) => void;
+    const startPromise = new Promise<{
+      id: string;
+      wallet: string;
+      contractAddress: string;
+      deviceId: string;
+      deviceType: string;
+      mode: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }>((resolve) => {
+      resolveStart = resolve;
+    });
+    workerClientModule.dispatchSessionStart.mockReturnValue(startPromise);
+
+    const syncs = [
+      syncLivestreamQueue(),
+      syncLivestreamQueue(),
+      syncLivestreamQueue(),
+    ];
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      if (workerClientModule.dispatchSessionStart.mock.calls.length === 1) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    expect(workerClientModule.dispatchSessionStart).toHaveBeenCalledTimes(1);
+
+    resolveStart({
+      id: "public-session-concurrent",
+      wallet: PUBLIC_LIVESTREAM_OWNER_ID,
+      contractAddress: DEFAULT_PUMP_TOKEN_MINT,
+      deviceId: PUBLIC_LIVESTREAM_DEVICE_ID,
+      deviceType: "autoblow",
+      mode: "live",
+      status: "starting",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    await Promise.all(syncs);
+
+    expect(workerClientModule.dispatchSessionStart).toHaveBeenCalledTimes(1);
   });
 });
