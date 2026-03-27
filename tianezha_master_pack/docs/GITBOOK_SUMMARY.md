@@ -1,0 +1,30 @@
+# GitBook Navigation
+
+- Welcome
+- Product Overview
+- Product Summary
+- Architecture
+- Identity
+- 42-Agent Heartbeat
+- Hybrid Futarchy
+- Percolator
+- Merkle Coherence
+- Tianezha
+- Tianshi
+- Tianzi
+- Nezha
+- BitClaw
+- BolClaw
+- GenDelve
+- Agents
+- Rewards
+- Badges
+- Ranks
+- Permissions
+- Bots
+- Data Model
+- API Surface
+- MVP Scope
+- Roadmap
+- No Livestreaming
+- Codex Handoff

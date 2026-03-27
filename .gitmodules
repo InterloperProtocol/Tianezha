@@ -1,0 +1,9 @@
+[submodule "services/tianshi-automaton/vendor/dexter-upstream"]
+	path = services/tianshi-automaton/vendor/dexter-upstream
+	url = https://github.com/FLOCK4H/Dexter
+[submodule "services/tianshi-automaton/vendor/g0dm0d3-upstream"]
+	path = services/tianshi-automaton/vendor/g0dm0d3-upstream
+	url = https://github.com/elder-plinius/G0DM0D3
+[submodule "services/tianshi-automaton/vendor/polymarket-agents-upstream"]
+	path = services/tianshi-automaton/vendor/polymarket-agents-upstream
+	url = https://github.com/Polymarket/agents

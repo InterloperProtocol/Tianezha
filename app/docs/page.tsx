@@ -97,7 +97,7 @@ export default function TianshiDocsIndexPage() {
             <article key={group.section} className="surface-card">
               <p className="eyebrow">{group.section}</p>
               <h3>{group.docs[0]?.title || group.section}</h3>
-              <p>{group.docs.map((doc) => doc.title).join(" • ")}</p>
+              <p>{group.docs.map((doc) => doc.title).join(" | ")}</p>
               <div className="home-copy-stack">
                 {group.docs.map((doc) => (
                   <Link key={doc.slug.join("/")} href={getMasterPackDocHref(doc.slug)}>

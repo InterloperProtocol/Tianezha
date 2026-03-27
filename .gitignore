@@ -47,6 +47,9 @@ firebase-debug.*.log
 .next-start*.log
 apphosting-debug.txt
 .tmp-*/
+.tmp/
+.codex-next.log
+tianezha_master_pack.zip
 
 # env files (can opt-in for committing if needed)
 .env*
