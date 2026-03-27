@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { getPublicEnv, getServerEnv } from "@/lib/env";
 import { DEFAULT_PUMP_TOKEN_MINT } from "@/lib/token-defaults";
-import { fetchWalletAnalytics } from "@/lib/server/goonclaw-smart-wallets";
+import { fetchWalletAnalytics } from "@/lib/server/tianshi-smart-wallets";
 import {
   dispatchSessionStart,
   dispatchSessionStop,
@@ -42,7 +42,7 @@ const MINIMUM_GUARANTEED_DISPLAY_MS = 120_000;
 const PREEMPT_COOLDOWN_MS = 120_000;
 
 declare global {
-  var __goonclawLivestreamQueueSync: Promise<void> | undefined;
+  var __tianshiLivestreamQueueSync: Promise<void> | undefined;
 }
 
 function toLamports(sol: string) {
@@ -433,16 +433,16 @@ async function runLivestreamQueueSync() {
 }
 
 export async function syncLivestreamQueue() {
-  if (global.__goonclawLivestreamQueueSync) {
-    return global.__goonclawLivestreamQueueSync;
+  if (global.__tianshiLivestreamQueueSync) {
+    return global.__tianshiLivestreamQueueSync;
   }
 
   const syncPromise = runLivestreamQueueSync().finally(() => {
-    if (global.__goonclawLivestreamQueueSync === syncPromise) {
-      global.__goonclawLivestreamQueueSync = undefined;
+    if (global.__tianshiLivestreamQueueSync === syncPromise) {
+      global.__tianshiLivestreamQueueSync = undefined;
     }
   });
-  global.__goonclawLivestreamQueueSync = syncPromise;
+  global.__tianshiLivestreamQueueSync = syncPromise;
 
   return syncPromise;
 }

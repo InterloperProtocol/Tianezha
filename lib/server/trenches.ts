@@ -117,7 +117,7 @@ async function fetchJson<T>(url: string, timeoutMs = 10_000) {
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
-      "User-Agent": "GoonClaw Trench Monitor/1.0",
+      "User-Agent": "Tianshi Trench Monitor/1.0",
     },
     signal: AbortSignal.timeout(timeoutMs),
     cache: "no-store",
@@ -300,7 +300,7 @@ async function fetchRecentPostsForHandle(handle: string) {
     const response = await fetch(`${JINA_READER_BASE}/${handle}`, {
       headers: {
         Accept: "text/plain",
-        "User-Agent": "GoonClaw Trench Monitor/1.0",
+        "User-Agent": "Tianshi Trench Monitor/1.0",
       },
       signal: AbortSignal.timeout(12_000),
       cache: "no-store",

@@ -17,7 +17,7 @@ export default defineConfig({
       "**/.tmp-*/**",
       "**/.tmp*/**",
       "**/.tmp-integrations/**",
-      "**/services/goonclaw-automaton/vendor/**",
+      "**/services/tianshi-automaton/vendor/**",
       "**/vendor_automaton_probe/**",
       "**/vendor_sendaifun_skills_probe/**",
       "**/vendor_solana_agent_kit_probe/**",

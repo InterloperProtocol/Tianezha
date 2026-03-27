@@ -43,35 +43,35 @@ function parseAllowedDomains(value: string) {
     .filter(Boolean);
 }
 
-export function getGoonclawX402BudgetAccount() {
+export function getTianshiX402BudgetAccount() {
   if (cachedBudgetAccount) {
     return cachedBudgetAccount;
   }
 
   const env = getServerEnv();
-  if (!env.GOONCLAW_AGENT_WALLET_SECRET) {
+  if (!env.TIANSHI_AGENT_WALLET_SECRET) {
     return null;
   }
 
   cachedBudgetAccount = createBudgetAccount({
-    walletPrivateKey: env.GOONCLAW_AGENT_WALLET_SECRET,
+    walletPrivateKey: env.TIANSHI_AGENT_WALLET_SECRET,
     budget: {
-      total: env.GOONCLAW_X402_BUDGET_USD,
-      perHour: env.GOONCLAW_X402_PER_HOUR_USD,
-      perRequest: env.GOONCLAW_X402_PER_REQUEST_USD,
+      total: env.TIANSHI_X402_BUDGET_USD,
+      perHour: env.TIANSHI_X402_PER_HOUR_USD,
+      perRequest: env.TIANSHI_X402_PER_REQUEST_USD,
     },
-    allowedDomains: parseAllowedDomains(env.GOONCLAW_X402_ALLOWED_DOMAINS),
+    allowedDomains: parseAllowedDomains(env.TIANSHI_X402_ALLOWED_DOMAINS),
     preferredNetwork: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
   });
 
   return cachedBudgetAccount;
 }
 
-export async function goonclawX402Fetch(
+export async function tianshiX402Fetch(
   input: Parameters<typeof fetch>[0],
   init?: Parameters<typeof fetch>[1],
 ) {
-  const account = getGoonclawX402BudgetAccount();
+  const account = getTianshiX402BudgetAccount();
   if (!account) {
     return fetch(input, init);
   }

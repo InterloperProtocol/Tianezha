@@ -176,7 +176,7 @@ class HandyRuntimeAdapter implements RuntimeAdapter {
   constructor(public readonly id: string, private readonly credentials: DeviceCredentials) {
     this.device = new HandyDevice({
       connectionKey: credentials.connectionKey ?? "",
-      applicationId: "GoonClaw",
+      applicationId: "Tianshi",
     });
   }
 

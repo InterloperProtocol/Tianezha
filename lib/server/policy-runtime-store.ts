@@ -26,11 +26,11 @@ type PolicyRuntimeState = {
 };
 
 declare global {
-  var __goonclawPolicyRuntimeState: PolicyRuntimeState | undefined;
+  var __tianshiPolicyRuntimeState: PolicyRuntimeState | undefined;
 }
 
 const DATA_DIR = path.join(process.cwd(), ".data");
-const STORE_PATH = path.join(DATA_DIR, "goonclaw-policy-runtime.json");
+const STORE_PATH = path.join(DATA_DIR, "tianshi-policy-runtime.json");
 const MAX_AUDIT_EVENTS = 2_000;
 
 function ensureDataDir() {
@@ -83,11 +83,11 @@ function persistState(state: PolicyRuntimeState) {
 }
 
 function getState() {
-  if (!global.__goonclawPolicyRuntimeState) {
-    global.__goonclawPolicyRuntimeState = readStateFromDisk();
+  if (!global.__tianshiPolicyRuntimeState) {
+    global.__tianshiPolicyRuntimeState = readStateFromDisk();
   }
 
-  return global.__goonclawPolicyRuntimeState;
+  return global.__tianshiPolicyRuntimeState;
 }
 
 function pruneExpiringEntries(
@@ -196,7 +196,7 @@ export function listPersistedAuditEvents(limit = 100) {
 }
 
 export function resetPolicyRuntimeStoreForTests() {
-  global.__goonclawPolicyRuntimeState = createInitialState();
+  global.__tianshiPolicyRuntimeState = createInitialState();
   if (existsSync(STORE_PATH)) {
     unlinkSync(STORE_PATH);
   }

@@ -6,8 +6,8 @@ import nacl from "tweetnacl";
 import { getServerEnv } from "@/lib/env";
 import { addMinutes, addDays, fromBase64Url, nowIso, toBase64Url } from "@/lib/utils";
 
-const NONCE_COOKIE = "goonclaw_nonce";
-const SESSION_COOKIE = "goonclaw_session";
+const NONCE_COOKIE = "tianshi_nonce";
+const SESSION_COOKIE = "tianshi_session";
 
 interface SessionPayload {
   wallet: string;
@@ -32,7 +32,7 @@ export async function createAuthChallenge(wallet: string, origin: string) {
   const nonce = randomUUID();
   const expiresAt = addMinutes(new Date(), 10).toISOString();
   const message = [
-    "GoonClaw wallet sign-in",
+    "Tianshi wallet sign-in",
     "",
     `Wallet: ${wallet}`,
     `Nonce: ${nonce}`,

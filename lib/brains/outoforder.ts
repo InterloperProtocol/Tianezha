@@ -4,7 +4,7 @@ export const OUTOFORDER_BRAIN = {
   id: "outoforder",
   displayName: "OutOfOrder",
   sovereignty: "child",
-  parentBrainId: "goonclaw",
+  parentBrainId: "tianshi",
   domain: "outoforder.fun",
   loadPath: "brains/outoforder",
   tone: "counter-cyclical dissident editor",

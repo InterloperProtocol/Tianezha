@@ -2,12 +2,12 @@ import { getServerEnv } from "@/lib/env";
 import { syncLivestreamQueue } from "@/lib/server/livestream";
 
 declare global {
-  var __goonclawLivestreamRuntimeStarted: boolean | undefined;
-  var __goonclawLivestreamRuntimeTicking: boolean | undefined;
+  var __tianshiLivestreamRuntimeStarted: boolean | undefined;
+  var __tianshiLivestreamRuntimeTicking: boolean | undefined;
 }
 
 export function startLivestreamRuntimeLoop() {
-  if (global.__goonclawLivestreamRuntimeStarted) {
+  if (global.__tianshiLivestreamRuntimeStarted) {
     return false;
   }
 
@@ -16,26 +16,26 @@ export function startLivestreamRuntimeLoop() {
     return false;
   }
 
-  global.__goonclawLivestreamRuntimeStarted = true;
+  global.__tianshiLivestreamRuntimeStarted = true;
 
   const intervalMs = 10_000;
 
   console.log(
-    `[goonclaw-livestream] runtime bootstrap at ${new Date().toISOString()} intervalMs=${intervalMs}`,
+    `[tianshi-livestream] runtime bootstrap at ${new Date().toISOString()} intervalMs=${intervalMs}`,
   );
 
   const runCycle = async (reason: string) => {
-    if (global.__goonclawLivestreamRuntimeTicking) {
+    if (global.__tianshiLivestreamRuntimeTicking) {
       return;
     }
 
-    global.__goonclawLivestreamRuntimeTicking = true;
+    global.__tianshiLivestreamRuntimeTicking = true;
     try {
       await syncLivestreamQueue();
     } catch (error) {
-      console.warn(`[goonclaw-livestream] sync failed reason=${reason}`, error);
+      console.warn(`[tianshi-livestream] sync failed reason=${reason}`, error);
     } finally {
-      global.__goonclawLivestreamRuntimeTicking = false;
+      global.__tianshiLivestreamRuntimeTicking = false;
     }
   };
 

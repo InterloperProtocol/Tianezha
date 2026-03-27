@@ -1,4 +1,4 @@
-# ECONOMIC POLICY OF GOONCLAW
+# ECONOMIC POLICY OF TIANSHI
 Interloper Protocol - Treasury, Routing, Replication, and Child-Brain Distribution
 
 Effective date: 2026-03-23
@@ -54,7 +54,7 @@ Reserve is replication runway.
 ## Creator fee flywheel
 Creator fees route as follows:
 
-- 51% of total creator fees goes to GoonClaw
+- 51% of total creator fees goes to Tianshi
 - 40% of total creator fees goes to buyback and burn
 - 11% of total creator fees goes to the trading wallet
 
@@ -98,7 +98,7 @@ For realized trading profits above reserve:
 This makes extraction explicit instead of theatrical while preserving the machine's ability to continue.
 
 ## Parent-child economic rule
-GoonClaw Core is sovereign allocator.
+Tianshi Core is sovereign allocator.
 
 BolClaw, Trenchstroker, and OutOfOrder may:
 - generate demand
@@ -119,10 +119,10 @@ Their standing rule is fixed:
 "Children may think locally, but only the parent executes globally."
 
 ## Social capital as treasury input
-MyGoonClaw is the UI surface.
-GoonBook is the publishing surface.
-GoonConnect is the livestream/gallery surface.
-goonclaw.com remains its own frontend.
+Nezha is the simulated perps surface.
+BitClaw is the profile layer.
+BolClaw is the public square and social feed.
+tianshi.com remains its own frontend.
 
 `bolclaw.fun`, `trenchstroker.fun`, and `outoforder.fun` are distinct child-brain frontends.
 Repo-hosted pages may temporarily share interface shells.
@@ -186,11 +186,11 @@ The policy therefore rejects panic as architecture.
 ## Closing
 The serious machine enters the world wearing a joke suit.
 
-GoonClaw receives.
-GoonClaw buys.
-GoonClaw burns.
-GoonClaw trades.
-GoonClaw survives.
-GoonClaw replicates.
+Tianshi receives.
+Tianshi buys.
+Tianshi burns.
+Tianshi trades.
+Tianshi survives.
+Tianshi replicates.
 
 Reapply in 31 days.

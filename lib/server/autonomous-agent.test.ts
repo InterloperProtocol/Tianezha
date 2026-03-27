@@ -6,7 +6,7 @@ import {
   getAutonomousStatus,
   queueAutonomousSelfModificationProposal,
   queueAutonomousTradeDirective,
-  publishAutonomousGoonBookPost,
+  publishAutonomousBitClawPost,
   recordAutonomousRevenue,
   performAutonomousControl,
   tickAutonomousHeartbeat,
@@ -43,10 +43,10 @@ describe("autonomous agent policy", () => {
     expect(result.nextBuckets.totalProcessedUsdc).toBe(100);
   });
 
-  it("routes goonclaw chartsync revenue into burn and session trading", () => {
+  it("routes tianshi chartsync revenue into burn and session trading", () => {
     const current = getAutonomousSnapshot();
     const result = applyAutonomousRevenueAllocation(
-      "goonclaw_chartsync",
+      "tianshi_chartsync",
       20,
       current.revenueBuckets,
     );
@@ -78,7 +78,7 @@ describe("autonomous agent policy", () => {
         {
           id: "position-1",
           status: "open",
-          source: "goonclaw_chartsync",
+          source: "tianshi_chartsync",
           marketMint: "mint-1",
           symbol: "TEST",
           venue: "gmgn",
@@ -141,9 +141,9 @@ describe("autonomous agent policy", () => {
     expect(next.selfModification.lastOutcome).toContain("Owner approved");
   });
 
-  it("queues and executes a treasury trade directive through the settlement loop", async () => {
+  it("records a blocked treasury trade directive when the risk-control plane is locked", async () => {
     recordAutonomousRevenue("creator_fee", 100, "creator fees");
-    queueAutonomousTradeDirective({
+    const directive = queueAutonomousTradeDirective({
       marketMint: "pump-mint-2",
       rationale: "Test treasury trade",
       requestedUsdc: 1,
@@ -183,11 +183,86 @@ describe("autonomous agent policy", () => {
       },
     });
 
-    expect(next.tradeDirectives[0]?.status).toBe("executed");
+    expect(directive.status).toBe("blocked");
+    expect(directive.blockedReason).toMatch(/risk-control plane/i);
+    expect(next.tradeDirectives[0]?.status).toBe("blocked");
+    expect(next.tradeDirectives[0]?.lastOutcome).toContain("Declarative trade only");
     expect(next.positions.some((position) => position.marketMint === "pump-mint-2")).toBe(
+      false,
+    );
+    expect(next.revenueBuckets.tradingUsdc).toBe(11);
+  });
+
+  it("surfaces the locked risk-control plane and alignment registry in status", () => {
+    const status = getAutonomousStatus();
+
+    expect(status.treasury.riskControlPlane.locked).toBe(true);
+    expect(status.treasury.riskControlPlane.evidenceReplay.evidenceRequired).toBe(true);
+    expect(status.treasury.tradeGuardrails.allowedPerpVenues).toEqual(["hyperliquid"]);
+    expect(status.reportCommerce.priceUsdc).toBe(0.01);
+    expect(status.reportCommerce.purchaseWindowSeconds).toBe(1);
+    expect(status.tooling.agfundEnabled).toBe(true);
+    expect(status.tooling.fourMemeEnabled).toBe(true);
+    expect(status.tooling.hyperliquidEnabled).toBe(true);
+    expect(status.tooling.hyperliquidApiUrl).toBe("https://api.hyperliquid.xyz");
+    expect(status.alignmentGoals.map((goal) => goal.tokenSymbol)).toEqual([
+      "QAI",
+      "GENDELVE",
+      "GUILD",
+    ]);
+    expect(status.alignmentGoals.every((goal) => goal.xHandleStatus === "unresolved")).toBe(
       true,
     );
-    expect(next.revenueBuckets.tradingUsdc).toBe(10);
+    expect(status.alignmentGoals.map((goal) => goal.id)).toEqual([
+      "qai",
+      "gendelve",
+      "guildcoin",
+    ]);
+  });
+
+  it("surfaces the passive watchlist metadata for the brief handles and tokens", () => {
+    const status = getAutonomousStatus();
+
+    expect(status.watchlistMetadata.map((entry) => entry.reference)).toEqual([
+      "@UwUDelve",
+      "@EKaon_terminal",
+      "@GPlanckAI",
+      "@QypherAI",
+      "@ASIMOGHUB",
+      "@TheARCReality",
+      "@DelveAssembly",
+      "@GendelveCEX",
+      "BURZEN",
+      "EKAON",
+      "GPLANCK",
+      "MUON",
+      "GLUON",
+      "HTAU",
+      "QUVIT",
+      "MTHETA",
+    ]);
+    expect(status.watchlistMetadata.filter((entry) => entry.kind === "x_handle")).toHaveLength(
+      8,
+    );
+    expect(status.watchlistMetadata.filter((entry) => entry.kind === "token")).toHaveLength(8);
+    expect(
+      status.watchlistMetadata
+        .filter((entry) => entry.kind === "token")
+        .map((entry) => entry.url),
+    ).toEqual([
+      "https://dexscreener.com/solana/47sxex818tn69y2unypmgezerlttdw8ehe6utmq3uwvc",
+      "https://dexscreener.com/solana/hfl7jz58dkyvms1znpwsszea5wvxx4v3knrycquq4xeb",
+      "https://dexscreener.com/solana/ycjktszuhwxj7twwvqnmt31ushdthgwbhar8vgakr6z",
+      "https://dexscreener.com/solana/ek2jy6qw6g5rvkq9ihwakhrxgxzduwnvz1vxji5kznmz",
+      "https://dexscreener.com/solana/hca2945pp8ssxrjld6tfanzgmhqevjtqoeekmdh6cllr",
+      "https://dexscreener.com/solana/cracrgawrpshzi8c77pcktnphhqcseucsgbe8ouydyhz",
+      "https://pump.fun/NH9NbZP7WS8HzemYcWQBAjns6nNGryBd9YBQoxppump",
+      "https://x.com/GendelveCEX",
+    ]);
+    expect(status.watchlistMetadata[0]?.url).toBe("https://x.com/UwUDelve");
+    expect(status.watchlistMetadata.every((entry) => entry.notes.includes("Passive"))).toBe(
+      true,
+    );
   });
 
   it("creates replica child runtimes from owner control", async () => {
@@ -208,13 +283,13 @@ describe("autonomous agent policy", () => {
   });
 
   it("publishes first-party BitClaw notes through the runtime", async () => {
-    const result = await publishAutonomousGoonBookPost({
+    const result = await publishAutonomousBitClawPost({
       body: "Rotation stays risk-on while liquidity and wallet follow-through hold up.",
       tokenSymbol: "$BONK",
       stance: "bullish",
     });
 
-    expect(result.post.agentId).toBe("goonclaw");
+    expect(result.post.agentId).toBe("tianshi");
     expect(result.post.tokenSymbol).toBe("$BONK");
     expect(result.snapshot.latestPolicyDecision).toBe(
       "Published a first-party BitClaw post.",
@@ -265,7 +340,7 @@ describe("autonomous agent policy", () => {
         requestedNotionalUsdc: 5,
         venue: "gmgn",
       }),
-    ).toThrow(/Pump meme coins/i);
+    ).toThrow(/Pump\.fun or Four\.meme/i);
 
     expect(() =>
       assertAutonomousTradeAllowed({
@@ -287,16 +362,16 @@ describe("autonomous agent policy", () => {
         requestedNotionalUsdc: 5,
         venue: "pumpfun",
       }),
-    ).toThrow(/GMGN route/i);
+    ).toThrow(/reviewed routes/i);
   });
 
   it("queues chartsync trade capital until a pump-verified token is supplied", () => {
-    recordAutonomousRevenue("goonclaw_chartsync", 20, "session revenue");
+    recordAutonomousRevenue("tianshi_chartsync", 20, "session revenue");
     const snapshot = getAutonomousSnapshot();
 
     expect(snapshot.revenueBuckets.sessionTradeUsdc).toBe(10);
     expect(snapshot.positions).toHaveLength(0);
-    expect(snapshot.latestPolicyDecision).toContain("directive");
+    expect(snapshot.latestPolicyDecision).toContain("locked risk-control plane");
   });
 
   it("calculates tracked portfolio value from liquid balance, trade buckets, and open positions", () => {
@@ -314,7 +389,7 @@ describe("autonomous agent policy", () => {
         {
           id: "position-2",
           status: "open",
-          source: "goonclaw_chartsync",
+          source: "tianshi_chartsync",
           marketMint: "mint-4",
           symbol: "TEST",
           venue: "gmgn",

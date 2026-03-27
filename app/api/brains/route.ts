@@ -6,7 +6,7 @@ import { CHILD_EXECUTION_RULE } from "@/lib/types/brains";
 export async function GET() {
   try {
     return NextResponse.json({
-      parentBrainId: "goonclaw",
+      parentBrainId: "tianshi",
       rule: CHILD_EXECUTION_RULE,
       count: PUBLIC_CHILD_BRAINS.length,
       brains: PUBLIC_CHILD_BRAINS,

@@ -1,5 +1,5 @@
 {
-  "name": "goonclaw-app",
+  "name": "tianezha-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit --incremental false -p tsconfig.typecheck.json",
     "worker:dev": "tsx workers/server.ts",
     "helius:mcp": "helius-mcp",
-    "goonclaw:autonomous": "tsx services/goonclaw-automaton/runtime-loop.ts"
+    "tianshi:autonomous": "tsx services/tianshi-automaton/runtime-loop.ts",
+    "tianshi:dexter:bootstrap": "node services/tianshi-automaton/scripts/bootstrap-dexter.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -24,6 +25,7 @@
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@metaplex-foundation/umi": "^1.5.1",
     "@metaplex-foundation/umi-bundle-defaults": "^1.5.1",
+    "@nktkas/hyperliquid": "^0.32.1",
     "@payloadcms/db-sqlite": "^3.79.1",
     "@payloadcms/next": "^3.79.1",
     "@pump-fun/agent-payments-sdk": "^3.0.2",

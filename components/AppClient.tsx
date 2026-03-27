@@ -459,7 +459,7 @@ export function AppClient({ config }: { config: PublicConfig }) {
             <h2>Mint a permanent cNFT</h2>
             <p>
               Pay <strong>{config.accessPriceSol} SOL</strong> and mint a
-              GoonClaw access cNFT to the connected wallet. Access stays
+              Tianshi access cNFT to the connected wallet. Access stays
               active while that wallet holds the pass.
             </p>
             <button

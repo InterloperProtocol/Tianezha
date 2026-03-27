@@ -17,11 +17,20 @@ import {
 
 import { getServerEnv } from "@/lib/env";
 import {
+  executeGmgnSwap,
+  getGmgnStatus,
   getGmgnSwapRoute,
   getGmgnTransactionStatus,
+  queryGmgnOrder,
   signGmgnTransaction,
   submitGmgnSignedTransaction,
 } from "@/lib/server/gmgn";
+import {
+  closeHyperliquidPerpPosition,
+  getHyperliquidCoinFromMarketKey,
+  placeHyperliquidPerpOrder,
+} from "@/lib/server/hyperliquid-agent";
+import type { AutonomousTradePosition } from "@/lib/types";
 
 const MAINNET_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const USDC_DECIMALS = 6;
@@ -86,15 +95,15 @@ function getQuoteMint() {
 
 function getTradingSigner() {
   const env = getServerEnv();
-  const secretKey = parseSecretKey(env.GOONCLAW_GMGN_TRADING_SECRET);
+  const secretKey = parseSecretKey(env.TIANSHI_GMGN_TRADING_SECRET);
   if (!secretKey) {
     throw new Error("GMGN trading signer is not configured.");
   }
 
   const signer = Keypair.fromSecretKey(secretKey);
   if (
-    env.GOONCLAW_GMGN_TRADING_WALLET.trim() &&
-    signer.publicKey.toBase58() !== env.GOONCLAW_GMGN_TRADING_WALLET.trim()
+    env.TIANSHI_GMGN_TRADING_WALLET.trim() &&
+    signer.publicKey.toBase58() !== env.TIANSHI_GMGN_TRADING_WALLET.trim()
   ) {
     throw new Error(
       "GMGN trading signer does not match the configured GMGN trading wallet.",
@@ -181,19 +190,75 @@ async function waitForGmgnFinality(hash: string, lastValidBlockHeight: number) {
   throw new Error(`GMGN transaction ${hash} did not finalize in time.`);
 }
 
+async function waitForGmgnOrderConfirmation(orderId: string) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const order = await queryGmgnOrder({
+      chain: "sol",
+      orderId,
+    });
+
+    if (order.status === "confirmed" || order.confirmation?.state === "confirmed") {
+      return order;
+    }
+
+    if (
+      order.status === "failed" ||
+      order.status === "expired" ||
+      order.confirmation?.state === "failed" ||
+      order.confirmation?.state === "expired"
+    ) {
+      throw new Error(
+        order.error_status ||
+          order.confirmation?.detail ||
+          `GMGN order ${orderId} failed.`,
+      );
+    }
+
+    await sleep(1500);
+  }
+
+  throw new Error(`GMGN order ${orderId} did not finalize in time.`);
+}
+
 async function executeSwap(args: {
   inputMint: string;
   outputMint: string;
   inAmountAtomic: string;
   slippagePercent?: number;
 }) {
+  const gmgnStatus = getGmgnStatus();
+  if (gmgnStatus.criticalAuthReady && gmgnStatus.tradeChains.includes("sol")) {
+    const order = await executeGmgnSwap({
+      chain: "sol",
+      inputAmount: args.inAmountAtomic,
+      inputToken: args.inputMint,
+      outputToken: args.outputMint,
+      slippage: (args.slippagePercent ?? 5) / 100,
+    });
+    const orderId = order.order_id;
+    if (!orderId) {
+      throw new Error("GMGN swap response did not include an order id.");
+    }
+
+    const finalOrder = await waitForGmgnOrderConfirmation(orderId);
+    const hash = finalOrder.hash || order.hash;
+    if (!hash) {
+      throw new Error("GMGN order confirmed without a transaction hash.");
+    }
+
+    return {
+      hash,
+      quotedOutAmount: null,
+    };
+  }
+
   const route = await getGmgnSwapRoute({
     feeSol: 0.0001,
     inAmountLamports: args.inAmountAtomic,
     inputTokenAddress: args.inputMint,
     isAntiMev: true,
     outputTokenAddress: args.outputMint,
-    partner: "goonclaw",
+    partner: "tianshi",
     slippagePercent: args.slippagePercent ?? 5,
   });
 
@@ -308,12 +373,18 @@ export interface AutonomousSettlementExecutor {
   executeTrade(args: {
     amountUsdc: number;
     marketMint: string;
+    leverage?: number | null;
+    side?: "long" | "short" | null;
+    venue?: AutonomousTradePosition["venue"];
   }): Promise<{
     acquiredAmountRaw: string;
     buySignature: string;
+    entryPrice?: number | null;
+    leverage?: number | null;
   }>;
   liquidateTrade(args: {
     marketMint: string;
+    position?: AutonomousTradePosition;
   }): Promise<{
     exitUsdc: number;
     sellSignature: string | null;
@@ -394,6 +465,15 @@ export function createDefaultAutonomousSettlementExecutor(): AutonomousSettlemen
     },
 
     async executeTrade(args) {
+      if (args.venue === "hyperliquid") {
+        return placeHyperliquidPerpOrder({
+          coin: getHyperliquidCoinFromMarketKey(args.marketMint),
+          leverage: args.leverage,
+          notionalUsdc: args.amountUsdc,
+          side: args.side || "long",
+        });
+      }
+
       const connection = getConnection();
       const signer = getTradingSigner();
       const before = await getTokenBalanceSnapshot({
@@ -427,6 +507,13 @@ export function createDefaultAutonomousSettlementExecutor(): AutonomousSettlemen
     },
 
     async liquidateTrade(args) {
+      if (args.position?.venue === "hyperliquid") {
+        return closeHyperliquidPerpPosition({
+          coin: getHyperliquidCoinFromMarketKey(args.marketMint),
+          entryUsdc: args.position.entryUsdc,
+        });
+      }
+
       const connection = getConnection();
       const signer = getTradingSigner();
       const positionBalance = await getTokenBalanceSnapshot({

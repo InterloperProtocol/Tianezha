@@ -127,7 +127,7 @@ function decodeDedicatedPaymentSigner(paymentSecretCiphertext: string) {
 function getSweepFeePayer() {
   const env = getServerEnv();
   const secretKey = parseSecretKey(
-    env.GOONCLAW_PAYMENT_SWEEP_SECRET || env.GOONCLAW_AGENT_WALLET_SECRET,
+    env.TIANSHI_PAYMENT_SWEEP_SECRET || env.TIANSHI_AGENT_WALLET_SECRET,
   );
 
   if (!secretKey) {
@@ -424,7 +424,7 @@ export async function walletOwnsAccessCnft(wallet: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          id: "goonclaw-get-assets-by-owner",
+          id: "tianshi-get-assets-by-owner",
           method: "getAssetsByOwner",
           params: {
             ownerAddress: wallet,

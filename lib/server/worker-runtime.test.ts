@@ -99,16 +99,16 @@ describe("rehydrateRuntimeSessions", () => {
         lastError,
       }),
     );
-    (globalThis as { __goonclawRuntime?: unknown }).__goonclawRuntime = undefined;
-    (globalThis as { __goonclawRuntimeOwnerId?: string }).__goonclawRuntimeOwnerId =
+    (globalThis as { __tianshiRuntime?: unknown }).__tianshiRuntime = undefined;
+    (globalThis as { __tianshiRuntimeOwnerId?: string }).__tianshiRuntimeOwnerId =
       undefined;
   });
 
   afterEach(() => {
     vi.clearAllTimers();
     vi.useRealTimers();
-    (globalThis as { __goonclawRuntime?: unknown }).__goonclawRuntime = undefined;
-    (globalThis as { __goonclawRuntimeOwnerId?: string }).__goonclawRuntimeOwnerId =
+    (globalThis as { __tianshiRuntime?: unknown }).__tianshiRuntime = undefined;
+    (globalThis as { __tianshiRuntimeOwnerId?: string }).__tianshiRuntimeOwnerId =
       undefined;
   });
 

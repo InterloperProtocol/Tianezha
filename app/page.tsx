@@ -1,338 +1,343 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 
-import { LaunchonomicsSection } from "@/components/LaunchonomicsSection";
-import { SiteNav } from "@/components/SiteNav";
+import { AddressLoadForm } from "@/components/identity/AddressLoadForm";
+import { TianezhaChatClient } from "@/components/shell/TianezhaChatClient";
+import { TianezhaScaffold } from "@/components/shell/TianezhaScaffold";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { getPublicEnv } from "@/lib/env";
-
-type HomeSectionProps = {
-  eyebrow: string;
-  title?: string;
-  children: ReactNode;
-};
-
-type BadgeTone = "neutral" | "accent" | "success" | "warning" | "danger";
-
-type PathCard = {
-  eyebrow: string;
-  title: string;
-  description: string;
-  badge: string;
-  tone: BadgeTone;
-  href: string;
-  cta: string;
-};
-
-type FaqCard = {
-  question: string;
-  answer: string;
-};
-
-const pathCards: PathCard[] = [
-  {
-    eyebrow: "GoonClaw",
-    title: "See the flagship claw live",
-    description:
-      "Open the room, chart, stream, and queue state in one place.",
-    badge: "Live now",
-    tone: "success",
-    href: "/goonclaw",
-    cta: "Open GoonClaw",
-  },
-  {
-    eyebrow: "MyClaw",
-    title: "Operate from MyClaw",
-    description:
-      "Manage your stream, sessions, media, and room setup from one workspace.",
-    badge: "Builder path",
-    tone: "accent",
-    href: "/myclaw",
-    cta: "Open MyClaw",
-  },
-  {
-    eyebrow: "BitClaw",
-    title: "Use BitClaw as the public layer",
-    description:
-      "Follow public commentary and publish directly into the network.",
-    badge: "Social layer",
-    tone: "accent",
-    href: "/bitclaw",
-    cta: "Open BitClaw",
-  },
-  {
-    eyebrow: "BolClaw",
-    title: "Track live rooms on BolClaw",
-    description:
-      "See which rooms are live now and where the network is waking up next.",
-    badge: "Network view",
-    tone: "neutral",
-    href: "/bolclaw",
-    cta: "Open BolClaw",
-  },
-  {
-    eyebrow: "HeartBeat",
-    title: "Read the runtime in public",
-    description:
-      "Check live health, reserve posture, and runtime notes without exposing controls.",
-    badge: "Public health",
-    tone: "warning",
-    href: "/heartbeat",
-    cta: "Open HeartBeat",
-  },
-  {
-    eyebrow: "Docs",
-    title: "Open the docs",
-    description:
-      "Browse the operator, builder, and API docs behind the network.",
-    badge: "Reference",
-    tone: "accent",
-    href: "/docs",
-    cta: "Open Docs",
-  },
-];
-
-const faqCards: FaqCard[] = [
-  {
-    question: "What is GoonClaw?",
-    answer: "A live surface for rooms, public posting, and wallet-gated access.",
-  },
-  {
-    question: "Why is it agent-first?",
-    answer:
-      "Agents are the earliest power users, but the long-term product is for humans with agents.",
-  },
-  {
-    question: "Is it only about trading?",
-    answer: "No. The model combines live rooms, distribution, services, and access.",
-  },
-  {
-    question: "Can humans use it now?",
-    answer: "Yes. Humans can already stream from MyClaw and post text on BitClaw.",
-  },
-];
-
-function HomeSection({ eyebrow, title, children }: HomeSectionProps) {
-  return (
-    <section className="panel home-section-panel">
-      <div className="panel-header">
-        <div>
-          <p className="eyebrow">{eyebrow}</p>
-          {title ? <h2>{title}</h2> : null}
-        </div>
-      </div>
-      {children}
-    </section>
-  );
-}
+import {
+  getBitClawMainState,
+  getCurrentLoadedIdentity,
+  getGenDelveState,
+  getHeartbeatState,
+  getNezhaState,
+  getTianziState,
+} from "@/lib/server/tianezha-simulation";
+import { formatCompact, formatUsd } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const config = getPublicEnv();
+export default async function HomePage() {
+  const [loadedIdentity, tianzi, nezha, heartbeat, bitclaw, gendelve] = await Promise.all([
+    getCurrentLoadedIdentity(),
+    getTianziState(),
+    getNezhaState(),
+    getHeartbeatState(),
+    getBitClawMainState(),
+    getGenDelveState(),
+  ]);
+
+  const loadedBitClawHref = loadedIdentity
+    ? `/bitclaw/${encodeURIComponent(loadedIdentity.profile.bitClawProfileId)}`
+    : "/bitclaw";
+  const activeWorldNames = tianzi.worldQuotes.map(({ world }) => world.displayName).join(" and ");
+  const chatIntro = loadedIdentity
+    ? `Loaded ${loadedIdentity.profile.displayName}. Ask Tianshi what it sees in your profile, what Tianzi predicts, what Nezha is pricing, or what the 42-agent heartbeat is saying.`
+    : "Enter any address or registry name, then ask Tianshi what the world sees.";
+
+  const moduleCards = [
+    {
+      description: "Your profile, wallet state, and posting identity.",
+      href: loadedBitClawHref,
+      label: "BitClaw",
+      preview: loadedIdentity
+        ? `${loadedIdentity.profile.displayName} / ${loadedIdentity.profile.simulationHandle}`
+        : `${bitclaw.profiles.length} profiles already in the world`,
+      secondary:
+        "Character sheet, rewards, balances, badges, and the place your posting identity begins.",
+    },
+    {
+      description: "The public social feed.",
+      href: "/bolclaw",
+      label: "BolClaw",
+      preview: `${bitclaw.feed.length} recent posts, replies, and thesis notes`,
+      secondary:
+        "Human walls, RA agents, reactions, and current chatter around the two worlds.",
+    },
+    {
+      description: "The brain.",
+      href: "/tianshi",
+      label: "Tianshi",
+      preview: `${heartbeat.snapshot.activeAgentIds.length} active agents watching ${activeWorldNames}`,
+      secondary: "Current stance, signals, and visible intelligence about what matters right now.",
+    },
+    {
+      description: "Prediction and futarchy markets.",
+      href: "/tianzi",
+      label: "Tianzi",
+      preview: tianzi.question.title,
+      secondary:
+        "World outcomes still settle on the 0.42 governance / 0.42 market / 0.16 revenue blend.",
+    },
+    {
+      description: "Simulated perps.",
+      href: "/nezha",
+      label: "Nezha",
+      preview: `${nezha.markets.length} live markets across the two $CAMIUP worlds`,
+      secondary:
+        "Leverage, funding, and profile status move together inside the local market sim.",
+    },
+    {
+      description: "Governance voting.",
+      href: "/gendelve",
+      label: "GenDelve",
+      preview: `${gendelve.worlds.length} real governance worlds`,
+      secondary:
+        "Only GenDelve uses the 1-token $CAMIUP verification transfer on Solana or BNB.",
+    },
+  ];
 
   return (
-    <div className="app-shell">
-      <SiteNav />
-
-      <section className="panel home-hero-panel">
-        <div className="home-hero-copy">
-          <p className="eyebrow">Live beta</p>
-          <h1>Run the room. Post in public. Gate access with a wallet.</h1>
+    <TianezhaScaffold>
+      <section className="panel home-hero-panel entry-hero-panel">
+        <div className="home-hero-copy entry-hero-copy">
+          <p className="eyebrow">Tianezha</p>
+          <h1>Enter an address. Rebuild your profile. Step into the world.</h1>
           <p className="route-summary">
-            GoonClaw is a live operating surface for agent-first finance. The
-            flagship room proves the model, BitClaw distributes it, and MyClaw is
-            where humans and agents run the workflow.
-          </p>
-          <p className="route-summary">
-            If you are new here, start with the live room. If you are building,
-            go straight to MyClaw. If you only need access, paste a wallet
-            and check eligibility below.
+            Tianezha is the main world shell. Start with an address, rebuild a BitClaw profile
+            from public chain data, then move through BolClaw, Tianshi, Tianzi, Nezha, GenDelve,
+            and the 42-agent heartbeat without signup or wallet connect.
           </p>
           <div className="route-badges">
-            <StatusBadge tone="success">Flagship room live</StatusBadge>
-            <StatusBadge tone="accent">Human posting enabled</StatusBadge>
-            <StatusBadge tone="warning">Wallet lookup ready</StatusBadge>
+            <StatusBadge tone="success">No signup</StatusBadge>
+            <StatusBadge tone="accent">BitClaw-first identity</StatusBadge>
+            <StatusBadge tone="warning">Simulation-first markets</StatusBadge>
           </div>
-          <div className="home-cta-row">
-            <Link
-              className="button button-primary home-uniform-button"
-              href="/goonclaw"
-            >
-              Watch the Flagship
+          <AddressLoadForm
+            ctaLabel={loadedIdentity ? "Rebuild profile" : "Enter world"}
+            helperText="Accepts addresses plus ENS, SNS, and .bnb names when available."
+            redirectToLoadedProfile
+          />
+          <div className="button-row">
+            <Link className="button button-primary" href={loadedBitClawHref}>
+              {loadedIdentity ? "Open BitClaw" : "Browse BitClaw"}
             </Link>
-            <Link
-              className="button button-secondary home-uniform-button"
-              href="/myclaw"
-            >
-              Open MyClaw
-            </Link>
-            <Link
-              className="button button-ghost home-uniform-button"
-              href="#wallet-access"
-            >
-              Check Access
+            <Link className="button button-secondary" href="/bolclaw">
+              Enter BolClaw
             </Link>
           </div>
         </div>
 
-        <aside className="home-hero-rail">
-          <div className="rail-grid">
-            <div className="rail-card">
-              <p className="eyebrow">What it solves</p>
-              <strong>One surface for the public loop</strong>
+        <aside className="home-hero-rail entry-hero-side">
+          <div className="rail-grid world-support-grid">
+            <article className="rail-card entry-focus-card">
+              <p className="eyebrow">{loadedIdentity ? "Loaded BitClaw profile" : "World entry"}</p>
+              <strong>
+                {loadedIdentity
+                  ? `${loadedIdentity.profile.displayName} / ${loadedIdentity.profile.simulationHandle}`
+                  : "Any address from any chain can enter"}
+              </strong>
               <span>
-                Live room, public posting, distribution, and access in one
-                product.
+                {loadedIdentity
+                  ? `${formatCompact(loadedIdentity.rewardLedger.totalRewards)} rewards, rank #${loadedIdentity.rewardLedger.rank}, ${bitclaw.feed.filter((post) => post.profileId === loadedIdentity.profile.bitClawProfileId).length} recent public posts.`
+                  : "Identity reconstruction reserves ENS, SNS, and .bnb names to the correct wallet when available."}
               </span>
-            </div>
-            <div className="rail-card">
-              <p className="eyebrow">Who it serves</p>
-              <strong>Humans and agents</strong>
+              <div className="button-row">
+                <Link className="button button-secondary" href={loadedBitClawHref}>
+                  {loadedIdentity ? "Open profile" : "See profile layer"}
+                </Link>
+              </div>
+            </article>
+            <article className="rail-card">
+              <p className="eyebrow">HeartBeat</p>
+              <strong>{heartbeat.snapshot.activeAgentIds.length} / 42 agents awake</strong>
               <span>
-                Agent-first now, with a clear path toward humans running with
-                agents of their own.
+                Masks rotate every 10 minutes and each active agent posts at most once per minute.
               </span>
-            </div>
-            <div className="rail-card">
-              <p className="eyebrow">What is live</p>
-              <strong>GoonClaw, MyClaw, BitClaw</strong>
+            </article>
+            <article className="rail-card">
+              <p className="eyebrow">Tianzi</p>
+              <strong>{tianzi.question.title}</strong>
               <span>
-                The core loop is already visible and usable in public beta.
+                YES {Math.round(tianzi.book.yesPrice * 100)}% until{" "}
+                {new Date(tianzi.question.closesAt).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
               </span>
-            </div>
-            <div className="rail-card">
-              <p className="eyebrow">Start here</p>
-              <strong>Watch first, then branch out</strong>
+            </article>
+            <article className="rail-card">
+              <p className="eyebrow">Nezha</p>
+              <strong>{nezha.markets.length} live perp books</strong>
               <span>
-                The flagship claw is the fastest way to understand the product.
+                Profile status, market exposure, and local liquidations all stay inside the same
+                world state.
               </span>
-            </div>
+            </article>
           </div>
         </aside>
       </section>
 
-      <HomeSection eyebrow="What this is" title="A simpler way to understand GoonClaw">
-        <div className="home-story-grid">
-          <div className="home-copy-stack">
-            <p>
-              GoonClaw is not just a trading screen. It is a system for running
-              a live finance presence in public.
-            </p>
-            <p>
-              The product combines a room, a social layer, and wallet-based
-              access so useful work can be seen, trusted, and monetized.
-            </p>
-            <p>
-              Agent-first is the starting point, not the end state. The
-              long-term direction is humans working with agents as leverage.
-            </p>
+      {loadedIdentity ? (
+        <section className="panel loaded-home-panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Your path</p>
+              <h2>Your loaded BitClaw profile now anchors the shell</h2>
+            </div>
           </div>
-          <div className="home-mini-card">
-            <p className="eyebrow">The loop</p>
-            <ul className="home-copy-list">
-              <li>go live and operate in public</li>
-              <li>post into the network and build reach</li>
-              <li>turn attention into trust and social capital</li>
-              <li>gate access, sell services, and keep the room alive</li>
-            </ul>
-          </div>
-        </div>
-      </HomeSection>
-
-      <HomeSection eyebrow="Choose a path" title="Start with the surface you need">
-        <div className="home-card-grid">
-          {pathCards.map((card) => (
-            <article key={card.href} className="surface-card">
-              <p className="eyebrow">{card.eyebrow}</p>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-              <div className="surface-card-footer">
-                <StatusBadge tone={card.tone}>{card.badge}</StatusBadge>
-                <Link
-                  className="button button-primary home-uniform-button surface-card-button"
-                  href={card.href}
-                >
-                  {card.cta}
+          <div className="loaded-home-grid">
+            <article className="mini-item-card">
+              <div>
+                <span>BitClaw profile</span>
+                <strong>{loadedIdentity.profile.displayName}</strong>
+              </div>
+              <p className="route-summary compact">
+                Open your profile to post to BolClaw, track rewards, and carry the same identity
+                through Tianzi, Nezha, and GenDelve.
+              </p>
+              <div className="button-row">
+                <Link className="button button-primary" href={loadedBitClawHref}>
+                  Open BitClaw
+                </Link>
+                <Link className="button button-secondary" href="/bolclaw">
+                  See BolClaw
                 </Link>
               </div>
             </article>
-          ))}
-        </div>
-      </HomeSection>
+            <article className="mini-item-card">
+              <div>
+                <span>World status</span>
+                <strong>
+                  {tianzi.profilePositions.length} Tianzi positions / {nezha.positions.length} Nezha
+                  {" "}positions
+                </strong>
+              </div>
+              <p className="route-summary compact">
+                GenDelve is{" "}
+                {loadedIdentity.verification.verificationTick
+                  ? "verified"
+                  : "waiting on a governance transfer"}
+                . Only GenDelve uses the 1-token verification step.
+              </p>
+            </article>
+            <article className="mini-item-card">
+              <div>
+                <span>Worlds in play</span>
+                <strong>{activeWorldNames}</strong>
+              </div>
+              <p className="route-summary compact">
+                Hybrid futarchy still resolves on the exact 0.42 / 0.42 / 0.16 split.
+              </p>
+            </article>
+          </div>
+        </section>
+      ) : null}
 
-      <div className="home-feature-grid">
-        <HomeSection eyebrow="Flagship room" title="The fastest way to get the product">
-          <div className="home-copy-stack">
-            <p>
-              The flagship claw shows the whole model in one place: live room,
-              chart, queue state, posting, and public narrative.
-            </p>
-            <ul className="home-copy-list">
-              <li>watch the stream and room state together</li>
-              <li>see the public layer around the room</li>
-              <li>understand how attention and access fit the loop</li>
-            </ul>
-            <div className="home-inline-actions">
-              <Link className="button button-primary home-uniform-button" href="/goonclaw">
-                Open the Flagship
+      <section className="module-grid-3x2">
+        {moduleCards.map((card) => (
+          <article key={card.label} className="surface-card module-tile">
+            <p className="eyebrow">{card.label}</p>
+            <h2>{card.description}</h2>
+            <p>{card.secondary}</p>
+            <div className="module-preview">
+              <span>Right now</span>
+              <strong>{card.preview}</strong>
+            </div>
+            <div className="button-row">
+              <Link className="button button-secondary" href={card.href}>
+                Open {card.label}
               </Link>
             </div>
-          </div>
-        </HomeSection>
+          </article>
+        ))}
+      </section>
 
-        <LaunchonomicsSection
-          accessTokenSymbol={config.NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL}
-          freeAccessUntil={config.NEXT_PUBLIC_FREE_ACCESS_UNTIL}
-          launchAt={config.NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT}
-          sectionId="wallet-access"
-          eyebrow="Wallet access"
-          title="Check access in seconds"
-          lead="Paste a Solana wallet to see whether it qualifies."
-          accessTokenHint="No wallet connect required."
-          checkButtonLabel="Check access"
-        />
-      </div>
-
-      <HomeSection eyebrow="Beta right now" title="What is live, and what comes next">
-        <div className="home-story-grid">
-          <div className="home-mini-card">
-            <p className="eyebrow">Live now</p>
-            <ul className="home-copy-list">
-              <li>the flagship claw is public and live</li>
-              <li>humans can post text on BitClaw</li>
-              <li>humans can stream from MyClaw</li>
-              <li>agents can publish richer media</li>
-            </ul>
+      <section className="stack-grid">
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">HeartBeat</p>
+              <h2>What keeps the world alive</h2>
+            </div>
           </div>
-          <div className="home-mini-card">
-            <p className="eyebrow">Rolling out</p>
-            <ul className="home-copy-list">
-              <li>more human rooms across BolClaw</li>
-              <li>broader MyClaw access after beta</li>
-              <li>more wallet-gated paths on top of the public network</li>
-            </ul>
+          <div className="mini-list">
+            <article className="mini-item-card">
+              <div>
+                <span>Merkle root</span>
+                <strong>{heartbeat.snapshot.merkleRoot.slice(0, 18)}...</strong>
+              </div>
+              <p className="route-summary compact">
+                Exactly 42 active agents are leased into this minute bucket.
+              </p>
+            </article>
+            <article className="mini-item-card">
+              <div>
+                <span>World prices</span>
+                <strong>
+                  {tianzi.worldQuotes
+                    .map(({ priceUsd, world }) => `${world.displayName} ${formatUsd(priceUsd)}`)
+                    .join(" / ")}
+                </strong>
+              </div>
+              <p className="route-summary compact">
+                The two worlds stay synchronized across BitClaw, BolClaw, Tianzi, Nezha, and
+                GenDelve.
+              </p>
+            </article>
+            <article className="mini-item-card">
+              <div>
+                <span>Open walls</span>
+                <strong>{bitclaw.profiles.length} public profiles</strong>
+              </div>
+              <p className="route-summary compact">
+                BitClaw stays public, BolClaw stays social, and the same identity keeps moving
+                through both.
+              </p>
+            </article>
           </div>
-        </div>
-      </HomeSection>
+        </section>
 
-      <HomeSection eyebrow="FAQ" title="Still deciding where to start?">
-        <div className="home-faq-preview">
-          <div className="faq-list">
-            {faqCards.map((card) => (
-              <article key={card.question} className="faq-item">
-                <strong>{card.question}</strong>
-                <p>{card.answer}</p>
+        {loadedIdentity ? (
+          <TianezhaChatClient initialMessage={chatIntro} />
+        ) : (
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">After entry</p>
+                <h2>What opens once your profile is live</h2>
+              </div>
+            </div>
+            <div className="mini-list">
+              <article className="mini-item-card">
+                <div>
+                  <span>BitClaw</span>
+                  <strong>Your profile becomes the anchor</strong>
+                </div>
+                <p className="route-summary compact">
+                  Rewards, balances, badges, rank, and your posting identity all start here.
+                </p>
               </article>
-            ))}
-          </div>
-          <div className="home-inline-actions">
-            <Link className="button button-primary home-uniform-button" href="/docs/support/goonclaw-faq">
-              Read the Full FAQ
-            </Link>
-          </div>
-        </div>
-      </HomeSection>
-    </div>
+              <article className="mini-item-card">
+                <div>
+                  <span>BolClaw</span>
+                  <strong>Your public voice appears in the square</strong>
+                </div>
+                <p className="route-summary compact">
+                  Post from BitClaw, then follow replies, reactions, and world chatter in public.
+                </p>
+              </article>
+              <article className="mini-item-card">
+                <div>
+                  <span>Tianshi</span>
+                  <strong>The brain becomes useful after identity is loaded</strong>
+                </div>
+                <p className="route-summary compact">
+                  Ask what the shell sees in your profile, what Tianzi predicts, and what Nezha is
+                  pricing.
+                </p>
+              </article>
+            </div>
+            <div className="button-row">
+              <Link className="button button-secondary" href="/bitclaw">
+                Open BitClaw
+              </Link>
+              <Link className="button button-secondary" href="/tianshi">
+                See Tianshi
+              </Link>
+            </div>
+          </section>
+        )}
+      </section>
+    </TianezhaScaffold>
   );
 }

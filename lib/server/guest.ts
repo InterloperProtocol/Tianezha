@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { getServerEnv } from "@/lib/env";
 import { addDays, fromBase64Url, nowIso, toBase64Url } from "@/lib/utils";
 
-const GUEST_COOKIE = "goonclaw_guest_session";
+const GUEST_COOKIE = "tianshi_guest_session";
 
 type GuestSession = {
   id: string;

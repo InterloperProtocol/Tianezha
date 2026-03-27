@@ -7,9 +7,9 @@ import {
 
 describe("assertSameOriginMutation", () => {
   it("allows same-origin mutations against the direct request origin", () => {
-    const request = new Request("https://goonclaw.example/api/internal-admin/auth/login", {
+    const request = new Request("https://tianshi.example/api/internal-admin/auth/login", {
       headers: {
-        origin: "https://goonclaw.example",
+        origin: "https://tianshi.example",
       },
       method: "POST",
     });
@@ -20,8 +20,8 @@ describe("assertSameOriginMutation", () => {
   it("allows forwarded public origins behind a hosting proxy", () => {
     const request = new Request("https://internal.service/api/internal-admin/auth/login", {
       headers: {
-        origin: "https://goonclaw--goonclaw-app.us-east4.hosted.app",
-        "x-forwarded-host": "goonclaw--goonclaw-app.us-east4.hosted.app",
+        origin: "https://tianshi--tianezha-app.us-east4.hosted.app",
+        "x-forwarded-host": "tianshi--tianezha-app.us-east4.hosted.app",
         "x-forwarded-proto": "https",
       },
       method: "POST",
@@ -31,7 +31,7 @@ describe("assertSameOriginMutation", () => {
   });
 
   it("rejects real cross-origin mutations", () => {
-    const request = new Request("https://goonclaw.example/api/internal-admin/auth/login", {
+    const request = new Request("https://tianshi.example/api/internal-admin/auth/login", {
       headers: {
         origin: "https://evil.example",
       },

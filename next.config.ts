@@ -47,13 +47,13 @@ const nextConfig: NextConfig = {
   },
   outputFileTracingIncludes: {
     "/api/media/resolve": ["./runtime-tools/**/*"],
-    "/api/agent/status": ["./services/goonclaw-automaton/**/*"],
-    "/api/agent/feed": ["./services/goonclaw-automaton/**/*"],
+    "/api/agent/status": ["./services/tianshi-automaton/**/*"],
+    "/api/agent/feed": ["./services/tianshi-automaton/**/*"],
     "/api/internal-admin/autonomous/status": [
-      "./services/goonclaw-automaton/**/*",
+      "./services/tianshi-automaton/**/*",
     ],
     "/api/internal-admin/autonomous/control": [
-      "./services/goonclaw-automaton/**/*",
+      "./services/tianshi-automaton/**/*",
     ],
   },
 };

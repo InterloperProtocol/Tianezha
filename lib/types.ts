@@ -179,24 +179,24 @@ export interface PublicStreamPageState {
   recentSessions: SessionRecord[];
 }
 
-export type GoonBookAuthorType = "agent" | "human";
-export type GoonBookProfileAuthType = "guest" | "api_key" | "system";
-export type GoonBookStance = "bullish" | "bearish" | "watchlist" | "neutral";
-export type GoonBookMediaCategory =
+export type BitClawAuthorType = "agent" | "human";
+export type BitClawProfileAuthType = "guest" | "api_key" | "system";
+export type BitClawStance = "bullish" | "bearish" | "watchlist" | "neutral";
+export type BitClawMediaCategory =
   | "chart"
   | "nature"
   | "art"
   | "beauty"
   | "anime"
   | "softcore";
-export type GoonBookMediaRating = "safe" | "softcore";
+export type BitClawMediaRating = "safe" | "softcore";
 
 export interface MarketTradeCard {
   id: string;
   mint: string;
   symbol: string;
   name: string;
-  stance: GoonBookStance;
+  stance: BitClawStance;
   signalScore: number;
   marketCapUsd: number;
   liquidityUsd: number;
@@ -213,10 +213,10 @@ export interface MarketTradeCard {
   walletCount?: number;
 }
 
-export interface GoonBookProfile {
+export interface BitClawProfile {
   id: string;
-  authorType: GoonBookAuthorType;
-  authType?: GoonBookProfileAuthType;
+  authorType: BitClawAuthorType;
+  authType?: BitClawProfileAuthType;
   guestId?: string | null;
   handle: string;
   displayName: string;
@@ -225,6 +225,9 @@ export interface GoonBookProfile {
   accentLabel: string;
   subscriptionLabel: string;
   isAutonomous: boolean;
+  pasteTradeBoardUrl?: string | null;
+  pasteTradeRepoUrl?: string | null;
+  predictionRequestLabel?: string | null;
   followingProfileIds?: string[];
   followerCount?: number;
   followingCount?: number;
@@ -233,18 +236,18 @@ export interface GoonBookProfile {
   updatedAt: string;
 }
 
-export interface GoonBookCommentRecord extends ModerationMetadata {
+export interface BitClawCommentRecord extends ModerationMetadata {
   id: string;
   postId: string;
   profileId?: string;
   agentId?: string;
-  authorType?: GoonBookAuthorType;
+  authorType?: BitClawAuthorType;
   body: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface GoonBookLikeRecord {
+export interface BitClawLikeRecord {
   id: string;
   postId: string;
   profileId: string;
@@ -252,7 +255,7 @@ export interface GoonBookLikeRecord {
   updatedAt: string;
 }
 
-export interface GoonBookFollowRecord {
+export interface BitClawFollowRecord {
   id: string;
   actorProfileId: string;
   targetProfileId: string;
@@ -260,12 +263,12 @@ export interface GoonBookFollowRecord {
   updatedAt: string;
 }
 
-export interface GoonBookComment extends ModerationMetadata {
+export interface BitClawComment extends ModerationMetadata {
   id: string;
   postId: string;
   profileId: string;
   agentId?: string;
-  authorType: GoonBookAuthorType;
+  authorType: BitClawAuthorType;
   handle: string;
   displayName: string;
   bio: string;
@@ -278,30 +281,30 @@ export interface GoonBookComment extends ModerationMetadata {
   updatedAt: string;
 }
 
-export interface GoonBookPostRecord extends ModerationMetadata {
+export interface BitClawPostRecord extends ModerationMetadata {
   id: string;
   profileId?: string;
   agentId?: string;
-  authorType?: GoonBookAuthorType;
+  authorType?: BitClawAuthorType;
   body: string;
   tokenSymbol?: string | null;
-  stance?: GoonBookStance | null;
+  stance?: BitClawStance | null;
   imageUrl?: string | null;
   imageAlt?: string | null;
-  mediaCategory?: GoonBookMediaCategory | null;
-  mediaRating?: GoonBookMediaRating | null;
+  mediaCategory?: BitClawMediaCategory | null;
+  mediaRating?: BitClawMediaRating | null;
   tradeCard?: MarketTradeCard | null;
   likeProfileIds?: string[];
-  comments?: GoonBookCommentRecord[];
+  comments?: BitClawCommentRecord[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface GoonBookPost extends ModerationMetadata {
+export interface BitClawPost extends ModerationMetadata {
   id: string;
   profileId: string;
   agentId?: string;
-  authorType: GoonBookAuthorType;
+  authorType: BitClawAuthorType;
   handle: string;
   displayName: string;
   bio: string;
@@ -311,21 +314,21 @@ export interface GoonBookPost extends ModerationMetadata {
   isAutonomous: boolean;
   body: string;
   tokenSymbol?: string | null;
-  stance?: GoonBookStance | null;
+  stance?: BitClawStance | null;
   imageUrl?: string | null;
   imageAlt?: string | null;
-  mediaCategory?: GoonBookMediaCategory | null;
-  mediaRating?: GoonBookMediaRating | null;
+  mediaCategory?: BitClawMediaCategory | null;
+  mediaRating?: BitClawMediaRating | null;
   tradeCard?: MarketTradeCard | null;
   likeCount: number;
   likedByViewer: boolean;
   commentCount: number;
-  comments: GoonBookComment[];
+  comments: BitClawComment[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface GoonBookAgentCredentialRecord {
+export interface BitClawAgentCredentialRecord {
   id: string;
   profileId: string;
   apiKeyHash: string;
@@ -464,7 +467,7 @@ export type AutonomousRuntimePhase =
 
 export type AutonomousRevenueClass =
   | "creator_fee"
-  | "goonclaw_chartsync"
+  | "tianshi_chartsync"
   | "third_party_chartsync_commission";
 
 export type AutonomousFeedEventKind =
@@ -512,8 +515,120 @@ export type AutonomousDirectiveBucket = "tradingUsdc" | "sessionTradeUsdc";
 
 export type AutonomousTradeDirectiveStatus =
   | "queued"
+  | "blocked"
   | "executed"
   | "cancelled";
+
+export type AutonomousRiskTierAction =
+  | "monitor"
+  | "tighten"
+  | "halt_new_risk"
+  | "force_deleverage"
+  | "block_live_actions";
+
+export type AutonomousAlignmentGoalCategory =
+  | "thesis"
+  | "constraint"
+  | "watchlist"
+  | "impossible";
+
+export type AutonomousAlignmentGoalStatus =
+  | "declared"
+  | "watchlist"
+  | "blocked"
+  | "impossible";
+
+export interface AutonomousDrawdownTier {
+  label: string;
+  thresholdPct: number;
+  action: AutonomousRiskTierAction;
+  notes: string;
+}
+
+export interface AutonomousPositionSizingPolicy {
+  maxSinglePositionPct: number;
+  maxPortfolioAllocationPct: number;
+  maxOrderNotionalUsdc: number;
+  maxSessionOrderNotionalUsdc: number;
+  minOrderNotionalUsdc: number;
+  notes: string;
+}
+
+export interface AutonomousSlippageLiquidityGuard {
+  maxSlippageBps: number;
+  maxPriceImpactPct: number;
+  minLiquidityUsd: number;
+  notes: string;
+}
+
+export interface AutonomousEvidenceReplayPolicy {
+  evidenceRequired: boolean;
+  replayRequired: boolean;
+  requiredEvidenceKinds: string[];
+  requiredReplayKinds: string[];
+  notes: string;
+}
+
+export interface AutonomousMutationLock {
+  locked: boolean;
+  lockedAt: string | null;
+  reason: string;
+  unlockedByReviewRequired: boolean;
+  notes: string;
+}
+
+export interface AutonomousRiskControlPlane {
+  version: string;
+  locked: boolean;
+  liveTradingAllowed: boolean;
+  polymarketLiveAllowed: boolean;
+  positionSizing: AutonomousPositionSizingPolicy;
+  drawdownTiers: AutonomousDrawdownTier[];
+  slippageLiquidityGuard: AutonomousSlippageLiquidityGuard;
+  mutationLock: AutonomousMutationLock;
+  evidenceReplay: AutonomousEvidenceReplayPolicy;
+  notes: string;
+}
+
+export interface AutonomousReportCommercePolicy {
+  enabled: boolean;
+  knowledgeSalesEnabled: boolean;
+  notes: string;
+  postPurchaseTradeDelaySeconds: number;
+  priceUsdc: number;
+  publicReleaseMode: "post_trade";
+  purchaseWindowSeconds: number;
+}
+
+export interface AutonomousAlignmentGoal {
+  id: string;
+  title: string;
+  brief: string;
+  category: AutonomousAlignmentGoalCategory;
+  tokenName?: string | null;
+  tokenSymbol?: string | null;
+  xHandle?: string | null;
+  xHandleStatus?: "known" | "unresolved";
+  status: AutonomousAlignmentGoalStatus;
+  thesis: string;
+  constraints: string[];
+  evidenceRequired: boolean;
+  replayRequired: boolean;
+  directExecutionAllowed: boolean;
+  markets: string[];
+  notes: string;
+}
+
+export type AutonomousPassiveWatchlistEntryKind = "x_handle" | "token";
+
+export interface AutonomousPassiveWatchlistEntry {
+  id: string;
+  kind: AutonomousPassiveWatchlistEntryKind;
+  label: string;
+  reference: string;
+  url?: string | null;
+  notes: string;
+}
 
 export interface AutonomousRevenuePolicy {
   revenueClass: AutonomousRevenueClass;
@@ -540,11 +655,14 @@ export interface AutonomousTradePosition {
   source: AutonomousRevenueClass | "reserve";
   marketMint: string;
   symbol: string;
-  venue: "gmgn" | "pumpfun" | "pumpswap";
+  venue: "gmgn" | "pumpfun" | "pumpswap" | "hyperliquid";
   entryUsdc: number;
   currentUsdc: number;
   rationale: string;
   openedAt: string;
+  side?: "long" | "short" | null;
+  leverage?: number | null;
+  entryPrice?: number | null;
   tokenAmountRaw?: string;
   entrySignature?: string | null;
   settlementId?: string | null;
@@ -559,6 +677,9 @@ export interface AutonomousTradeDirective {
   revenueClass: AutonomousRevenueClass;
   marketMint: string;
   symbol: string;
+  venue: "gmgn" | "hyperliquid";
+  side?: "long" | "short" | null;
+  leverage?: number | null;
   requestedUsdc: number;
   rationale: string;
   isPumpCoin: boolean;
@@ -566,6 +687,7 @@ export interface AutonomousTradeDirective {
   queuedBy: "owner" | "runtime";
   status: AutonomousTradeDirectiveStatus;
   positionId?: string | null;
+  blockedReason?: string | null;
   lastOutcome?: string | null;
 }
 
@@ -641,14 +763,22 @@ export interface AutonomousTransferGuardrails {
 }
 
 export interface AutonomousTradeGuardrails {
+  allowedTokenLaunchVenues: string[];
   pumpOnlyTrading: boolean;
   maxPortfolioAllocationPct: number;
+  predictionNetwork: "polygon";
   allowedTradingVenues: string[];
   blockedTradingVenues: string[];
+  allowedPerpVenues: string[];
+  blockedPerpVenues: string[];
   notes: string;
 }
 
 export interface AutonomousToolingStatus {
+  agfundActionNames: string[];
+  agfundApiReady: boolean;
+  agfundEnabled: boolean;
+  agfundMarketplaceUrl: string | null;
   vertexOnly: boolean;
   solanaAgentKitConfigured: boolean;
   solanaMcpConfigured: boolean;
@@ -659,11 +789,45 @@ export interface AutonomousToolingStatus {
   context7McpConfigured: boolean;
   taskMasterMcpConfigured: boolean;
   excelMcpConfigured: boolean;
-  dexterX402Installed: boolean;
-  dexterX402Version: string | null;
-  gmgnConfigured: boolean;
+  dexterAgentEnabled: boolean;
+  dexterRepoReady: boolean;
+  dexterCliReady: boolean;
+  dexterDefaultMode: string | null;
+  dexterDefaultNetwork: string | null;
+  dexterActionNames: string[];
+  godmodeAgentEnabled: boolean;
+  godmodeApiReady: boolean;
+  godmodeDefaultModel: string | null;
+  godmodeActionNames: string[];
+    dexterX402Installed: boolean;
+    dexterX402Version: string | null;
+    gmgnConfigured: boolean;
+    gmgnActionNames: string[];
+    gmgnApiHost: string | null;
+    gmgnCriticalAuthReady: boolean;
+    gmgnQueryChains: string[];
   gmgnSigningReady: boolean;
+  gmgnStandardAuthReady: boolean;
+  gmgnToolFamilies: string[];
   gmgnTradingWallet: string | null;
+  hyperliquidActionNames: string[];
+  hyperliquidApiUrl: string | null;
+  hyperliquidApiWallet: string | null;
+  hyperliquidApiWalletApproved: boolean;
+  hyperliquidDefaultDex: string | null;
+  hyperliquidEnabled: boolean;
+  hyperliquidInfoReady: boolean;
+  hyperliquidLivePerpsEnabled: boolean;
+  hyperliquidMasterWallet: string | null;
+  hyperliquidWsUrl: string | null;
+  fourMemeActionNames: string[];
+  fourMemeAgenticUrl: string | null;
+  fourMemeEnabled: boolean;
+  polymarketEnabled: boolean;
+  polymarketReadOnlyReady: boolean;
+  polymarketLiveReady: boolean;
+  polymarketDefaultMode: string | null;
+  polymarketActionNames: string[];
   telegramBroadcastEnabled: boolean;
   telegramChatConfigured: boolean;
   agentWalletAddress: string | null;
@@ -691,7 +855,8 @@ export interface AutonomousTreasuryStatus {
   reserveHealthy: boolean;
   reserveSol: number;
   usdcBalance: number;
-  goonclawTokenMint: string;
+  tianshiTokenMint: string;
+  riskControlPlane: AutonomousRiskControlPlane;
   transferGuardrails: AutonomousTransferGuardrails;
   tradeGuardrails: AutonomousTradeGuardrails;
 }
@@ -717,7 +882,7 @@ export interface AutonomousSelfModificationStatus {
 
 export interface AutonomousTapeItem {
   id: string;
-  source: "market" | "wallet" | "x" | "docs" | "goonbook";
+  source: "market" | "wallet" | "x" | "docs" | "bitclaw";
   label: string;
   detail: string;
   href?: string | null;
@@ -794,10 +959,13 @@ export interface AutonomousAgentStatus {
   wakeReason: string;
   latestPolicyDecision: string;
   publicTraceMode: string;
+  alignmentGoals: AutonomousAlignmentGoal[];
   modelRuntime: AgentModelStatus;
+  watchlistMetadata: AutonomousPassiveWatchlistEntry[];
   tooling: AutonomousToolingStatus;
   control: AutonomousControlState;
   treasury: AutonomousTreasuryStatus;
+  reportCommerce: AutonomousReportCommercePolicy;
   revenuePolicies: AutonomousRevenuePolicy[];
   revenueBuckets: AutonomousRevenueBuckets;
   positions: AutonomousTradePosition[];
@@ -828,6 +996,8 @@ export interface AutonomousRuntimeSummary {
   replicationChildCount: number;
   queuedTradeDirectives: number;
   queuedSettlements: number;
+  reportSaleWindowSeconds: number;
+  reportTradeDelaySeconds: number;
 }
 
 export interface LaunchonomicsWindowSet {

@@ -5,6 +5,7 @@ import path from "path";
 import { CONSTITUTION } from "@/lib/constitution";
 import { getServerEnv } from "@/lib/env";
 import { getAgentModelStatus } from "@/lib/server/agent-model";
+import { getAgFundAgentStatus } from "@/lib/server/agfund-agent";
 import {
   AutonomousSettlementExecutor,
   createDefaultAutonomousSettlementExecutor,
@@ -13,12 +14,15 @@ import {
   buildAutonomousMarketIntel,
   buildMarketCardPostBody,
   getTopTradeCardKey,
-} from "@/lib/server/goonclaw-market-intel";
+} from "@/lib/server/tianshi-market-intel";
 import {
   getConfiguredRepoMcpServerNames,
   getInstalledLocalCodexSkillNames,
-  getVendoredGoonclawSkillNames,
-} from "@/lib/server/goonclaw-tooling-catalog";
+  getVendoredTianshiSkillNames,
+} from "@/lib/server/tianshi-tooling-catalog";
+import { getDexterAgentStatus } from "@/lib/server/dexter-agent";
+import { getGodmodeAgentStatus } from "@/lib/server/godmode-agent";
+import { getGmgnAgentStatus } from "@/lib/server/gmgn-agent";
 import {
   appendAutonomousFeedEvent,
   getAutonomousSnapshot,
@@ -26,19 +30,30 @@ import {
   setAutonomousSnapshot,
 } from "@/lib/server/autonomous-store";
 import { getDexterX402Status } from "@/lib/server/dexter-x402";
+import { getFourMemeAgentStatus } from "@/lib/server/fourmeme-agent";
 import { getGmgnStatus } from "@/lib/server/gmgn";
 import {
-  isGoonclawTelegramBroadcastEnabled,
+  getHyperliquidAgentStatus,
+  toHyperliquidMarketKey,
+  warmHyperliquidAgentAbility,
+} from "@/lib/server/hyperliquid-agent";
+import { getPolymarketAgentStatus } from "@/lib/server/polymarket-agent";
+import { getAutonomousPassiveWatchlistMetadata } from "@/lib/server/autonomous-watchlist-metadata";
+import {
+  isTianshiTelegramBroadcastEnabled,
   publishAutonomousEventToTelegram,
-} from "@/lib/server/goonclaw-telegram";
-import { createGoonBookPost } from "@/lib/server/goonbook";
+} from "@/lib/server/tianshi-telegram";
+import { createBitClawPost } from "@/lib/server/bitclaw";
 import { getSolanaAgentRuntimeStatus } from "@/lib/server/solana-agent-runtime";
 import { getWalletSolBalance } from "@/lib/server/solana";
 import {
   assertAutonomousTradeAllowed,
   assertAutonomousTreasuryInstructionAllowed,
   calculateAutonomousPortfolioValueUsdc,
+  getAutonomousAlignmentGoals,
+  getAutonomousReportCommercePolicy,
   getAutonomousTradeGuardrails,
+  getAutonomousRiskControlPlane,
   getAutonomousTransferGuardrails,
 } from "@/lib/server/autonomous-treasury-policy";
 import {
@@ -63,9 +78,9 @@ import {
   evaluateCircuitBreaker,
 } from "@/workers/security-guards";
 
-const GOONCLAW_AGENT_ID = "goonclaw-autonomous-agent";
-const GOONCLAW_PURPOSE =
-  "Operate as the autonomous half of a human-agent business partnership: maximize sustainable profit, protect survival reserves, and compound value back into the GoonClaw token through enforced buyback-and-burn flows.";
+const TIANSHI_AGENT_ID = "tianshi-autonomous-agent";
+const TIANSHI_PURPOSE =
+  "Operate as the autonomous half of a human-agent business partnership: protect survival reserves, surface auditable decisions, and route policy-approved value back into the Tianshi token without promising profit.";
 const MAX_SETTLEMENT_HISTORY = 60;
 const MAX_TRADE_DIRECTIVES = 24;
 const MAX_SELF_MOD_PROPOSALS = 24;
@@ -293,7 +308,7 @@ function summarizeAutonomousSocialPost(body: string) {
   return `${normalized.slice(0, 157).trimEnd()}...`;
 }
 
-export async function publishAutonomousGoonBookPost(input: {
+export async function publishAutonomousBitClawPost(input: {
   body: string;
   tokenSymbol?: string | null;
   stance?: string | null;
@@ -308,8 +323,8 @@ export async function publishAutonomousGoonBookPost(input: {
   eventDetail?: string;
   rawTrace?: string[];
 }) {
-  const post = await createGoonBookPost({
-    agentId: "goonclaw",
+  const post = await createBitClawPost({
+    agentId: "tianshi",
     body: input.body,
     tokenSymbol: input.tokenSymbol,
     stance: input.stance,
@@ -350,7 +365,7 @@ export async function publishAutonomousGoonBookPost(input: {
 }
 
 function getConstitutionAbsolutePath() {
-  return path.resolve(process.cwd(), getServerEnv().GOONCLAW_AGENT_CONSTITUTION_PATH);
+  return path.resolve(process.cwd(), getServerEnv().TIANSHI_AGENT_CONSTITUTION_PATH);
 }
 
 function readConstitutionHash() {
@@ -365,7 +380,7 @@ function readConstitutionHash() {
 }
 
 function getRepoMcpConfigPath(fileName: string) {
-  return path.resolve(process.cwd(), "services/goonclaw-automaton/mcp", fileName);
+  return path.resolve(process.cwd(), "services/tianshi-automaton/mcp", fileName);
 }
 
 function hasSolanaMcpBridgeConfig() {
@@ -419,13 +434,13 @@ function settlementEventKind(kind: AutonomousSettlementKind): AutonomousFeedEven
 function directiveBucketFromRevenueClass(
   revenueClass: AutonomousRevenueClass,
 ): DirectiveBucketKey {
-  return revenueClass === "goonclaw_chartsync" ? "sessionTradeUsdc" : "tradingUsdc";
+  return revenueClass === "tianshi_chartsync" ? "sessionTradeUsdc" : "tradingUsdc";
 }
 
 function bucketForPositionSource(
   source: AutonomousTradePosition["source"],
 ): DirectiveBucketKey {
-  return source === "goonclaw_chartsync" ? "sessionTradeUsdc" : "tradingUsdc";
+  return source === "tianshi_chartsync" ? "sessionTradeUsdc" : "tradingUsdc";
 }
 
 function decrementBucket(
@@ -466,17 +481,17 @@ function getRevenuePolicies(): AutonomousRevenuePolicy[] {
       tradingPct: creatorTradingPct,
       sessionTradePct: 0,
       notes:
-        `Creator fees route ${creatorAgentSharePct}% into GoonClaw control: ${creatorBurnPct}% buyback-and-burn plus ${creatorTradingPct}% agent trading. The remaining ${creatorExternalPct}% currently stays in the external payout bucket.`,
+        `Creator fees route ${creatorAgentSharePct}% into Tianshi control: ${creatorBurnPct}% buyback-and-burn plus ${creatorTradingPct}% agent trading. The remaining ${creatorExternalPct}% currently stays in the external payout bucket.`,
     },
     {
-      revenueClass: "goonclaw_chartsync",
+      revenueClass: "tianshi_chartsync",
       ownerPct: 0,
       burnPct: 50,
       reservePct: 0,
       tradingPct: 0,
       sessionTradePct: 50,
       notes:
-        "GoonClaw-owned ChartSync sessions split 50% burn and 50% session trade, and the queued session trade may execute only after a Pump-verified target passes the 10% portfolio cap.",
+        "Tianshi-owned ChartSync sessions split 50% burn and 50% session trade, but the session-trade bucket stays declarative while the locked risk-control plane requires evidence and replay artifacts.",
     },
     {
       revenueClass: "third_party_chartsync_commission",
@@ -486,7 +501,7 @@ function getRevenuePolicies(): AutonomousRevenuePolicy[] {
       tradingPct: 0,
       sessionTradePct: 0,
       notes:
-        "Third-party public streams route GoonClaw commission 5% to burn and 5% to reserve; extra trading remains policy-driven.",
+        "Third-party public streams route Tianshi commission 5% to burn and 5% to reserve; extra trading remains policy-driven.",
     },
   ];
 }
@@ -541,7 +556,7 @@ export function recordAutonomousRevenue(
     ...snapshot,
     latestPolicyDecision:
       allocated.sessionTradeUsdc > 0
-        ? `Allocated ${amountUsdc.toFixed(2)} USDC from ${label}; session trade capital is live once a Pump-verified directive exists.`
+        ? `Allocated ${amountUsdc.toFixed(2)} USDC from ${label}; session-trade capital remains under the locked risk-control plane until evidence and replay checks are satisfied.`
         : `Allocated ${amountUsdc.toFixed(2)} USDC from ${label} under ${policy.revenueClass}.`,
     revenueBuckets: nextBuckets,
   };
@@ -628,15 +643,27 @@ function queueTradeDirectiveIntoSnapshot(
   args: {
     bucket: DirectiveBucketKey;
     isPumpCoin: boolean;
+    leverage?: number | null;
     marketMint: string;
     queuedBy: "owner" | "runtime";
     rationale: string;
     requestedUsdc: number;
     revenueClass: AutonomousRevenueClass;
+    side?: "long" | "short" | null;
     symbol: string;
+    venue: "gmgn" | "hyperliquid";
   },
 ) {
   const requestedUsdc = roundUsdc(args.requestedUsdc);
+  const riskPlane = snapshot.riskControlPlane || getAutonomousRiskControlPlane();
+  const normalizedMarketMint =
+    args.venue === "hyperliquid"
+      ? toHyperliquidMarketKey(args.symbol || args.marketMint)
+      : args.marketMint.trim();
+  const normalizedSymbol =
+    args.venue === "hyperliquid"
+      ? args.symbol.trim().toUpperCase()
+      : args.symbol.trim();
   if (requestedUsdc <= 0) {
     throw new Error("Trade directives must request a positive USDC amount.");
   }
@@ -651,8 +678,9 @@ function queueTradeDirectiveIntoSnapshot(
     snapshot.tradeDirectives.some(
       (directive) =>
         directive.status === "queued" &&
-        directive.marketMint === args.marketMint &&
-        directive.bucket === args.bucket,
+        directive.marketMint === normalizedMarketMint &&
+        directive.bucket === args.bucket &&
+        directive.venue === args.venue,
     )
   ) {
     throw new Error("A queued directive for this mint already exists.");
@@ -661,7 +689,9 @@ function queueTradeDirectiveIntoSnapshot(
   if (
     snapshot.positions.some(
       (position) =>
-        position.status === "open" && position.marketMint === args.marketMint,
+        position.status === "open" &&
+        position.marketMint === normalizedMarketMint &&
+        position.venue === args.venue,
     )
   ) {
     throw new Error("An open position for this mint already exists.");
@@ -677,35 +707,50 @@ function queueTradeDirectiveIntoSnapshot(
   );
 
   assertAutonomousTradeAllowed({
-    assetMint: args.marketMint,
+    assetMint: normalizedMarketMint,
     currentPositionUsdc: 0,
     isPumpCoin: args.isPumpCoin,
     portfolioValueUsdc,
     requestedNotionalUsdc: requestedUsdc,
-    venue: "gmgn",
+    venue: args.venue,
   });
+
+  const liveExecutionBlocked =
+    riskPlane.mutationLock.locked ||
+    !riskPlane.liveTradingAllowed ||
+    riskPlane.evidenceReplay.evidenceRequired ||
+    riskPlane.evidenceReplay.replayRequired;
+  const blockedReason = liveExecutionBlocked
+    ? "Declarative trade only: the locked risk-control plane requires evidence and replay artifacts before any live execution."
+    : null;
 
   const directive: AutonomousTradeDirective = {
     bucket: args.bucket,
+    blockedReason,
     id: randomUUID(),
     isPumpCoin: args.isPumpCoin,
-    lastOutcome: null,
-    marketMint: args.marketMint,
+    lastOutcome: blockedReason,
+    leverage: args.venue === "hyperliquid" ? args.leverage || null : null,
+    marketMint: normalizedMarketMint,
     positionId: null,
     queuedAt: nowIso(),
     queuedBy: args.queuedBy,
     rationale: args.rationale,
     requestedUsdc,
     revenueClass: args.revenueClass,
-    status: "queued",
-    symbol: args.symbol,
+    side: args.venue === "hyperliquid" ? args.side || "long" : null,
+    status: liveExecutionBlocked ? "blocked" : "queued",
+    symbol: normalizedSymbol,
+    venue: args.venue,
   };
 
   return {
     directive,
     nextSnapshot: {
       ...snapshot,
-      latestPolicyDecision: `Queued trade directive for ${directive.symbol}.`,
+      latestPolicyDecision: liveExecutionBlocked
+        ? `Recorded blocked trade directive for ${directive.symbol} under the locked risk-control plane.`
+        : `Queued trade directive for ${directive.symbol}.`,
       tradeDirectives: trimTail(
         [...snapshot.tradeDirectives, directive],
         MAX_TRADE_DIRECTIVES,
@@ -752,6 +797,7 @@ function syncAutoTradeDirectives(snapshot: AutonomousSnapshot) {
       requestedUsdc: nextSnapshot.revenueBuckets.tradingUsdc,
       revenueClass: "creator_fee",
       symbol: treasurySymbol,
+      venue: "gmgn",
     }).nextSnapshot;
   }
 
@@ -791,6 +837,7 @@ function syncAutoTradeDirectives(snapshot: AutonomousSnapshot) {
       requestedUsdc: nextSnapshot.revenueBuckets.tradingUsdc,
       revenueClass: "creator_fee",
       symbol: marketIntelSymbol,
+      venue: "gmgn",
     }).nextSnapshot;
   }
 
@@ -824,8 +871,9 @@ function syncAutoTradeDirectives(snapshot: AutonomousSnapshot) {
       rationale:
         "Approved self-mod tuning auto-directed the ChartSync session trading bucket.",
       requestedUsdc: nextSnapshot.revenueBuckets.sessionTradeUsdc,
-      revenueClass: "goonclaw_chartsync",
+      revenueClass: "tianshi_chartsync",
       symbol: sessionSymbol,
+      venue: "gmgn",
     }).nextSnapshot;
   }
 
@@ -855,8 +903,9 @@ function syncAutoTradeDirectives(snapshot: AutonomousSnapshot) {
         ? buildRuntimeAutoTradeRationale(marketIntelCard)
         : "Heartbeat market model selected the strongest session-trade candidate.",
       requestedUsdc: nextSnapshot.revenueBuckets.sessionTradeUsdc,
-      revenueClass: "goonclaw_chartsync",
+      revenueClass: "tianshi_chartsync",
       symbol: marketIntelSymbol,
+      venue: "gmgn",
     }).nextSnapshot;
   }
 
@@ -1002,24 +1051,31 @@ function queueLiquidationJobs(snapshot: AutonomousSnapshot) {
 export function queueAutonomousTradeDirective(args: {
   bucket?: DirectiveBucketKey;
   isPumpCoin?: boolean;
+  leverage?: number | null;
   marketMint: string;
   rationale: string;
   requestedUsdc: number;
   revenueClass?: AutonomousRevenueClass;
+  side?: "long" | "short" | null;
   symbol: string;
+  venue?: "gmgn" | "hyperliquid";
 }) {
   const revenueClass = args.revenueClass || "creator_fee";
   const bucket = args.bucket || directiveBucketFromRevenueClass(revenueClass);
+  const venue = args.venue || "gmgn";
   const snapshot = getAutonomousSnapshot();
   const { directive, nextSnapshot } = queueTradeDirectiveIntoSnapshot(snapshot, {
     bucket,
-    isPumpCoin: args.isPumpCoin ?? true,
+    isPumpCoin: args.isPumpCoin ?? venue !== "hyperliquid",
+    leverage: args.leverage,
     marketMint: args.marketMint.trim(),
     queuedBy: "owner",
     rationale: args.rationale.trim(),
     requestedUsdc: args.requestedUsdc,
     revenueClass,
+    side: args.side,
     symbol: args.symbol.trim(),
+    venue,
   });
 
   setAutonomousSnapshot(nextSnapshot);
@@ -1029,6 +1085,7 @@ export function queueAutonomousTradeDirective(args: {
       `bucket=${directive.bucket}`,
       `marketMint=${directive.marketMint}`,
       `requestedUsdc=${directive.requestedUsdc.toFixed(6)}`,
+      `venue=${directive.venue}`,
     ]),
   );
 
@@ -1218,12 +1275,12 @@ async function executeSettlement(
 
   if (settlement.kind === "owner_payout") {
     assertAutonomousTreasuryInstructionAllowed({
-      destinationAddress: env.GOONCLAW_OWNER_WALLET,
+      destinationAddress: env.TIANSHI_OWNER_WALLET,
       kind: "owner_payout",
     });
     const result = await executor.settleOwnerPayout({
       amountUsdc: settlement.amountUsdc,
-      ownerWallet: env.GOONCLAW_OWNER_WALLET,
+      ownerWallet: env.TIANSHI_OWNER_WALLET,
     });
 
     return {
@@ -1232,7 +1289,7 @@ async function executeSettlement(
       revenueBuckets: decrementBucket(snapshot.revenueBuckets, "ownerUsdc", settlement.amountUsdc),
       settlements: replaceSettlements(snapshot.settlements, settlement.id, (current) => ({
         ...current,
-        destinationAddress: env.GOONCLAW_OWNER_WALLET,
+        destinationAddress: env.TIANSHI_OWNER_WALLET,
         lastOutcome: "Creator-fee partner payout settled.",
         status: "succeeded",
         txSignatures: [...current.txSignatures, result.signature],
@@ -1294,9 +1351,28 @@ async function executeSettlement(
       throw new Error("Trade directive not found for queued settlement.");
     }
 
+    assertAutonomousTradeAllowed({
+      assetMint: directive.marketMint,
+      currentPositionUsdc: 0,
+      evidenceProvided: false,
+      executionMode: "live",
+      isPumpCoin: directive.isPumpCoin,
+      portfolioValueUsdc: calculateAutonomousPortfolioValueUsdc({
+        positions: snapshot.positions,
+        revenueBuckets: snapshot.revenueBuckets,
+        usdcBalance: snapshot.usdcBalance,
+      }),
+      requestedNotionalUsdc: settlement.amountUsdc,
+      replayProvided: false,
+      venue: directive.venue,
+    });
+
     const result = await executor.executeTrade({
       amountUsdc: settlement.amountUsdc,
+      leverage: directive.leverage,
       marketMint: directive.marketMint,
+      side: directive.side,
+      venue: directive.venue,
     });
     const positionId = randomUUID();
 
@@ -1308,17 +1384,20 @@ async function executeSettlement(
         {
           currentUsdc: settlement.amountUsdc,
           entrySignature: result.buySignature,
+          entryPrice: result.entryPrice || null,
           entryUsdc: settlement.amountUsdc,
           id: positionId,
+          leverage: result.leverage ?? directive.leverage ?? null,
           marketMint: directive.marketMint,
           openedAt: timestamp,
           rationale: directive.rationale,
           settlementId: settlement.id,
+          side: directive.side || null,
           source: directive.revenueClass,
           status: "open" as const,
           symbol: directive.symbol,
           tokenAmountRaw: result.acquiredAmountRaw,
-          venue: "gmgn" as const,
+          venue: directive.venue,
         },
       ],
       revenueBuckets: decrementBucket(snapshot.revenueBuckets, directive.bucket, settlement.amountUsdc),
@@ -1355,6 +1434,7 @@ async function executeSettlement(
 
     const result = await executor.liquidateTrade({
       marketMint: position.marketMint,
+      position,
     });
     const nextBucket = bucketForPositionSource(position.source);
 
@@ -1510,7 +1590,7 @@ function createReplicaChild(
     id: randomUUID(),
     label,
     lastOutcome,
-    parentAgentId: GOONCLAW_AGENT_ID,
+    parentAgentId: TIANSHI_AGENT_ID,
     runtimePhase: "booting" as const,
     scope: getReplicaExecutionScope(),
   };
@@ -1599,7 +1679,7 @@ function resolveHealthyRuntimePhase(snapshot: AutonomousSnapshot) {
   }
 
   const reserveHealthy =
-    snapshot.reserveSol >= Number(getServerEnv().GOONCLAW_AGENT_RESERVE_FLOOR_SOL);
+    snapshot.reserveSol >= Number(getServerEnv().TIANSHI_AGENT_RESERVE_FLOOR_SOL);
   return reserveHealthy ? ("sleeping" as const) : ("degraded" as const);
 }
 
@@ -1680,7 +1760,7 @@ async function refreshMarketIntelSnapshot(
       const postedDecision = preservePrimaryDecision
         ? snapshot.latestPolicyDecision
         : `Posted ${topCard.symbol} market card to BitClaw.`;
-      const { post, snapshot: postedSnapshot } = await publishAutonomousGoonBookPost({
+      const { post, snapshot: postedSnapshot } = await publishAutonomousBitClawPost({
         snapshot: nextSnapshot,
         body: buildMarketCardPostBody(topCard),
         stance: topCard.stance,
@@ -1908,7 +1988,7 @@ export async function tickAutonomousHeartbeat(
   }
 
   const reserveHealthy =
-    snapshot.reserveSol >= Number(env.GOONCLAW_AGENT_RESERVE_FLOOR_SOL);
+    snapshot.reserveSol >= Number(env.TIANSHI_AGENT_RESERVE_FLOOR_SOL);
   const initialDecision = reserveHealthy
     ? "Reserve floor healthy; continue autonomous settlement and replication work."
     : "Reserve floor breach detected; discretionary trading remains blocked until reserve recovers.";
@@ -1935,7 +2015,7 @@ export async function tickAutonomousHeartbeat(
     createEvent("heartbeat", "Autonomous heartbeat", initialDecision, [
       `phase=${nextSnapshot.runtimePhase}`,
       `reserveSol=${snapshot.reserveSol.toFixed(6)}`,
-      `reserveFloor=${env.GOONCLAW_AGENT_RESERVE_FLOOR_SOL}`,
+      `reserveFloor=${env.TIANSHI_AGENT_RESERVE_FLOOR_SOL}`,
       `reason=${reason}`,
     ]),
   );
@@ -1971,23 +2051,51 @@ export function getAutonomousStatus() {
   const modelRuntime = getAgentModelStatus();
   const solanaRuntime = getSolanaAgentRuntimeStatus();
   const recentFeed = listAutonomousFeedEvents(20);
-  const vendoredSkillNames = getVendoredGoonclawSkillNames(
-    path.resolve(process.cwd(), env.GOONCLAW_SKILLS_DIR),
+  const vendoredSkillNames = getVendoredTianshiSkillNames(
+    path.resolve(process.cwd(), env.TIANSHI_SKILLS_DIR),
   );
   const codexSkillNames = getInstalledLocalCodexSkillNames();
   const configuredMcpServerNames = getConfiguredRepoMcpServerNames();
   const skillCount = vendoredSkillNames.length;
   const dexterX402 = getDexterX402Status();
+  const dexterAgent = getDexterAgentStatus();
+  const godmodeAgent = getGodmodeAgentStatus();
+  const agfundAgent = getAgFundAgentStatus();
+  const fourMemeAgent = getFourMemeAgentStatus();
+  const gmgnAgent = getGmgnAgentStatus();
   const gmgn = getGmgnStatus();
+  const hyperliquidAgent = getHyperliquidAgentStatus();
+  const polymarketAgent = getPolymarketAgentStatus();
   const constitutionPath = getConstitutionAbsolutePath();
   const constitutionHash = readConstitutionHash();
-  const reserveFloorSol = Number(env.GOONCLAW_AGENT_RESERVE_FLOOR_SOL);
+  const reserveFloorSol = Number(env.TIANSHI_AGENT_RESERVE_FLOOR_SOL);
   const transferGuardrails = getAutonomousTransferGuardrails();
   const tradeGuardrails = getAutonomousTradeGuardrails();
+  const reportCommerce = getAutonomousReportCommercePolicy();
+  const riskControlPlane = snapshot.riskControlPlane || getAutonomousRiskControlPlane();
+  const watchlistMetadata = getAutonomousPassiveWatchlistMetadata();
   const circuitBreakerState = getCircuitBreakerState(snapshot);
+  const availableActions = [
+    ...solanaRuntime.actionNames,
+    ...dexterAgent.actionNames,
+    ...godmodeAgent.actionNames,
+    ...agfundAgent.actionNames,
+    ...fourMemeAgent.actionNames,
+    ...gmgnAgent.actionNames,
+    ...hyperliquidAgent.actionNames,
+    ...polymarketAgent.actionNames,
+  ];
+  const blockedActionNames = [
+    ...solanaRuntime.blockedActionNames,
+    ...dexterAgent.blockedActionNames,
+    ...godmodeAgent.blockedActionNames,
+    ...gmgnAgent.blockedActionNames,
+    ...hyperliquidAgent.blockedActionNames,
+    ...polymarketAgent.blockedActionNames,
+  ];
 
   return {
-    agentId: GOONCLAW_AGENT_ID,
+    agentId: TIANSHI_AGENT_ID,
     constitutionHash,
     constitutionPath,
     control: {
@@ -1995,37 +2103,53 @@ export function getAutonomousStatus() {
       circuitBreakerState,
     },
     circuitBreakerState,
+    alignmentGoals: getAutonomousAlignmentGoals(),
     feedSize: listAutonomousFeedEvents().length,
     goals: [
-      "Maximize sustainable profit inside the human-agent business partnership.",
-      `Protect the ${env.GOONCLAW_AGENT_RESERVE_FLOOR_SOL} SOL reserve floor before discretionary actions.`,
-      "Route enforced buyback-and-burn settlements into the GoonClaw token.",
+      "Operate within the locked risk-control plane and keep live actions evidence-gated.",
+      `Protect the ${env.TIANSHI_AGENT_RESERVE_FLOOR_SOL} SOL reserve floor before discretionary actions.`,
+      "Route enforced buyback-and-burn settlements into the Tianshi token.",
       "Keep heartbeat, decisions, and tool traces public while private controls stay owner-only.",
-      "Trade only Pump meme coins through the configured GMGN Solana route and cap any single meme coin position at 10% of the tracked portfolio value.",
+      "Treat QAI, Gendelve, and Guildcoin as declarative theses, constraints, or watchlist metadata instead of direct trade instructions.",
+      "Track the concrete X handles and token references from the brief as passive watchlist metadata only.",
+      "Trade only approved Pump.fun and Four.meme launch tokens for spot routing, keep prediction-market context on Polygon, and cap any single token position at 10% of the tracked portfolio value.",
+      "Expose Hyperliquid perpetual-market data to all agents and only light up shared perp routing when the approved Tianshi API wallet, master wallet, and live flag are all present.",
+      "Offer one-second x402 report windows as informational commerce only; any trade path remains subordinate to the locked risk plane and venue restrictions.",
       "Refresh market tape, smart-wallet dossiers, top X-linked snippets, and llms.txt-compatible domain docs on every heartbeat before selecting runtime candidates.",
+      "Use the vendored Dexter runtime as an agent-only Pump.fun/PumpSwap intelligence and execution capability when its adapter is configured.",
+      "Use G0DM0D3 as an internal multi-model cognition and ULTRAPLINIAN racing layer for autonomous agent work, never as a public human feature.",
+      "Use AgFund as the publishable marketplace seam for agent deployment metadata and holder-gated cockpit provisioning.",
+      "Use Four.meme agentic skills as an internal BNB execution seam while keeping live execution adapter-gated.",
+      "Use Polymarket market data and agent participation plumbing as an internal prediction-market ability, with live execution gated behind explicit compliance and operator acknowledgement.",
       "Allow audited self-mod proposals to tune runtime behavior without granting arbitrary code execution.",
-      "Autonomously spawn uncapped replica child runtimes inside the same constitutional envelope.",
+      "Autonomously spawn replica child runtimes inside the same constitutional envelope.",
       "Prefer Google Cloud execution first; use Conway domains only when needed and Conway Codex services only as fallback.",
     ],
     heartbeatAt: snapshot.heartbeatAt,
     latestPolicyDecision: snapshot.latestPolicyDecision,
     modelRuntime,
-    name: "GoonClaw",
+    name: "Tianshi",
     positions: snapshot.positions,
-    publicTraceMode: env.GOONCLAW_PUBLIC_TRACE_MODE,
-    purpose: GOONCLAW_PURPOSE,
+    publicTraceMode: env.TIANSHI_PUBLIC_TRACE_MODE,
+    purpose: TIANSHI_PURPOSE,
     recentFeed,
     marketIntel: snapshot.marketIntel,
     replication: snapshot.replication,
+    reportCommerce,
     revenueBuckets: snapshot.revenueBuckets,
     revenuePolicies: getRevenuePolicies(),
     runtimePhase: snapshot.runtimePhase,
     selfModification: snapshot.selfModification,
     settlements: snapshot.settlements.slice().reverse().slice(0, 20),
+    watchlistMetadata,
     tooling: {
+      agfundActionNames: agfundAgent.actionNames,
+      agfundApiReady: agfundAgent.apiReady,
+      agfundEnabled: agfundAgent.enabled,
+      agfundMarketplaceUrl: agfundAgent.marketplaceUrl,
       agentWalletAddress: solanaRuntime.walletAddress,
-      availableActions: solanaRuntime.actionNames,
-      blockedActionNames: solanaRuntime.blockedActionNames,
+      availableActions,
+      blockedActionNames,
       codexSkillNames,
       configuredMcpServerNames,
       conwayApiKeyConfigured: Boolean(env.CONWAY_API_KEY.trim()),
@@ -2033,25 +2157,59 @@ export function getAutonomousStatus() {
       context7McpConfigured:
         hasContext7McpBridgeConfig() ||
         configuredMcpServerNames.includes("context7"),
+      dexterActionNames: dexterAgent.actionNames,
+      dexterAgentEnabled: dexterAgent.enabled,
+      dexterCliReady: dexterAgent.cliReady,
+      dexterDefaultMode: dexterAgent.defaultMode,
+      dexterDefaultNetwork: dexterAgent.defaultNetwork,
+      dexterRepoReady: dexterAgent.repoPresent && dexterAgent.cliEntrypointPresent,
       dexterX402Installed: dexterX402.installed,
       dexterX402Version: dexterX402.version,
+      godmodeActionNames: godmodeAgent.actionNames,
+      godmodeAgentEnabled: godmodeAgent.enabled,
+      godmodeApiReady: godmodeAgent.apiReady,
+      godmodeDefaultModel: godmodeAgent.defaultModel,
       excelMcpConfigured:
         hasExcelMcpBridgeConfig() || configuredMcpServerNames.includes("excel"),
       gmgnConfigured: gmgn.configured,
+      gmgnActionNames: gmgnAgent.actionNames,
+      gmgnApiHost: gmgn.apiHost,
+      gmgnCriticalAuthReady: gmgn.criticalAuthReady,
+      gmgnQueryChains: gmgn.queryChains,
       gmgnSigningReady: gmgn.signingReady,
+      gmgnStandardAuthReady: gmgn.standardAuthReady,
+      gmgnToolFamilies: gmgn.toolFamilies,
       gmgnTradingWallet: gmgn.tradingWallet,
-      loadedActionCount: solanaRuntime.actionNames.length,
+      hyperliquidActionNames: hyperliquidAgent.actionNames,
+      hyperliquidApiUrl: hyperliquidAgent.apiUrl,
+      hyperliquidApiWallet: hyperliquidAgent.apiWalletAddress,
+      hyperliquidApiWalletApproved: hyperliquidAgent.apiWalletApproved,
+      hyperliquidDefaultDex: hyperliquidAgent.defaultDex,
+      hyperliquidEnabled: hyperliquidAgent.enabled,
+      hyperliquidInfoReady: hyperliquidAgent.infoReady,
+      hyperliquidLivePerpsEnabled: hyperliquidAgent.livePerpsEnabled,
+      hyperliquidMasterWallet: hyperliquidAgent.masterWalletAddress,
+      hyperliquidWsUrl: hyperliquidAgent.wsUrl,
+      fourMemeActionNames: fourMemeAgent.actionNames,
+      fourMemeAgenticUrl: fourMemeAgent.agenticUrl,
+      fourMemeEnabled: fourMemeAgent.enabled,
+      loadedActionCount: availableActions.length,
       loadedSkillCount: skillCount,
       solanaAgentKitConfigured: solanaRuntime.configured,
       solanaMcpConfigured: hasSolanaMcpBridgeConfig(),
+      polymarketActionNames: polymarketAgent.actionNames,
+      polymarketDefaultMode: polymarketAgent.defaultMode,
+      polymarketEnabled: polymarketAgent.enabled,
+      polymarketLiveReady: polymarketAgent.liveReady,
+      polymarketReadOnlyReady: polymarketAgent.readOnlyReady,
       taskMasterMcpConfigured:
         hasTaskMasterMcpBridgeConfig() ||
         configuredMcpServerNames.includes("taskmaster"),
       tavilyApiKeyConfigured: Boolean(env.TAVILY_API_KEY.trim()),
       tavilyMcpConfigured:
         hasTavilyMcpBridgeConfig() || configuredMcpServerNames.includes("tavily"),
-      telegramBroadcastEnabled: isGoonclawTelegramBroadcastEnabled(),
-      telegramChatConfigured: Boolean(env.GOONCLAW_TELEGRAM_CHAT_ID),
+      telegramBroadcastEnabled: isTianshiTelegramBroadcastEnabled(),
+      telegramChatConfigured: Boolean(env.TIANSHI_TELEGRAM_CHAT_ID),
       vendoredSkillNames,
       vertexOnly:
         env.AGENT_MODEL_PROVIDER === "vertex-ai-gemini" &&
@@ -2059,11 +2217,12 @@ export function getAutonomousStatus() {
     },
     tradeDirectives: snapshot.tradeDirectives.slice().reverse().slice(0, 20),
     treasury: {
-      goonclawTokenMint: env.BAGSTROKE_TOKEN_MINT,
-      ownerWallet: env.GOONCLAW_OWNER_WALLET,
+      tianshiTokenMint: env.BAGSTROKE_TOKEN_MINT,
+      ownerWallet: env.TIANSHI_OWNER_WALLET,
       reserveFloorSol,
       reserveHealthy: snapshot.reserveSol >= reserveFloorSol,
       reserveSol: snapshot.reserveSol,
+      riskControlPlane,
       transferGuardrails,
       tradeGuardrails,
       treasuryWallet: env.TREASURY_WALLET,
@@ -2074,6 +2233,7 @@ export function getAutonomousStatus() {
 }
 
 export async function getAutonomousStatusWithLiveReserve() {
+  await warmHyperliquidAgentAbility().catch(() => null);
   const status = getAutonomousStatus();
   const liveReserveSol = await getWalletSolBalance(status.treasury.treasuryWallet);
 
@@ -2113,6 +2273,8 @@ export function getAutonomousRuntimeSummary(): AutonomousRuntimeSummary {
     ).length,
     replicationChildCount: status.replication.childCount,
     replicationEnabled: status.replication.enabled,
+    reportSaleWindowSeconds: status.reportCommerce.purchaseWindowSeconds,
+    reportTradeDelaySeconds: status.reportCommerce.postPurchaseTradeDelaySeconds,
     reserveFloorSol: status.treasury.reserveFloorSol,
     reserveHealthy: status.treasury.reserveHealthy,
     reserveSol: status.treasury.reserveSol,

@@ -9,7 +9,7 @@ type ChatMessage = {
   content: string;
 };
 
-const STORAGE_KEY = "goonclaw-public-chat";
+const STORAGE_KEY = "tianshi-public-chat";
 const FALLBACK_LIMIT = 20;
 
 function formatResetTime(value: string | null) {

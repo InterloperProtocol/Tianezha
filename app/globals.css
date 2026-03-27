@@ -303,16 +303,16 @@ textarea {
   box-shadow: 0 0 0 4px rgba(155, 200, 192, 0.12);
 }
 
-.seafoam-theme .goonbook-hero,
-.seafoam-theme .goonbook-stat-card,
-.seafoam-theme .goonbook-side-card,
-.seafoam-theme .goonbook-post-card,
-.seafoam-theme .goonbook-compose-card,
-.seafoam-theme .goonbook-tip-band,
-.seafoam-theme .goonbook-top-tape,
-.seafoam-theme .goonbook-trust-strip,
-.seafoam-theme .goonbook-provenance,
-.seafoam-theme .goonbook-profile-tip {
+.seafoam-theme .bitclaw-hero,
+.seafoam-theme .bitclaw-stat-card,
+.seafoam-theme .bitclaw-side-card,
+.seafoam-theme .bitclaw-post-card,
+.seafoam-theme .bitclaw-compose-card,
+.seafoam-theme .bitclaw-tip-band,
+.seafoam-theme .bitclaw-top-tape,
+.seafoam-theme .bitclaw-trust-strip,
+.seafoam-theme .bitclaw-provenance,
+.seafoam-theme .bitclaw-profile-tip {
   border-color: var(--seafoam-line);
   background:
     radial-gradient(circle at top left, rgba(155, 200, 192, 0.14), transparent 28%),
@@ -320,15 +320,15 @@ textarea {
     linear-gradient(90deg, rgba(155, 200, 192, 0.06), transparent 60%);
 }
 
-.seafoam-theme .goonbook-accent-text,
-.seafoam-theme .goonbook-market-summary,
-.seafoam-theme .goonbook-tip-band span,
-.seafoam-theme .goonbook-top-tape-item,
-.seafoam-theme .goonbook-stat-card span,
-.seafoam-theme .goonbook-post-foot span,
-.seafoam-theme .goonbook-rule-list p,
-.seafoam-theme .goonbook-author span,
-.seafoam-theme .goonbook-compose-footer span {
+.seafoam-theme .bitclaw-accent-text,
+.seafoam-theme .bitclaw-market-summary,
+.seafoam-theme .bitclaw-tip-band span,
+.seafoam-theme .bitclaw-top-tape-item,
+.seafoam-theme .bitclaw-stat-card span,
+.seafoam-theme .bitclaw-post-foot span,
+.seafoam-theme .bitclaw-rule-list p,
+.seafoam-theme .bitclaw-author span,
+.seafoam-theme .bitclaw-compose-footer span {
   color: var(--seafoam-soft);
 }
 
@@ -1677,7 +1677,7 @@ textarea {
   text-align: right;
 }
 
-.goonbook-hero {
+.bitclaw-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(20rem, 0.9fr);
   gap: 1rem;
@@ -1692,13 +1692,13 @@ textarea {
   box-shadow: var(--shadow);
 }
 
-.goonbook-hero-copy {
+.bitclaw-hero-copy {
   display: grid;
   gap: 1rem;
   align-content: start;
 }
 
-.goonbook-hero-copy h1 {
+.bitclaw-hero-copy h1 {
   margin: 0;
   font-size: clamp(2.6rem, 4.5vw, 4.8rem);
   line-height: 0.92;
@@ -1706,15 +1706,15 @@ textarea {
   max-width: 11ch;
 }
 
-.goonbook-seafoam-text {
+.bitclaw-seafoam-text {
   color: var(--seafoam);
 }
 
-.goonbook-accent-text {
+.bitclaw-accent-text {
   color: var(--accent-soft);
 }
 
-.goonbook-tip-band {
+.bitclaw-tip-band {
   display: grid;
   gap: 0.3rem;
   max-width: 38rem;
@@ -1726,17 +1726,17 @@ textarea {
     rgba(255, 255, 255, 0.02);
 }
 
-.goonbook-tip-band strong {
+.bitclaw-tip-band strong {
   color: var(--seafoam-soft);
   font-size: 0.98rem;
 }
 
-.goonbook-tip-band span {
+.bitclaw-tip-band span {
   color: var(--text-subtle);
   line-height: 1.6;
 }
 
-.goonbook-top-tape {
+.bitclaw-top-tape {
   overflow: hidden;
   border: 1px solid rgba(155, 200, 192, 0.18);
   border-radius: 0.22rem;
@@ -1745,17 +1745,17 @@ textarea {
     rgba(255, 255, 255, 0.025);
 }
 
-.goonbook-top-tape-track {
+.bitclaw-top-tape-track {
   display: flex;
   align-items: center;
   gap: 1.1rem;
   width: max-content;
   min-width: 100%;
   padding: 0.7rem 1rem;
-  animation: goonbook-tape-scroll 26s linear infinite;
+  animation: bitclaw-tape-scroll 26s linear infinite;
 }
 
-.goonbook-top-tape-item {
+.bitclaw-top-tape-item {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
@@ -1767,44 +1767,44 @@ textarea {
   color: var(--text-dim);
 }
 
-.goonbook-top-tape-item strong {
+.bitclaw-top-tape-item strong {
   color: var(--seafoam-soft);
 }
 
-.goonbook-market-summary {
+.bitclaw-market-summary {
   margin: 0;
   max-width: 48rem;
   color: var(--text-subtle);
   line-height: 1.65;
 }
 
-.goonbook-stat-row {
+.bitclaw-stat-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
 }
 
-.goonbook-stat-card,
-.goonbook-side-card,
-.goonbook-post-card,
-.goonbook-compose-card {
+.bitclaw-stat-card,
+.bitclaw-side-card,
+.bitclaw-post-card,
+.bitclaw-compose-card {
   border-radius: 0.24rem;
   border: 1px solid rgba(242, 161, 74, 0.16);
   background: rgba(255, 255, 255, 0.03);
 }
 
-.goonbook-stat-card {
+.bitclaw-stat-card {
   padding: 0.95rem;
   background:
     linear-gradient(180deg, rgba(155, 200, 192, 0.08), transparent 70%),
     rgba(255, 255, 255, 0.03);
 }
 
-.goonbook-stat-card span,
-.goonbook-post-foot span,
-.goonbook-rule-list p,
-.goonbook-author span,
-.goonbook-compose-footer span {
+.bitclaw-stat-card span,
+.bitclaw-post-foot span,
+.bitclaw-rule-list p,
+.bitclaw-author span,
+.bitclaw-compose-footer span {
   color: var(--text-dim);
   font-family: var(--font-mono), monospace;
   font-size: 0.74rem;
@@ -1812,14 +1812,14 @@ textarea {
   text-transform: uppercase;
 }
 
-.goonbook-stat-card strong {
+.bitclaw-stat-card strong {
   display: block;
   margin-top: 0.35rem;
   font-size: 1.2rem;
   color: var(--seafoam-soft);
 }
 
-.goonbook-compose-card {
+.bitclaw-compose-card {
   display: grid;
   gap: 0.9rem;
   padding: 1rem;
@@ -1829,36 +1829,36 @@ textarea {
     rgba(255, 255, 255, 0.03);
 }
 
-.goonbook-compose-header,
-.goonbook-post-head,
-.goonbook-post-foot,
-.goonbook-profile-item {
+.bitclaw-compose-header,
+.bitclaw-post-head,
+.bitclaw-post-foot,
+.bitclaw-profile-item {
   display: flex;
   align-items: start;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.goonbook-compose-header h2,
-.goonbook-side-card h2 {
+.bitclaw-compose-header h2,
+.bitclaw-side-card h2 {
   margin: 0.2rem 0 0;
   font-size: 1.15rem;
 }
 
-.goonbook-compose-footer {
+.bitclaw-compose-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.85rem;
 }
 
-.goonbook-compose-note {
+.bitclaw-compose-note {
   margin: -0.1rem 0 0;
   color: var(--text-subtle);
   line-height: 1.6;
 }
 
-.goonbook-trust-strip {
+.bitclaw-trust-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
@@ -1871,15 +1871,15 @@ textarea {
     rgba(255, 255, 255, 0.025);
 }
 
-.goonbook-trust-item,
-.goonbook-provenance-item,
+.bitclaw-trust-item,
+.bitclaw-provenance-item,
 .network-rollout-copy {
   display: grid;
   gap: 0.3rem;
 }
 
-.goonbook-trust-item span,
-.goonbook-provenance-item span,
+.bitclaw-trust-item span,
+.bitclaw-provenance-item span,
 .network-rollout-copy .eyebrow {
   color: var(--text-dim);
   font-family: var(--font-mono), monospace;
@@ -1888,8 +1888,8 @@ textarea {
   text-transform: uppercase;
 }
 
-.goonbook-trust-item strong,
-.goonbook-provenance-item strong,
+.bitclaw-trust-item strong,
+.bitclaw-provenance-item strong,
 .network-rollout-copy strong {
   color: var(--text);
   font-size: 0.88rem;
@@ -1901,28 +1901,28 @@ textarea {
   line-height: 1.6;
 }
 
-.goonbook-mode-switch {
+.bitclaw-mode-switch {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
 
-.goonbook-layout {
+.bitclaw-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(18rem, 0.72fr);
   gap: 1rem;
 }
 
-.goonbook-feed,
-.goonbook-sidebar,
-.goonbook-profile-list {
+.bitclaw-feed,
+.bitclaw-sidebar,
+.bitclaw-profile-list {
   display: grid;
   gap: 1rem;
   align-content: start;
   min-width: 0;
 }
 
-.goonbook-sidebar {
+.bitclaw-sidebar {
   min-height: 0;
   max-height: 100%;
   overflow: auto;
@@ -1930,14 +1930,14 @@ textarea {
   overscroll-behavior: contain;
 }
 
-.goonbook-post-card,
-.goonbook-side-card {
+.bitclaw-post-card,
+.bitclaw-side-card {
   padding: 1rem;
   box-shadow: var(--shadow);
   min-width: 0;
 }
 
-.goonbook-side-card {
+.bitclaw-side-card {
   display: grid;
   gap: 0.85rem;
   background:
@@ -1946,32 +1946,32 @@ textarea {
   overflow: hidden;
 }
 
-.goonbook-author {
+.bitclaw-author {
   display: flex;
   align-items: center;
   gap: 0.8rem;
   min-width: 0;
 }
 
-.goonbook-author strong {
+.bitclaw-author strong {
   display: block;
   font-size: 0.98rem;
 }
 
-.goonbook-author span {
+.bitclaw-author span {
   display: block;
   margin-top: 0.2rem;
 }
 
-.goonbook-avatar,
-.goonbook-avatar-image {
+.bitclaw-avatar,
+.bitclaw-avatar-image {
   width: 2.8rem;
   height: 2.8rem;
   border-radius: 999px;
   flex: 0 0 auto;
 }
 
-.goonbook-avatar {
+.bitclaw-avatar {
   display: grid;
   place-items: center;
   background: rgba(155, 200, 192, 0.12);
@@ -1983,32 +1983,32 @@ textarea {
   text-transform: uppercase;
 }
 
-.goonbook-avatar-image {
+.bitclaw-avatar-image {
   object-fit: cover;
   border: 1px solid var(--seafoam-line);
 }
 
-.goonbook-post-meta {
+.bitclaw-post-meta {
   display: flex;
   flex-wrap: wrap;
   justify-content: end;
   gap: 0.5rem;
 }
 
-.goonbook-post-body,
-.goonbook-side-copy,
-.goonbook-rule-list p {
+.bitclaw-post-body,
+.bitclaw-side-copy,
+.bitclaw-rule-list p {
   margin: 0;
   color: var(--text-subtle);
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
 
-.goonbook-post-body {
+.bitclaw-post-body {
   font-size: 1rem;
 }
 
-.goonbook-provenance {
+.bitclaw-provenance {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
@@ -2020,7 +2020,7 @@ textarea {
     rgba(255, 255, 255, 0.02);
 }
 
-.goonbook-trade-card {
+.bitclaw-trade-card {
   display: grid;
   gap: 0.75rem;
   padding: 0.9rem;
@@ -2031,8 +2031,8 @@ textarea {
     rgba(0, 0, 0, 0.12);
 }
 
-.goonbook-trade-card-head,
-.goonbook-trade-card-metrics {
+.bitclaw-trade-card-head,
+.bitclaw-trade-card-metrics {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -2040,28 +2040,28 @@ textarea {
   flex-wrap: wrap;
 }
 
-.goonbook-trade-card-head p,
-.goonbook-trade-card-summary {
+.bitclaw-trade-card-head p,
+.bitclaw-trade-card-summary {
   margin: 0;
   color: var(--text-subtle);
   line-height: 1.6;
 }
 
-.goonbook-trade-card-head strong {
+.bitclaw-trade-card-head strong {
   display: block;
   margin-top: 0.2rem;
   color: var(--seafoam-soft);
   font-size: 1rem;
 }
 
-.goonbook-trade-card-badges {
+.bitclaw-trade-card-badges {
   display: flex;
   gap: 0.45rem;
   flex-wrap: wrap;
   justify-content: end;
 }
 
-.goonbook-trade-card-metrics {
+.bitclaw-trade-card-metrics {
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
@@ -2069,7 +2069,7 @@ textarea {
   color: var(--text-dim);
 }
 
-.goonbook-trade-card-link {
+.bitclaw-trade-card-link {
   color: var(--seafoam-soft);
   font-family: var(--font-mono), monospace;
   font-size: 0.76rem;
@@ -2077,7 +2077,7 @@ textarea {
   text-transform: uppercase;
 }
 
-@keyframes goonbook-tape-scroll {
+@keyframes bitclaw-tape-scroll {
   from {
     transform: translateX(0);
   }
@@ -2087,7 +2087,7 @@ textarea {
   }
 }
 
-.goonbook-post-image {
+.bitclaw-post-image {
   width: 100%;
   border-radius: 0.24rem;
   border: 1px solid var(--seafoam-line);
@@ -2096,33 +2096,33 @@ textarea {
   background: rgba(0, 0, 0, 0.3);
 }
 
-.goonbook-post-card {
+.bitclaw-post-card {
   display: grid;
   gap: 0.9rem;
 }
 
-.goonbook-post-foot {
+.bitclaw-post-foot {
   align-items: center;
   padding-top: 0.2rem;
   border-top: 1px solid rgba(242, 161, 74, 0.12);
 }
 
-.goonbook-rule-list {
+.bitclaw-rule-list {
   display: grid;
   gap: 0.7rem;
   margin-top: 0.75rem;
 }
 
-.goonbook-side-copy {
+.bitclaw-side-copy {
   max-width: 100%;
 }
 
-.goonbook-side-copy code {
+.bitclaw-side-copy code {
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-pre.goonbook-side-copy {
+pre.bitclaw-side-copy {
   overflow: auto;
   max-width: 100%;
   padding: 0.9rem 1rem;
@@ -2131,7 +2131,7 @@ pre.goonbook-side-copy {
   background: rgba(0, 0, 0, 0.22);
 }
 
-.goonbook-profile-tip {
+.bitclaw-profile-tip {
   display: grid;
   gap: 0.35rem;
   margin-top: 1rem;
@@ -2141,7 +2141,7 @@ pre.goonbook-side-copy {
   background: rgba(155, 200, 192, 0.08);
 }
 
-.goonbook-profile-tip span {
+.bitclaw-profile-tip span {
   color: var(--seafoam);
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
@@ -2149,13 +2149,13 @@ pre.goonbook-side-copy {
   text-transform: uppercase;
 }
 
-.goonbook-profile-tip strong {
+.bitclaw-profile-tip strong {
   color: var(--seafoam-soft);
   font-size: 0.92rem;
   line-height: 1.5;
 }
 
-.goonbook-profile-list {
+.bitclaw-profile-list {
   margin-top: 0.75rem;
 }
 
@@ -2188,15 +2188,15 @@ pre.goonbook-side-copy {
 .home-shift-list,
 .home-live-strip,
 .home-mini-card,
-.goonbook-tip-band,
-.goonbook-top-tape,
-.goonbook-stat-card,
-.goonbook-side-card,
-.goonbook-post-card,
-.goonbook-compose-card,
-.goonbook-trust-strip,
-.goonbook-provenance,
-.goonbook-profile-tip,
+.bitclaw-tip-band,
+.bitclaw-top-tape,
+.bitclaw-stat-card,
+.bitclaw-side-card,
+.bitclaw-post-card,
+.bitclaw-compose-card,
+.bitclaw-trust-strip,
+.bitclaw-provenance,
+.bitclaw-profile-tip,
 .network-rollout-strip {
   border-color: var(--seafoam-line);
   background:
@@ -2207,7 +2207,7 @@ pre.goonbook-side-copy {
 .route-header,
 .hero,
 .home-hero-panel,
-.goonbook-hero {
+.bitclaw-hero {
   min-height: var(--hero-panel-min-height);
   gap: 0.75rem;
   padding: 1rem;
@@ -2223,7 +2223,7 @@ pre.goonbook-side-copy {
 .hero-copy,
 .home-hero-copy,
 .home-hero-rail,
-.goonbook-hero-copy,
+.bitclaw-hero-copy,
 .route-header-rail {
   gap: 0.75rem;
   align-content: start;
@@ -2232,7 +2232,7 @@ pre.goonbook-side-copy {
 .route-header-main h1,
 .hero-copy h1,
 .home-hero-panel h1,
-.goonbook-hero-copy h1 {
+.bitclaw-hero-copy h1 {
   margin: 0;
   font-size: clamp(2.6rem, 4.8vw, 4.8rem);
   line-height: 0.92;
@@ -2407,8 +2407,8 @@ pre.goonbook-side-copy {
   .dashboard-grid-secondary,
   .dashboard-grid-fullwidth,
   .docs-layout,
-  .goonbook-hero,
-  .goonbook-layout,
+  .bitclaw-hero,
+  .bitclaw-layout,
   .home-hero-panel,
   .home-story-grid,
   .home-card-grid,
@@ -2426,9 +2426,9 @@ pre.goonbook-side-copy {
 
   .session-card,
   .stats-grid,
-  .goonbook-stat-row,
-  .goonbook-trust-strip,
-  .goonbook-provenance {
+  .bitclaw-stat-row,
+  .bitclaw-trust-strip,
+  .bitclaw-provenance {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2448,7 +2448,7 @@ pre.goonbook-side-copy {
   .route-header,
   .hero,
   .home-hero-panel,
-  .goonbook-hero {
+  .bitclaw-hero {
     min-height: 0;
   }
 
@@ -2476,9 +2476,9 @@ pre.goonbook-side-copy {
   .field-grid,
   .session-card,
   .stats-grid,
-  .goonbook-stat-row,
-  .goonbook-trust-strip,
-  .goonbook-provenance,
+  .bitclaw-stat-row,
+  .bitclaw-trust-strip,
+  .bitclaw-provenance,
   .chat-meta,
   .token-pulse-main,
   .token-pulse-stats,
@@ -2621,7 +2621,7 @@ pre.goonbook-side-copy {
   width: max-content;
   min-width: 100%;
   padding: 0.75rem 1rem;
-  animation: goonbook-tape-scroll 26s linear infinite;
+  animation: bitclaw-tape-scroll 26s linear infinite;
 }
 
 .bitclaw-top-tape-item {
@@ -2991,5 +2991,224 @@ pre.goonbook-side-copy {
   .bitclaw-post-tools,
   .bitclaw-comment-meta {
     justify-content: start;
+  }
+}
+
+.tianezha-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 24rem);
+  gap: 1rem;
+  align-items: start;
+}
+
+.tianezha-main,
+.tianezha-rail,
+.loaded-rail-shell,
+.loaded-rail-panel,
+.loaded-rail-sections,
+.loaded-rail-section,
+.simulation-card-grid,
+.stack-grid,
+.quote-grid,
+.mini-list,
+.identity-load-form,
+.governance-action-stack,
+.chat-shell-panel,
+.chat-shell-feed,
+.chat-shell-form,
+.trade-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tianezha-rail,
+.loaded-rail-shell {
+  position: sticky;
+  top: 1rem;
+}
+
+.simulation-card-grid,
+.stack-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.module-grid-3x2,
+.loaded-home-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.module-grid-3x2 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.loaded-home-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.simulation-card-grid {
+  margin-top: 0.25rem;
+}
+
+.quote-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.loaded-rail-heading,
+.trade-form-actions,
+.identity-load-actions,
+.chat-shell-actions {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.loaded-identity-card,
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.entry-hero-panel {
+  align-items: stretch;
+}
+
+.entry-hero-copy {
+  gap: 1rem;
+}
+
+.entry-focus-card {
+  min-height: 100%;
+}
+
+.module-tile {
+  min-height: 100%;
+  align-content: start;
+}
+
+.module-preview {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.module-preview span {
+  color: var(--text-dim);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.module-preview strong {
+  color: var(--seafoam-soft);
+}
+
+.mini-item-card,
+.quote-card,
+.chat-bubble {
+  border-radius: 0.24rem;
+  border: 1px solid var(--seafoam-line);
+  background:
+    radial-gradient(circle at top left, rgba(155, 200, 192, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.98), rgba(0, 0, 0, 0.98));
+  padding: 0.85rem;
+}
+
+.mini-item-card a {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mini-item-card strong,
+.quote-card strong,
+.chat-bubble strong,
+.loaded-identity-card strong {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--seafoam-soft);
+}
+
+.mini-item-card span,
+.quote-card span,
+.chat-bubble span,
+.loaded-identity-card span {
+  color: var(--text-dim);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.route-summary.compact {
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.chat-shell-feed {
+  max-height: min(50vh, 28rem);
+  overflow: auto;
+}
+
+.chat-bubble.assistant {
+  border-color: rgba(155, 200, 192, 0.3);
+}
+
+.chat-bubble.user {
+  border-color: rgba(155, 200, 192, 0.14);
+  background: rgba(155, 200, 192, 0.04);
+}
+
+.chat-bubble p {
+  margin: 0.35rem 0 0;
+  color: var(--text-subtle);
+  line-height: 1.7;
+}
+
+.checkbox-field {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.checkbox-field input {
+  width: 1.15rem;
+  min-height: 1.15rem;
+}
+
+@media (max-width: 1180px) {
+  .tianezha-layout,
+  .module-grid-3x2,
+  .loaded-home-grid,
+  .simulation-card-grid,
+  .stack-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tianezha-rail,
+  .loaded-rail-shell {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .quote-grid,
+  .loaded-identity-card,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .loaded-rail-heading,
+  .trade-form-actions,
+  .identity-load-actions,
+  .chat-shell-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

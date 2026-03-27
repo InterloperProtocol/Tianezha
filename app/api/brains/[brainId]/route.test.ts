@@ -15,7 +15,7 @@ describe("/api/brains/[brainId] GET", () => {
 
     expect(response.status).toBe(200);
     expect(payload.id).toBe("bolclaw");
-    expect(payload.parentBrainId).toBe("goonclaw");
+    expect(payload.parentBrainId).toBe("tianshi");
     expect(payload.canAccessTreasury).toBe(false);
   });
 
@@ -30,8 +30,8 @@ describe("/api/brains/[brainId] GET", () => {
   });
 
   it("does not expose the sovereign parent via the child route", async () => {
-    const response = await GET(new Request("https://example.com/api/brains/goonclaw"), {
-      params: Promise.resolve({ brainId: "goonclaw" }),
+    const response = await GET(new Request("https://example.com/api/brains/tianshi"), {
+      params: Promise.resolve({ brainId: "tianshi" }),
     });
 
     expect(response.status).toBe(404);

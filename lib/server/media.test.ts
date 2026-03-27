@@ -77,12 +77,12 @@ describe("media source resolver", () => {
   it("builds a Kick channel embed from a channel URL", () => {
     expect(
       buildKnownMediaConfig(
-        "https://kick.com/goonclaw",
+        "https://kick.com/tianshi",
         "localhost",
       ),
     ).toEqual({
       kind: "iframe",
-      src: "https://player.kick.com/goonclaw",
+      src: "https://player.kick.com/tianshi",
       provider: "Kick",
       method: "embed",
     });

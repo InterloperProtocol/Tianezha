@@ -4,7 +4,7 @@ import { startLivestreamRuntimeLoop } from "@/lib/server/livestream-runtime";
 import { rehydrateRuntimeSessions } from "@/lib/server/worker-runtime";
 
 declare global {
-  var __goonclawNodeInstrumentationRegistered: boolean | undefined;
+  var __tianshiNodeInstrumentationRegistered: boolean | undefined;
 }
 
 async function bootstrapInProcessRuntimeSessions() {
@@ -15,19 +15,19 @@ async function bootstrapInProcessRuntimeSessions() {
   try {
     const { recovered, skipped } = await rehydrateRuntimeSessions();
     console.log(
-      `[goonclaw-runtime] recovered=${recovered.length} skipped=${skipped.length}`,
+      `[tianshi-runtime] recovered=${recovered.length} skipped=${skipped.length}`,
     );
   } catch (error) {
-    console.warn("[goonclaw-runtime] failed to recover in-process sessions", error);
+    console.warn("[tianshi-runtime] failed to recover in-process sessions", error);
   }
 }
 
 export async function registerNodeInstrumentation() {
-  if (global.__goonclawNodeInstrumentationRegistered) {
+  if (global.__tianshiNodeInstrumentationRegistered) {
     return;
   }
 
-  global.__goonclawNodeInstrumentationRegistered = true;
+  global.__tianshiNodeInstrumentationRegistered = true;
   await bootstrapInProcessRuntimeSessions();
   startAutonomousRuntimeLoop();
   startLivestreamRuntimeLoop();

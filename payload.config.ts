@@ -9,15 +9,15 @@ const isAdmin = ({ req }: { req: { user?: unknown } }) => Boolean(req.user);
 function resolvePayloadDatabaseUrl() {
   const defaultDatabaseUrl =
     process.env.NODE_ENV === "production"
-      ? "file:/tmp/goonclaw-payload.db"
-      : "file:./.data/goonclaw-payload.db";
+      ? "file:/tmp/tianshi-payload.db"
+      : "file:./.data/tianshi-payload.db";
   const configuredUrl = process.env.PAYLOAD_DATABASE_URL || defaultDatabaseUrl;
 
   if (!configuredUrl.startsWith("file:")) {
     return configuredUrl;
   }
 
-  const rawPath = configuredUrl.slice("file:".length) || "./.data/goonclaw-payload.db";
+  const rawPath = configuredUrl.slice("file:".length) || "./.data/tianshi-payload.db";
   const absolutePath = path.resolve(process.cwd(), rawPath);
   mkdirSync(path.dirname(absolutePath), { recursive: true });
 
@@ -28,7 +28,7 @@ const payloadDatabaseUrl = resolvePayloadDatabaseUrl();
 const payloadSecret =
   process.env.PAYLOAD_SECRET ||
   process.env.APP_SESSION_SECRET ||
-  (process.env.NODE_ENV === "production" ? "" : "goonclaw-dev-payload-secret");
+  (process.env.NODE_ENV === "production" ? "" : "tianshi-dev-payload-secret");
 
 if (!payloadSecret) {
   throw new Error(

@@ -9,7 +9,7 @@ import {
 
 describe("brain registry", () => {
   it("exposes one sovereign parent and three constitutional child brains", () => {
-    expect(PUBLIC_SOVEREIGN_PARENT_BRAIN.id).toBe("goonclaw");
+    expect(PUBLIC_SOVEREIGN_PARENT_BRAIN.id).toBe("tianshi");
     expect(PUBLIC_CHILD_BRAINS.map((brain) => brain.id)).toEqual([
       "bolclaw",
       "trenchstroker",
@@ -29,6 +29,6 @@ describe("brain registry", () => {
       expect(brain.canAccessSecrets).toBe(false);
     }
 
-    expect(getBrainLoadPath("goonclaw")).toBe("brains/goonclaw");
+    expect(getBrainLoadPath("tianshi")).toBe("brains/tianshi");
   });
 });

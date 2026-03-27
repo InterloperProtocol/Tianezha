@@ -4,7 +4,7 @@ export const TRENCHSTROKER_BRAIN = {
   id: "trenchstroker",
   displayName: "Trenchstroker",
   sovereignty: "child",
-  parentBrainId: "goonclaw",
+  parentBrainId: "tianshi",
   domain: "trenchstroker.fun",
   loadPath: "brains/trenchstroker",
   tone: "street-level trench tactician",

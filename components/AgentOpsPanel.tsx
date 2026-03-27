@@ -77,7 +77,7 @@ export function AgentOpsPanel() {
       </div>
       <p className="panel-lead">
         This panel refreshes automatically so you can quickly confirm whether
-        the services behind GoonClaw are ready. It reports status only and does
+        the services behind Tianshi are ready. It reports status only and does
         not expose any guest-facing agent controls.
       </p>
 

@@ -175,7 +175,12 @@ export function AutonomousAgentPanel() {
   const openPositions = status?.positions.filter((item) => item.status === "open") ?? [];
   const topTape = status?.marketIntel.topTape.slice(0, 4) ?? [];
   const configuredMcpNames = status?.tooling.configuredMcpServerNames ?? [];
-  const vendoredSkillNames = status?.tooling.vendoredSkillNames ?? [];
+  const vendoredSkillNames = (status?.tooling.vendoredSkillNames ?? []).filter(
+    (name) =>
+      name !== "dexter-agent" &&
+      name !== "godmode-agent" &&
+      name !== "polymarket-agent",
+  );
   const codexSkillNames = status?.tooling.codexSkillNames ?? [];
 
   return (
@@ -219,8 +224,38 @@ export function AutonomousAgentPanel() {
               ? "Breaker probing"
               : "Breaker closed"}
         </StatusBadge>
-        <StatusBadge tone={status?.tooling.gmgnConfigured ? "accent" : "neutral"}>
-          {status?.tooling.gmgnConfigured ? "GMGN set" : "GMGN off"}
+        <StatusBadge tone={status?.tooling.gmgnStandardAuthReady ? "accent" : "neutral"}>
+          {status?.tooling.gmgnStandardAuthReady ? "GMGN query on" : "GMGN off"}
+        </StatusBadge>
+        <StatusBadge
+          tone={
+            status?.tooling.gmgnCriticalAuthReady
+              ? "success"
+              : status?.tooling.gmgnStandardAuthReady
+                ? "warning"
+                : "neutral"
+          }
+        >
+          {status?.tooling.gmgnCriticalAuthReady
+            ? "GMGN swap on"
+            : status?.tooling.gmgnStandardAuthReady
+              ? "GMGN query-only"
+              : "GMGN idle"}
+        </StatusBadge>
+        <StatusBadge
+          tone={
+            status?.tooling.hyperliquidLivePerpsEnabled
+              ? "success"
+              : status?.tooling.hyperliquidInfoReady
+                ? "warning"
+                : "neutral"
+          }
+        >
+          {status?.tooling.hyperliquidLivePerpsEnabled
+            ? "HL perps on"
+            : status?.tooling.hyperliquidInfoReady
+              ? "HL data on"
+              : "HL off"}
         </StatusBadge>
         <StatusBadge
           tone={
@@ -331,12 +366,26 @@ export function AutonomousAgentPanel() {
           <div>
             <span>Trading route</span>
             <strong>
-              {status?.tooling.gmgnConfigured
-                ? status.tooling.gmgnSigningReady
-                  ? "GMGN ready"
-                  : "GMGN waiting for signer"
+              {status?.tooling.gmgnStandardAuthReady
+                ? status.tooling.gmgnCriticalAuthReady
+                  ? "GMGN quote + swap ready"
+                  : "GMGN quote ready / swap gated"
                 : "Not set"}
             </strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Report window</span>
+            <strong>
+              {status
+                ? `${status.reportCommerce.priceUsdc.toFixed(2)} USDC / ${status.reportCommerce.purchaseWindowSeconds}s`
+                : "Waiting"}
+            </strong>
+          </div>
+          <div>
+            <span>Marketplace seam</span>
+            <strong>{status?.tooling.agfundEnabled ? "AgFund ready" : "AgFund off"}</strong>
           </div>
         </div>
         <div className="history-item">
@@ -357,6 +406,55 @@ export function AutonomousAgentPanel() {
                 ? `${status.tooling.gmgnTradingWallet.slice(0, 4)}...${status.tooling.gmgnTradingWallet.slice(-4)}`
                 : "Waiting"}
             </strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>GMGN API host</span>
+            <strong>{status?.tooling.gmgnApiHost || "Waiting"}</strong>
+          </div>
+          <div>
+            <span>GMGN surface</span>
+            <strong>
+              {status
+                ? `${formatNameList(status.tooling.gmgnQueryChains, 4)} | ${formatNameList(
+                    status.tooling.gmgnToolFamilies,
+                    6,
+                  )}`
+                : "Waiting"}
+            </strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Hyperliquid API</span>
+            <strong>{status?.tooling.hyperliquidApiUrl || "Waiting"}</strong>
+          </div>
+          <div>
+            <span>Hyperliquid lane</span>
+            <strong>
+              {status?.tooling.hyperliquidLivePerpsEnabled
+                ? "Shared perp lane live"
+                : status?.tooling.hyperliquidApiWalletApproved
+                  ? "API wallet approved / live gated"
+                  : status?.tooling.hyperliquidInfoReady
+                    ? "Market data ready / API wallet pending"
+                    : "Waiting"}
+            </strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Hyperliquid wallet</span>
+            <strong>
+              {status?.tooling.hyperliquidApiWallet
+                ? `${status.tooling.hyperliquidApiWallet.slice(0, 6)}...${status.tooling.hyperliquidApiWallet.slice(-4)}`
+                : "Waiting"}
+            </strong>
+          </div>
+          <div>
+            <span>Hyperliquid websocket</span>
+            <strong>{status?.tooling.hyperliquidWsUrl || "Waiting"}</strong>
           </div>
         </div>
         <div className="history-item">

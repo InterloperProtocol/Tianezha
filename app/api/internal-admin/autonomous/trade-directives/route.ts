@@ -12,11 +12,14 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       bucket?: "tradingUsdc" | "sessionTradeUsdc";
       isPumpCoin?: boolean;
+      leverage?: number;
       marketMint?: string;
       rationale?: string;
       requestedUsdc?: number;
-      revenueClass?: "creator_fee" | "goonclaw_chartsync" | "third_party_chartsync_commission";
+      revenueClass?: "creator_fee" | "tianshi_chartsync" | "third_party_chartsync_commission";
+      side?: "long" | "short";
       symbol?: string;
+      venue?: "gmgn" | "hyperliquid";
     };
 
     if (!body.marketMint || !body.symbol || !body.rationale || !body.requestedUsdc) {
@@ -32,11 +35,14 @@ export async function POST(request: Request) {
     const directive = queueAutonomousTradeDirective({
       bucket: body.bucket,
       isPumpCoin: body.isPumpCoin,
+      leverage: body.leverage,
       marketMint: body.marketMint,
       rationale: body.rationale,
       requestedUsdc: body.requestedUsdc,
       revenueClass: body.revenueClass,
+      side: body.side,
       symbol: body.symbol,
+      venue: body.venue,
     });
 
     return NextResponse.json({

@@ -118,7 +118,7 @@ export function getAgentOpsStatus(): AgentOpsStatus {
 
   const tokenMint =
     process.env.AGENT_TOKEN_MINT_ADDRESS?.trim() ||
-    process.env.GOONCLAW_TOKEN_MINT?.trim() ||
+    process.env.TIANEZHA_TOKEN_MINT?.trim() ||
     env.BAGSTROKE_TOKEN_MINT ||
     DEFAULT_PUMP_TOKEN_MINT;
   const currencyMint = process.env.CURRENCY_MINT?.trim() || "";
@@ -145,15 +145,15 @@ export function getAgentOpsStatus(): AgentOpsStatus {
   }
 
   const creatorFeeCnftSharePct = Number(
-    process.env.GOONCLAW_CREATOR_FEE_CNFT_SHARE_PCT ?? "50",
+    process.env.TIANEZHA_CREATOR_FEE_CNFT_SHARE_PCT ?? "50",
   );
   const creatorFeeBuybackSharePct = Number(
-    process.env.GOONCLAW_BUYBACK_SHARE_PCT ??
+    process.env.TIANEZHA_BUYBACK_SHARE_PCT ??
       `${Math.max(0, 100 - creatorFeeCnftSharePct)}`,
   );
-  const reserveFloorSol = Number(process.env.GOONCLAW_RESERVE_SOL ?? "1");
+  const reserveFloorSol = Number(process.env.TIANEZHA_RESERVE_SOL ?? "1");
   const cnftIntervalMinutes = Number(
-    process.env.GOONCLAW_CNFT_INTERVAL_MINUTES ?? "10",
+    process.env.TIANEZHA_CNFT_INTERVAL_MINUTES ?? "10",
   );
   const modelRuntime = getAgentModelStatus();
 

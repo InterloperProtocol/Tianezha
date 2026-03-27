@@ -15,8 +15,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GoonClaw",
-  description: "It's Fuckin Finance Fellas!",
+  title: "Tianezha",
+  description:
+    "Simulation-first identity, social, prediction, governance, and perp shell for Tianezha.",
   icons: {
     icon: [{ url: "/icon.jpg", type: "image/jpeg" }],
     shortcut: [{ url: "/icon.jpg", type: "image/jpeg" }],

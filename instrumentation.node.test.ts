@@ -34,8 +34,8 @@ describe("registerNodeInstrumentation", () => {
       recovered: [],
       skipped: [],
     });
-    (globalThis as { __goonclawNodeInstrumentationRegistered?: boolean })
-      .__goonclawNodeInstrumentationRegistered = undefined;
+    (globalThis as { __tianshiNodeInstrumentationRegistered?: boolean })
+      .__tianshiNodeInstrumentationRegistered = undefined;
   });
 
   it("rehydrates in-process sessions before starting runtime loops", async () => {

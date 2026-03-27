@@ -1,32 +1,12 @@
-import { notFound } from "next/navigation";
-
-import { PublicStreamClient } from "@/components/PublicStreamClient";
-import {
-  buildPublicStreamPath,
-  getPublicStreamPageState,
-} from "@/lib/server/public-streams";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function PublicBolClawPage({
+export default async function BolClawSlugPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const state = await getPublicStreamPageState(slug);
-
-  if (!state) {
-    notFound();
-  }
-
-  return (
-    <PublicStreamClient
-      slug={slug}
-      initialState={{
-        ...state,
-        publicUrl: buildPublicStreamPath(state.profile.slug),
-      }}
-    />
-  );
+  redirect(`/bitclaw/${slug}`);
 }

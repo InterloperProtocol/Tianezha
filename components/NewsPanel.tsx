@@ -10,7 +10,7 @@ const categories = [
   { id: "trading", label: "Trading" },
   { id: "macro", label: "Macro" },
 ];
-const CUSTOM_RSS_STORAGE_KEY = "goonclaw-news-custom-rss";
+const CUSTOM_RSS_STORAGE_KEY = "tianshi-news-custom-rss";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString("en-US", {

@@ -1,7 +1,7 @@
 {
   "apphosting": [
     {
-      "backendId": "goonclaw",
+      "backendId": "tianshi",
       "rootDir": ".",
       "ignore": [
         "node_modules",
@@ -14,7 +14,7 @@
         "vendor_sendaifun_skills_probe",
         "vendor_solana_agent_kit_probe",
         "vendor_solana_mcp_probe",
-        "services/goonclaw-automaton/vendor/sendaifun-skills"
+        "services/tianshi-automaton/vendor/sendaifun-skills"
       ]
     },
     {
@@ -31,7 +31,7 @@
         "vendor_sendaifun_skills_probe",
         "vendor_solana_agent_kit_probe",
         "vendor_solana_mcp_probe",
-        "services/goonclaw-automaton/vendor/sendaifun-skills"
+        "services/tianshi-automaton/vendor/sendaifun-skills"
       ]
     },
     {
@@ -48,7 +48,7 @@
         "vendor_sendaifun_skills_probe",
         "vendor_solana_agent_kit_probe",
         "vendor_solana_mcp_probe",
-        "services/goonclaw-automaton/vendor/sendaifun-skills"
+        "services/tianshi-automaton/vendor/sendaifun-skills"
       ]
     },
     {
@@ -65,7 +65,7 @@
         "vendor_sendaifun_skills_probe",
         "vendor_solana_agent_kit_probe",
         "vendor_solana_mcp_probe",
-        "services/goonclaw-automaton/vendor/sendaifun-skills"
+        "services/tianshi-automaton/vendor/sendaifun-skills"
       ]
     }
   ],

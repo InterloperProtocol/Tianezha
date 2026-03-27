@@ -12,7 +12,7 @@ describe("/api/brains GET", () => {
     };
 
     expect(response.status).toBe(200);
-    expect(payload.parentBrainId).toBe("goonclaw");
+    expect(payload.parentBrainId).toBe("tianshi");
     expect(payload.count).toBe(3);
     expect(payload.brains?.map((brain) => brain.id)).toEqual([
       "bolclaw",

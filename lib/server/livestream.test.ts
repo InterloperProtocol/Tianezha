@@ -5,7 +5,7 @@ const envModule = vi.hoisted(() => ({
     NEXT_PUBLIC_LIVESTREAM_EMBED_URL: "https://example.com/embed",
   })),
   getServerEnv: vi.fn(() => ({
-    GOONCLAW_PAYMENT_SWEEP_SECRET: "test-sweep-secret",
+    TIANSHI_PAYMENT_SWEEP_SECRET: "test-sweep-secret",
     LIVESTREAM_CONTRACT_COOLDOWN_SECONDS: "60",
     LIVESTREAM_MAX_QUEUE_LENGTH: "20",
     LIVESTREAM_PRIORITY_PRICE_SOL: "0.01",
@@ -37,7 +37,7 @@ const solanaModule = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/env", () => envModule);
-vi.mock("@/lib/server/goonclaw-smart-wallets", () => smartWalletModule);
+vi.mock("@/lib/server/tianshi-smart-wallets", () => smartWalletModule);
 vi.mock("@/lib/server/worker-client", () => workerClientModule);
 vi.mock("@/lib/server/solana", () => solanaModule);
 
@@ -81,8 +81,8 @@ describe("livestream payment verification", () => {
     vi.clearAllMocks();
     smartWalletModule.fetchWalletAnalytics.mockResolvedValue(null);
     workerClientModule.dispatchSessionStop.mockResolvedValue(undefined);
-    (globalThis as { __goonclawMemory?: unknown }).__goonclawMemory = undefined;
-    (globalThis as { __goonclawLivestreamQueueSync?: Promise<void> }).__goonclawLivestreamQueueSync =
+    (globalThis as { __tianshiMemory?: unknown }).__tianshiMemory = undefined;
+    (globalThis as { __tianshiLivestreamQueueSync?: Promise<void> }).__tianshiLivestreamQueueSync =
       undefined;
   });
 

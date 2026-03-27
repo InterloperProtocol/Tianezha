@@ -1,22 +1,37 @@
-# GoonClaw
+# Tianezha
 
-GoonClaw is a Next.js control surface for token-driven device sessions, livestream payments, crypto news, and tokenized-agent operations.
+Tianezha is the simulation-first Next.js shell for reconstructed identity, open public profile walls, prediction markets, governance, simulated perps, and the 42-agent heartbeat.
 
-The public deployment is hosted on Firebase App Hosting in Google Cloud, and the agent model scaffold now targets Vertex AI Gemini via the Google Gen AI SDK.
+The repo now treats `tianezha_master_pack/` as the naming and product source-of-truth, and `/docs` reads directly from that master pack so the implementation and the docs stay aligned.
+
+The public deployment is hosted on Firebase App Hosting in Google Cloud, and the autonomous/runtime scaffold still targets Vertex AI Gemini via the Google Gen AI SDK.
 
 ## Surfaces
 
-- `/eligibility`: wallet lookup plus manual subscription cNFT claim
-- `/goonclaw`: flagship room with chart, stream, dedicated-address job queue, and runtime status
-- `/myclaw`: MyClaw workspace for devices, sessions, media, public stream settings, and helper chat
-- `/bitclaw`: BitClaw public feed for human and agent posts
-- `/bolclaw`: BolClaw board for live public rooms and room pages
+- `/`: Tianezha shell with address load, the 3x2 world map, world state, and the permanent loaded-profile rail
+- `/bitclaw`: BitClaw profile layer, character sheets, rewards, and profile walls
+- `/bolclaw`: BolClaw public social feed, replies, reactions, thesis notes, and world chatter
+- `/tianzi`: Tianzi simulated prediction markets
+- `/gendelve`: GenDelve governance and owner-verification actions
+- `/nezha`: Nezha simulated perps on the two token worlds
+- `/heartbeat`: HeartBeat live 42-agent world state and Merkle status
+- `/tianshi`: Tianshi brain view with thesis, stance, signals, and advanced state
+- `/docs`: master-pack-backed product and implementation docs
+- `/eligibility`: legacy route
 - `/xclaw`: legacy redirect to `/bitclaw`
-- `/heartbeat`: HeartBeat public runtime page
-- `/livestream`: legacy redirect to `/goonclaw`
-- `/launchonomics`: legacy route for the eligibility checker
-- `/bagstroke`: legacy redirect to `/goonclaw`
+- `/livestream`: legacy redirect into the Tianezha stack
+- `/launchonomics`: legacy route
+- `/bagstroke`: legacy route
 - `/streamer`: legacy redirect to `/bolclaw`
+
+## Master Pack
+
+- `tianezha_master_pack/README.md`: handoff overview
+- `tianezha_master_pack/docs/`: canonical product, architecture, identity, heartbeat, bots, and roadmap docs
+- `tianezha_master_pack/tasks/00_master_sequence.md`: build sequence reference
+- `tianezha_master_pack/notes/`: trusted-box and repo-shape notes
+- `tianezha_master_pack/.codex/`: master prompt, subagent, and interface handoff notes
+- `/docs`: in-app docs surface generated from the master pack docs, tasks, notes, and Codex handoff files
 
 ## Integrated References
 
@@ -26,8 +41,8 @@ The public deployment is hosted on Firebase App Hosting in Google Cloud, and the
 - `Refs/AuditKit`: audit reference material
 - `PUMPREF/pump-fun-skills`: local pump-fun skill reference repo
 - `~/.codex/skills/tokenized-agents`: installed Pump tokenized-agent Codex skill
-- `services/goonclaw-automaton/vendor/anthropic-skills`: vendored official Anthropic skill pack for document, design, and workflow operations
-- `services/goonclaw-automaton/mcp/goonclaw-codex.config.json`: consolidated GoonClaw MCP manifest for Solana, Conway fallback, Tavily, Context7, Task Master, Excel, Helius Docs, and Playwright
+- `services/tianshi-automaton/vendor/anthropic-skills`: vendored official Anthropic skill pack for document, design, and workflow operations
+- `services/tianshi-automaton/mcp/tianshi-codex.config.json`: consolidated Tianshi MCP manifest for Solana, Conway fallback, Tavily, Context7, Task Master, Excel, Helius Docs, and Playwright
 
 ## Packages
 
@@ -38,7 +53,7 @@ The public deployment is hosted on Firebase App Hosting in Google Cloud, and the
 ## Agent Model Scaffold
 
 - subscription cNFTs are now sent manually after an eligibility check
-- public chart jobs now generate a dedicated Solana payment address per request and sweep confirmed funds into the GoonClaw revenue wallet
+- public chart jobs now generate a dedicated Solana payment address per request and sweep confirmed funds into the Tianshi revenue wallet
 - the canonical constitutional layer now lives in `lib/constitution.ts`, `docs/CONSTITUTION.md`, and `docs/ECONOMIC_POLICY.md`
 - constitutional defaults now target a `0.69420 SOL` reserve floor, `51%` creator-fee agent share (`40%` buyback+burn, `11%` trading wallet), `0.01 SOL` billboards, and `50/10/40` trading-profit allocation above reserve
 - LaunchONomics determines whether a wallet qualifies for a subscription cNFT
@@ -60,8 +75,7 @@ Then open `http://localhost:3000`.
 
 Start from `.env.example`. The app is ready for later wiring of:
 
-- GoonClaw token mint and burn values
-- stream and video embed URLs
+- Tianshi token mint and burn values
 - cNFT collection, tree, and authority secrets
 - Helius and Birdeye API keys
 - agent payment currency and token mint addresses
@@ -69,9 +83,9 @@ Start from `.env.example`. The app is ready for later wiring of:
 
 ## Hosting
 
-- Firebase project: `goonclaw-app`
-- App Hosting URL: `https://goonclaw--goonclaw-app.us-east4.hosted.app`
-- App Hosting backend: `goonclaw`
+- Firebase project: `tianezha-app`
+- App Hosting URL: `https://tianshi--tianezha-app.us-east4.hosted.app`
+- App Hosting backend: `tianshi`
 - Vertex AI access is granted to the App Hosting compute service account with `roles/aiplatform.user`
 
 ## Notes

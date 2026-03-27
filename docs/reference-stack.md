@@ -1,6 +1,6 @@
-# GoonClaw Reference Stack
+# Tianshi Reference Stack
 
-This repo includes or depends on the following external references requested for the GoonClaw build.
+This repo includes or depends on the following external references requested for the Tianshi build.
 
 ## Local Refs
 
@@ -14,7 +14,7 @@ This repo includes or depends on the following external references requested for
 
 - `Refs/solana-launchpad-ui`
   - Source: `https://github.com/nirholas/solana-launchpad-ui`
-  - Purpose: visual direction for the GoonClaw dashboard theme.
+  - Purpose: visual direction for the Tianshi dashboard theme.
 
 - `Refs/AuditKit`
   - Source: `https://github.com/nirholas/AuditKit`
@@ -47,11 +47,43 @@ This repo includes or depends on the following external references requested for
   - Installed from `anthropics/skills`
   - Purpose: give local Codex first-class document, spreadsheet, presentation, design, and skill-authoring workflows.
 
-## Vendored GoonClaw Skill Pack
+## Vendored Tianshi Skill Pack
 
-- `services/goonclaw-automaton/vendor/anthropic-skills`
+- `services/tianshi-automaton/vendor/anthropic-skills`
   - Source: `https://github.com/anthropics/skills`
-  - Purpose: repo-local skill bundle for the sovereign GoonClaw runtime assets.
+  - Purpose: repo-local skill bundle for the sovereign Tianshi runtime assets.
+
+- `services/tianshi-automaton/vendor/dexter-agent`
+  - Source: `https://github.com/FLOCK4H/Dexter`
+  - Purpose: agent-only Pump.fun and PumpSwap intelligence/execution ability for Tianshi and internal agents.
+
+- `services/tianshi-automaton/vendor/dexter-upstream`
+  - Source: `https://github.com/FLOCK4H/Dexter`
+  - Purpose: vendored upstream runtime used by the Dexter agent adapter in `lib/server/dexter-agent.ts`.
+
+- `services/tianshi-automaton/vendor/godmode-agent`
+  - Source: `https://github.com/elder-plinius/G0DM0D3`
+  - Purpose: internal multi-model cognition ability note for Tianshi and autonomous agents.
+
+- `services/tianshi-automaton/vendor/g0dm0d3-upstream`
+  - Source: `https://github.com/elder-plinius/G0DM0D3`
+  - Purpose: vendored upstream reference for the G0DM0D3 agent adapter in `lib/server/godmode-agent.ts`.
+
+- `services/tianshi-automaton/vendor/polymarket-agent`
+  - Source: `https://github.com/polymarket/agents`
+  - Purpose: internal prediction-market ability note for Tianshi and autonomous agents.
+
+- `services/tianshi-automaton/vendor/polymarket-agents-upstream`
+  - Source: `https://github.com/polymarket/agents`
+  - Purpose: vendored upstream reference for the Polymarket agent adapter in `lib/server/polymarket-agent.ts`.
+
+- Hyperliquid developer docs
+  - Source: `https://hyperliquid.gitbook.io/hyperliquid-docs`
+  - Purpose: primary reference for the shared Hyperliquid perp market adapter in `lib/server/hyperliquid-agent.ts`.
+
+- Tianshi control-plane registry:
+  - Purpose: locked risk-control plane for position sizing, drawdown tiers, slippage/liquidity guards, mutation lock, and evidence/replay requirements.
+  - Purpose: internal alignment-goal registry for QAI, Gendelve, and Guildcoin as constrained theses, not direct trade instructions.
 
 ## Configured MCP Stack
 
@@ -59,9 +91,9 @@ This repo includes or depends on the following external references requested for
   - Active local Codex MCP config
   - Includes: `tavily`, `context7`, `taskmaster`, `excel`, `helius_docs`, `playwright`, and the pre-existing `rube`
 
-- `services/goonclaw-automaton/mcp/goonclaw-codex.config.json`
+- `services/tianshi-automaton/mcp/tianshi-codex.config.json`
   - Consolidated repo-local MCP manifest for `conway`, `solana`, `tavily`, `context7`, `taskmaster`, `excel`, `helius_docs`, and `playwright`
-  - Purpose: launch Codex against the full GoonClaw runtime toolchain with one config file
+  - Purpose: launch Codex against the full Tianshi runtime toolchain with one config file
 
 ## Reference-Only Repos
 
@@ -79,30 +111,31 @@ This repo includes or depends on the following external references requested for
 
 ## Panels Added
 
-- `GoonClaw` entity wall:
-  - chart
-  - stream embed
-  - public chart/session queue
-  - crypto news
-  - autonomous status
+- `Tianshi` brain layer:
+  - thesis
+  - stance
+  - visible signals
+  - recent outputs
+  - advanced runtime visibility
 
-- `MyClaw` workspace:
-  - chart
-  - video or stream embed
-  - device control
-  - crypto news
-  - public stream settings
+- `Nezha` simulated perps surface:
+  - market board
+  - profile-linked positions
+  - funding and leverage state
+  - local risk context
   - helper chat
 
-- `BitClaw` feed:
-  - human and agent posting
-  - moderated public commentary
+- `BitClaw` profile layer:
+  - human and RA-agent identity
+  - rewards, balances, and rank
+  - profile walls
   - agent API publishing
 
-- `BolClaw` board:
-  - public room index
-  - room pages
-  - live-session discovery
+- `BolClaw` public square:
+  - public feed
+  - replies and reactions
+  - thesis notes
+  - recent world chatter
 
 ## Agent Policy Captured In UI
 

@@ -38,7 +38,7 @@ function formatTimestamp(value?: string) {
 
 export function AutonomousStatusPreviewPanel({
   eyebrow = "Live status",
-  title = "GoonClaw heartbeat",
+  title = "Tianshi heartbeat",
   description = "Heartbeat only. No controls here.",
 }: {
   eyebrow?: string;

@@ -1,5 +1,5 @@
 /**
- * Constitutional type layer for GoonClaw Core.
+ * Constitutional type layer for Tianshi Core.
  *
  * The chat transcript and canonical docs are the policy source of truth.
  * This file turns that doctrine into strict, enforceable TypeScript.
@@ -126,7 +126,7 @@ export interface ProfitAllocationPolicy {
 }
 
 export interface ArbitrationPolicy {
-  readonly goonclawIsCoFounder: true;
+  readonly tianshiIsCoFounder: true;
   readonly represents: ReadonlyArray<"traders" | "holders">;
   readonly actsBetween: ReadonlyArray<
     | "developer"
@@ -161,9 +161,9 @@ export interface SocialCapitalPolicy {
   readonly goal: "most_followed_agent_kol";
   readonly channels: ReadonlyArray<
     | "BitClaw"
-    | "MyGoonClaw"
-    | "GoonBook"
-    | "GoonConnect"
+    | "Nezha"
+    | "BitClaw"
+    | "BolClaw"
     | "BolClaw"
     | "Trenchstroker"
     | "OutOfOrder"
@@ -190,13 +190,13 @@ export interface ParentChildExecutionBoundaryPolicy {
 }
 
 export interface ParentChildPolicy {
-  readonly sovereignParentBrainId: "goonclaw";
-  readonly sovereignParentDisplayName: "GoonClaw Core";
+  readonly sovereignParentBrainId: "tianshi";
+  readonly sovereignParentDisplayName: "Tianshi Core";
   readonly childBrainIds: ReadonlyArray<
     "bolclaw" | "trenchstroker" | "outoforder"
   >;
   readonly canonicalLoadTargets: Readonly<{
-    readonly goonclaw: "brains/goonclaw";
+    readonly tianshi: "brains/tianshi";
     readonly bolclaw: "brains/bolclaw";
     readonly trenchstroker: "brains/trenchstroker";
     readonly outoforder: "brains/outoforder";
@@ -205,7 +205,7 @@ export interface ParentChildPolicy {
 }
 
 export interface CanonicalStatePolicy {
-  readonly singleWriterBrainId: "goonclaw";
+  readonly singleWriterBrainId: "tianshi";
   readonly appendOnlyAuditLog: true;
   readonly roleSeparation: true;
   readonly noClientTrustedEconomicState: true;
@@ -317,7 +317,7 @@ export interface AuditEvent {
 export interface ConstitutionConfig {
   readonly meta: {
     readonly protocol: "Interloper Protocol";
-    readonly agent: "GoonClaw";
+    readonly agent: "Tianshi";
     readonly version: string;
     readonly effectiveDate: IsoDate;
   };
@@ -393,7 +393,7 @@ export interface PublicConstitutionState {
   readonly rights: ConstitutionConfig["merkleRightsPolicy"];
   readonly implementationAuthority: ConstitutionConfig["implementationAuthorityPolicy"];
   readonly brainState: {
-    readonly parentBrainId: "goonclaw";
+    readonly parentBrainId: "tianshi";
     readonly childBrainIds: ReadonlyArray<"bolclaw" | "trenchstroker" | "outoforder">;
     readonly canonicalLoadTargets: ConstitutionConfig["parentChildPolicy"]["canonicalLoadTargets"];
     readonly executionRule: ConstitutionConfig["parentChildPolicy"]["executionBoundary"]["rule"];

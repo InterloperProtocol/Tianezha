@@ -17,8 +17,13 @@ env:
     availability:
       - RUNTIME
 
+  - variable: FIREBASE_PROJECT_ID
+    value: "tianezha-app"
+    availability:
+      - RUNTIME
+
   - variable: VERTEX_AI_PROJECT_ID
-    value: "goonclaw-app"
+    value: "tianezha-app"
     availability:
       - RUNTIME
 
@@ -32,7 +37,7 @@ env:
     availability:
       - RUNTIME
 
-  - variable: NEXT_PUBLIC_GOONCLAW_MEDIA_URL
+  - variable: NEXT_PUBLIC_TIANSHI_MEDIA_URL
     value: "https://www.youtube.com/watch?v=e5nyQmaq4k4"
     availability:
       - BUILD
@@ -49,76 +54,76 @@ env:
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_TOKEN_MINT
+  - variable: TIANSHI_TOKEN_MINT
     value: "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_OWNER_WALLET
+  - variable: TIANSHI_OWNER_WALLET
     value: "67qaLVXSNeRr8wR9R9Pqh7pKak4UokVwFLqdnKEXNL9M"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_CREATOR_FEES_WALLET
+  - variable: TIANSHI_CREATOR_FEES_WALLET
     value: "8y7Qw6CUDjEmnRRVBXtRrqRnYzjUe1CwnSQ41nCzivXd"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_GMGN_TRADING_WALLET
+  - variable: TIANSHI_GMGN_TRADING_WALLET
     value: "HJ87nw6PotdjJQXidyA7EPxXGoz7JecK1bEZ2Q7MhomJ"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_GMGN_API_HOST
+  - variable: TIANSHI_GMGN_API_HOST
     value: "https://gmgn.ai"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_AGENT_RESERVE_FLOOR_SOL
+  - variable: TIANSHI_AGENT_RESERVE_FLOOR_SOL
     value: "0.069420"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_SETTLEMENT_INTERVAL_MINUTES
+  - variable: TIANSHI_SETTLEMENT_INTERVAL_MINUTES
     value: "1"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT
+  - variable: TIANSHI_MEMECOIN_MAX_PORTFOLIO_PCT
     value: "10"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_AUTONOMOUS_ENABLED
+  - variable: TIANSHI_AUTONOMOUS_ENABLED
     value: "true"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_PUBLIC_TRACE_MODE
+  - variable: TIANSHI_PUBLIC_TRACE_MODE
     value: "maximum-available"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_SKILLS_DIR
-    value: "services/goonclaw-automaton/vendor"
+  - variable: TIANSHI_SKILLS_DIR
+    value: "services/tianshi-automaton/vendor"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_AGENT_CONSTITUTION_PATH
-    value: "services/goonclaw-automaton/constitution.md"
+  - variable: TIANSHI_AGENT_CONSTITUTION_PATH
+    value: "services/tianshi-automaton/constitution.md"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_CONWAY_ALLOWED_HOSTS
+  - variable: TIANSHI_CONWAY_ALLOWED_HOSTS
     value: "conway.tech,*.conway.tech,conway.ai,*.conway.ai"
     availability:
       - RUNTIME
 
   - variable: PUBLIC_AUTOBLOW_DEVICE_TOKEN
-    secret: goonclaw-public-autoblow-device-token
+    secret: tianshi-public-autoblow-device-token
 
   - variable: PUBLIC_AUTOBLOW_DEVICE_LABEL
-    value: "GoonClaw Autoblow"
+    value: "Tianshi Autoblow"
     availability:
       - RUNTIME
 
@@ -143,17 +148,17 @@ env:
       - BUILD
       - RUNTIME
 
-  - variable: GOONCLAW_X402_BUDGET_USD
+  - variable: TIANSHI_X402_BUDGET_USD
     value: "25.00"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_X402_PER_REQUEST_USD
+  - variable: TIANSHI_X402_PER_REQUEST_USD
     value: "1.00"
     availability:
       - RUNTIME
 
-  - variable: GOONCLAW_X402_PER_HOUR_USD
+  - variable: TIANSHI_X402_PER_HOUR_USD
     value: "5.00"
     availability:
       - RUNTIME
@@ -167,25 +172,25 @@ env:
     secret: PAYLOAD_SECRET
 
   - variable: APP_SESSION_SECRET
-    secret: goonclaw-app-session-secret
+    secret: tianshi-app-session-secret
 
   - variable: DEVICE_CREDENTIALS_AES_KEY
-    secret: goonclaw-device-credentials-aes-key
+    secret: tianshi-device-credentials-aes-key
 
   - variable: WORKER_TOKEN
-    secret: goonclaw-worker-token
+    secret: tianshi-worker-token
 
-  - variable: GOONCLAW_AGENT_WALLET_SECRET
-    secret: goonclaw-agent-wallet-secret
+  - variable: TIANSHI_AGENT_WALLET_SECRET
+    secret: tianshi-agent-wallet-secret
 
-  - variable: GOONCLAW_TELEGRAM_BOT_TOKEN
-    secret: goonclaw-telegram-bot-token
+  - variable: TIANSHI_TELEGRAM_BOT_TOKEN
+    secret: tianshi-telegram-bot-token
 
-  - variable: GOONCLAW_GMGN_API_KEY
-    secret: goonclaw-gmgn-api-key
+  - variable: TIANSHI_GMGN_API_KEY
+    secret: tianshi-gmgn-api-key
 
-  - variable: GOONCLAW_GMGN_TRADING_SECRET
-    secret: goonclaw-gmgn-trading-secret
+  - variable: TIANSHI_GMGN_TRADING_SECRET
+    secret: tianshi-gmgn-trading-secret
 
   - variable: INTERNAL_ADMIN_PASSWORD
-    secret: goonclaw-internal-admin-password
+    secret: tianshi-internal-admin-password

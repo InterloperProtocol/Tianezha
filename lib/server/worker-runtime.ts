@@ -30,22 +30,22 @@ type RuntimeSession = {
 };
 
 declare global {
-  var __goonclawRuntime: Map<string, RuntimeSession> | undefined;
-  var __goonclawRuntimeOwnerId: string | undefined;
+  var __tianshiRuntime: Map<string, RuntimeSession> | undefined;
+  var __tianshiRuntimeOwnerId: string | undefined;
 }
 
 function getRuntimeMap() {
-  if (!global.__goonclawRuntime) {
-    global.__goonclawRuntime = new Map();
+  if (!global.__tianshiRuntime) {
+    global.__tianshiRuntime = new Map();
   }
-  return global.__goonclawRuntime;
+  return global.__tianshiRuntime;
 }
 
 function getRuntimeOwnerId() {
-  if (!global.__goonclawRuntimeOwnerId) {
-    global.__goonclawRuntimeOwnerId = `runtime-${randomUUID()}`;
+  if (!global.__tianshiRuntimeOwnerId) {
+    global.__tianshiRuntimeOwnerId = `runtime-${randomUUID()}`;
   }
-  return global.__goonclawRuntimeOwnerId;
+  return global.__tianshiRuntimeOwnerId;
 }
 
 function getRuntimeDeviceKey(session: Pick<SessionRecord, "wallet" | "deviceId">) {

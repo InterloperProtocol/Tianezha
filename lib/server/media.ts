@@ -87,7 +87,7 @@ const BUNDLED_DENO_ARCHIVE_PATH = path.join(
 );
 const EXTRACTED_DENO_ROOT = path.join(
   os.tmpdir(),
-  "goonclaw-media-runtime",
+  "tianshi-media-runtime",
   `deno-${DENO_VERSION}`,
 );
 const EXTRACTED_DENO_PATH = path.join(EXTRACTED_DENO_ROOT, "deno");

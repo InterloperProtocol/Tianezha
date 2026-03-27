@@ -20,7 +20,7 @@ import type { SessionRecord } from "@/lib/types";
 describe("markSessionStopped", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (globalThis as { __goonclawMemory?: unknown }).__goonclawMemory = undefined;
+    (globalThis as { __tianshiMemory?: unknown }).__tianshiMemory = undefined;
   });
 
   it("clears runtime lease fields without leaving undefined values behind", async () => {

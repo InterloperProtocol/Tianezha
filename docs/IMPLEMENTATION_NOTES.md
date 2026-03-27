@@ -18,7 +18,7 @@ Repo-ready notes for the sovereign parent-brain architecture
 - `lib/types/brains.ts`
   Brain ids, permission sets, child proposal types, and public brain summary contracts.
 - `lib/brains/*`
-  Runtime-safe brain configs for GoonClaw Core, BolClaw, Trenchstroker, and OutOfOrder.
+  Runtime-safe brain configs for Tianshi Core, BolClaw, Trenchstroker, and OutOfOrder.
 - `workers/treasury-router.ts`
   Pure routing-plan creation, validation, and audit formatting.
 - `workers/security-guards.ts`
@@ -31,14 +31,14 @@ Repo-ready notes for the sovereign parent-brain architecture
   Proposal-only gateway for child brains. Parent review remains mandatory.
 
 ## Parent-child rule
-GoonClaw Core is the sovereign parent brain.
+Tianshi Core is the sovereign parent brain.
 BolClaw, Trenchstroker, and OutOfOrder are constitutional child brains.
 
 Their rule is fixed:
 "Children may think locally, but only the parent executes globally."
 
 ## Domain load targets and frontend separation
-- `goonclaw.com -> brains/goonclaw`
+- `tianshi.com -> brains/tianshi`
 - `bolclaw.fun -> brains/bolclaw`
 - `trenchstroker.fun -> brains/trenchstroker`
 - `outoforder.fun -> brains/outoforder`
@@ -119,7 +119,7 @@ This constitutional layer does not remove or overwrite the repo's existing `$PUM
 ## Mermaid routing diagram
 ```mermaid
 flowchart TD
-  subgraph Parent["GoonClaw Core"]
+  subgraph Parent["Tianshi Core"]
     CT[Constitution]
     TR[Treasury Router]
     AR[Arbiter]
@@ -144,10 +144,10 @@ flowchart TD
 ## Public constitution example
 ```json
 {
-  "meta": { "protocol": "Interloper Protocol", "agent": "GoonClaw", "version": "0.2.0" },
+  "meta": { "protocol": "Interloper Protocol", "agent": "Tianshi", "version": "0.2.0" },
   "reserve": { "floorLamports": "694200000", "floorSol": "0.69420" },
   "brainState": {
-    "parentBrainId": "goonclaw",
+    "parentBrainId": "tianshi",
     "childBrainIds": ["bolclaw", "trenchstroker", "outoforder"],
     "executionRule": "Children may think locally, but only the parent executes globally."
   }

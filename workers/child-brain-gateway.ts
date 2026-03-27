@@ -56,7 +56,7 @@ export function createChildBrainProposal(args: {
 
   const proposal: ChildBrainProposal = {
     childBrainId: brain.id as ChildBrainProposal["childBrainId"],
-    parentBrainId: "goonclaw",
+    parentBrainId: "tianshi",
     action: args.action,
     rationale: args.rationale,
     requestedAtMs,

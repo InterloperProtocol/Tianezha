@@ -2,7 +2,7 @@ export const CHILD_EXECUTION_RULE =
   "Children may think locally, but only the parent executes globally." as const;
 
 export type BrainId =
-  | "goonclaw"
+  | "tianshi"
   | "bolclaw"
   | "trenchstroker"
   | "outoforder";
@@ -55,7 +55,7 @@ export interface BrainConfig extends BrainPermissionSet {
 
 export type ChildBrainConfig = BrainConfig & {
   readonly sovereignty: "child";
-  readonly parentBrainId: "goonclaw";
+  readonly parentBrainId: "tianshi";
   readonly canTradeDirectly: false;
   readonly canAccessTreasury: false;
   readonly canAccessSecrets: false;
@@ -81,8 +81,8 @@ export interface PublicBrainSummary extends BrainPermissionSet {
 }
 
 export interface ChildBrainProposal {
-  readonly childBrainId: Exclude<BrainId, "goonclaw">;
-  readonly parentBrainId: "goonclaw";
+  readonly childBrainId: Exclude<BrainId, "tianshi">;
+  readonly parentBrainId: "tianshi";
   readonly action: ChildBrainAction;
   readonly rationale: string;
   readonly requestedAtMs: number;

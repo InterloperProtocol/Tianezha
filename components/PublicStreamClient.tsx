@@ -32,7 +32,7 @@ export function PublicStreamClient({
     let cancelled = false;
 
     async function refresh() {
-      const response = await fetch(`/api/goonstreams/${slug}`);
+      const response = await fetch(`/api/bolclaw/${slug}`);
       if (!response.ok) {
         return;
       }

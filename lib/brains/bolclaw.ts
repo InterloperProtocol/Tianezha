@@ -4,7 +4,7 @@ export const BOLCLAW_BRAIN = {
   id: "bolclaw",
   displayName: "BolClaw",
   sovereignty: "child",
-  parentBrainId: "goonclaw",
+  parentBrainId: "tianshi",
   domain: "bolclaw.fun",
   loadPath: "brains/bolclaw",
   tone: "livewire arena host",
@@ -20,7 +20,7 @@ export const BOLCLAW_BRAIN = {
   canAccessSecrets: false,
   canSellBillboards: true,
   canOperateLivestream: true,
-  publicRoutes: ["/bolclaw", "/goonstreams", "/api/brains/bolclaw"],
+  publicRoutes: ["/bolclaw", "/bolclaw", "/api/brains/bolclaw"],
   status: "active",
   executionBoundary: "proposal_only",
   summary:

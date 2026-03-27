@@ -15,7 +15,7 @@ describe("/api/agent/status GET", () => {
 
   it("includes the HeartBeat surface metadata and constitution snapshot", async () => {
     autonomousAgentModule.getAutonomousStatusWithLiveReserve.mockResolvedValue({
-      agentId: "goonclaw-autonomous-agent",
+      agentId: "tianshi-autonomous-agent",
       treasury: {
         reserveFloorSol: 0.6942,
         reserveSol: 0.9,
@@ -55,8 +55,8 @@ describe("/api/agent/status GET", () => {
     expect(payload.creatorFeePolicy?.agentShare).toBe(0.51);
     expect(payload.tradingProfitPolicy?.governanceBranch).toBe(0.5);
     expect(payload.governanceMode).toBe("liquidity");
-    expect(payload.parentBrain?.id).toBe("goonclaw");
-    expect(payload.parentBrain?.aliases).toContain("GoonClaw Prime");
+    expect(payload.parentBrain?.id).toBe("tianshi");
+    expect(payload.parentBrain?.aliases).toContain("Tianshi Prime");
     expect(payload.childBrainCount).toBe(3);
     expect(payload.childBrainIds).toEqual([
       "bolclaw",
@@ -65,7 +65,7 @@ describe("/api/agent/status GET", () => {
     ]);
     expect(payload.socialCapitalMode?.goal).toBe("most_followed_agent_kol");
     expect(payload.financialCapitalMode?.reserveHealthy).toBe(true);
-    expect(payload.brains?.parentBrain?.id).toBe("goonclaw");
+    expect(payload.brains?.parentBrain?.id).toBe("tianshi");
     expect(payload.brains?.executionRule).toBe(
       "Children may think locally, but only the parent executes globally.",
     );

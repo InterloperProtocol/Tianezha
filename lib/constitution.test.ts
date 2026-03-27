@@ -29,7 +29,7 @@ describe("constitution helpers", () => {
     expect(
       (PUBLIC_CONSTITUTION_STATE.parentChild as { sovereignParentBrainId?: string })
         ?.sovereignParentBrainId,
-    ).toBe("goonclaw");
+    ).toBe("tianshi");
   });
 
   it("routes creator fees into buyback, trading wallet, and remainder", () => {

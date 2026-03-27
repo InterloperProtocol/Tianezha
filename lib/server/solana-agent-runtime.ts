@@ -23,7 +23,7 @@ function parseSecretKey(secret: string) {
 
 export function getSolanaAgentRuntimeStatus() {
   const env = getServerEnv();
-  const secretKey = parseSecretKey(env.GOONCLAW_AGENT_WALLET_SECRET);
+  const secretKey = parseSecretKey(env.TIANSHI_AGENT_WALLET_SECRET);
   const blockedActionNames = [
     "arbitrary-transfer",
     "external-wallet-withdrawal",

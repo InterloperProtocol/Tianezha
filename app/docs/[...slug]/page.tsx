@@ -5,15 +5,15 @@ import { notFound } from "next/navigation";
 import { SiteNav } from "@/components/SiteNav";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
-  GOONCLAW_DOCS,
-  getGoonclawDoc,
-  getGoonclawDocsBySection,
-} from "@/lib/goonclaw-docs";
+  getMasterPackDoc,
+  listMasterPackDocs,
+  listMasterPackDocsBySection,
+} from "@/lib/master-pack-docs";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return GOONCLAW_DOCS.map((doc) => ({
+  return listMasterPackDocs().map((doc) => ({
     slug: doc.slug,
   }));
 }
@@ -24,30 +24,30 @@ export async function generateMetadata({
   params: Promise<{ slug: string[] }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const doc = getGoonclawDoc(slug);
+  const doc = getMasterPackDoc(slug);
 
   return doc
     ? {
-        title: `${doc.title} | GoonClaw Docs`,
+        title: `${doc.title} | Tianezha Docs`,
         description: doc.summary,
       }
     : {
-        title: "Docs | GoonClaw",
+        title: "Docs | Tianezha",
       };
 }
 
-export default async function GoonclawDocsPage({
+export default async function TianezhaDocsPage({
   params,
 }: {
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const doc = getGoonclawDoc(slug);
+  const doc = getMasterPackDoc(slug);
   if (!doc) {
     notFound();
   }
 
-  const docsBySection = getGoonclawDocsBySection();
+  const docsBySection = listMasterPackDocsBySection();
 
   return (
     <div className="app-shell">
@@ -56,9 +56,10 @@ export default async function GoonclawDocsPage({
       <div className="docs-layout">
         <aside className="docs-sidebar panel">
           <p className="eyebrow">Docs</p>
-          <h2>GoonClaw documentation</h2>
+          <h2>Tianezha documentation</h2>
           <p className="site-nav-summary">
-            Product docs for operators, builders, and models integrating with the runtime.
+            Product docs loaded from the Tianezha master pack so implementation and docs
+            stay in sync.
           </p>
 
           <div className="docs-nav">
@@ -96,37 +97,28 @@ export default async function GoonclawDocsPage({
           <p className="route-summary">{doc.summary}</p>
 
           <div className="route-badges">
-            {doc.badges.map((badge) => (
-              <StatusBadge key={badge}>{badge}</StatusBadge>
-            ))}
+            <StatusBadge tone="success">Master pack source</StatusBadge>
+            <StatusBadge tone="accent">{doc.section}</StatusBadge>
+            <StatusBadge tone="warning">{doc.fileName}</StatusBadge>
           </div>
 
           {doc.blocks.map((block) => (
             <section key={block.id} className="docs-section" id={block.id}>
               <h2>{block.heading}</h2>
-              {block.body?.map((paragraph) => (
+              {block.paragraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
-              {block.bullets?.length ? (
+              {block.bullets.length ? (
                 <ul>
                   {block.bullets.map((bullet) => (
                     <li key={bullet}>{bullet}</li>
                   ))}
                 </ul>
               ) : null}
-              {block.code ? (
+              {block.code?.value ? (
                 <pre className="docs-code">
                   <code>{block.code.value}</code>
                 </pre>
-              ) : null}
-              {block.links?.length ? (
-                <div className="docs-links">
-                  {block.links.map((link) => (
-                    <Link key={link.href} href={link.href}>
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
               ) : null}
             </section>
           ))}

@@ -2,6 +2,7 @@ import { createHmac } from "crypto";
 import { cookies } from "next/headers";
 
 import { getServerEnv } from "@/lib/env";
+import { buildTianezhaChatReply } from "@/lib/server/tianezha-simulation";
 import { fromBase64Url, toBase64Url } from "@/lib/utils";
 import { generatePublicModelText } from "@/lib/server/public-model";
 
@@ -16,7 +17,7 @@ type UsagePayload = {
   stamps: number[];
 };
 
-const PUBLIC_CHAT_COOKIE = "goonclaw_public_chat_usage";
+const PUBLIC_CHAT_COOKIE = "tianshi_public_chat_usage";
 const PUBLIC_CHAT_LIMIT = 20;
 const PUBLIC_CHAT_WINDOW_MS = 24 * 60 * 60_000;
 const MAX_CONTEXT_MESSAGES = 12;
@@ -125,8 +126,21 @@ export async function generatePublicChatReply(messages: PublicChatMessage[]) {
     throw new Error("Send a message to start the chat");
   }
 
+  const normalized = latestUserMessage.content.toLowerCase();
+  if (
+    normalized.includes("gmgn") ||
+    normalized.includes("hyperliquid") ||
+    normalized.includes("perp") ||
+    normalized.includes("camiup") ||
+    normalized.includes("holder tick") ||
+    normalized.includes("gendelve") ||
+    normalized.includes("deploy")
+  ) {
+    return buildTianezhaChatReply(latestUserMessage.content);
+  }
+
   const prompt = [
-    "You are GoonClaw's standalone public chat panel.",
+    "You are Tianshi's standalone public chat panel.",
     "You are general-purpose, friendly, concise, and helpful.",
     "You must never claim to access admin systems, private agent tools, device sessions, wallets, queues, or backend controls.",
     "If asked to control private tools, explain that this chat cannot access them.",

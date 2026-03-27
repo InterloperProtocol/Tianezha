@@ -11,7 +11,7 @@ describe("child brain gateway", () => {
       requestedLamports: 10_000_000n,
     });
 
-    expect(proposal.parentBrainId).toBe("goonclaw");
+    expect(proposal.parentBrainId).toBe("tianshi");
     expect(proposal.childBrainId).toBe("bolclaw");
     expect(proposal.requestedLamports).toBe("10000000");
     expect(auditEvent.type).toBe("CHILD_PROPOSAL_RECEIVED");

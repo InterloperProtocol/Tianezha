@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "conway": {
+      "command": "conway-terminal",
+      "env": {
+        "CONWAY_API_KEY": "${CONWAY_API_KEY}"
+      }
+    },
+    "solana": {
+      "command": "npx",
+      "args": [
+        "solana-mcp"
+      ],
+      "env": {
+        "SOLANA_RPC_URL": "${SOLANA_RPC_URL}",
+        "TIANSHI_AGENT_WALLET_SECRET": "${TIANSHI_AGENT_WALLET_SECRET}"
+      }
+    }
+  }
+}

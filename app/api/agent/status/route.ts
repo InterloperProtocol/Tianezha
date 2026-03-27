@@ -9,17 +9,96 @@ import {
   solToLamports,
 } from "@/lib/constitution";
 import { getAutonomousStatusWithLiveReserve } from "@/lib/server/autonomous-agent";
+import type { AutonomousToolingStatus } from "@/lib/types";
+
+function sanitizePublicTooling(tooling?: Partial<AutonomousToolingStatus>) {
+  const availableActions = (tooling?.availableActions ?? []).filter(
+    (action) =>
+      !action.startsWith("dexter.") &&
+      !action.startsWith("godmode.") &&
+      !action.startsWith("agfund.") &&
+      !action.startsWith("fourmeme.") &&
+      !action.startsWith("polymarket."),
+  );
+  const blockedActionNames = (tooling?.blockedActionNames ?? []).filter(
+    (action) =>
+      !action.startsWith("dexter.") &&
+      !action.startsWith("godmode.") &&
+      !action.startsWith("agfund.") &&
+      !action.startsWith("fourmeme.") &&
+      !action.startsWith("polymarket."),
+  );
+  const vendoredSkillNames = (tooling?.vendoredSkillNames ?? []).filter(
+    (name) =>
+      name !== "dexter-agent" &&
+      name !== "godmode-agent" &&
+      name !== "polymarket-agent",
+  );
+
+  return {
+    agfundActionNames: [],
+    agfundApiReady: false,
+    agfundEnabled: tooling?.agfundEnabled ?? false,
+    agfundMarketplaceUrl: tooling?.agfundMarketplaceUrl ?? null,
+    agentWalletAddress: tooling?.agentWalletAddress ?? null,
+    availableActions,
+    blockedActionNames,
+    codexSkillNames: tooling?.codexSkillNames ?? [],
+    configuredMcpServerNames: tooling?.configuredMcpServerNames ?? [],
+    conwayApiKeyConfigured: tooling?.conwayApiKeyConfigured ?? false,
+    conwayCodexMcpConfigured: tooling?.conwayCodexMcpConfigured ?? false,
+    context7McpConfigured: tooling?.context7McpConfigured ?? false,
+    excelMcpConfigured: tooling?.excelMcpConfigured ?? false,
+    gmgnConfigured: tooling?.gmgnConfigured ?? false,
+    gmgnActionNames: tooling?.gmgnActionNames ?? [],
+    gmgnApiHost: tooling?.gmgnApiHost ?? null,
+    gmgnCriticalAuthReady: tooling?.gmgnCriticalAuthReady ?? false,
+    gmgnQueryChains: tooling?.gmgnQueryChains ?? [],
+    gmgnSigningReady: tooling?.gmgnSigningReady ?? false,
+    gmgnStandardAuthReady: tooling?.gmgnStandardAuthReady ?? false,
+    gmgnToolFamilies: tooling?.gmgnToolFamilies ?? [],
+    gmgnTradingWallet: tooling?.gmgnTradingWallet ?? null,
+    hyperliquidActionNames: tooling?.hyperliquidActionNames ?? [],
+    hyperliquidApiUrl: tooling?.hyperliquidApiUrl ?? null,
+    hyperliquidApiWallet: tooling?.hyperliquidApiWallet ?? null,
+    hyperliquidApiWalletApproved: tooling?.hyperliquidApiWalletApproved ?? false,
+    hyperliquidDefaultDex: tooling?.hyperliquidDefaultDex ?? null,
+    hyperliquidEnabled: tooling?.hyperliquidEnabled ?? false,
+    hyperliquidInfoReady: tooling?.hyperliquidInfoReady ?? false,
+    hyperliquidLivePerpsEnabled: tooling?.hyperliquidLivePerpsEnabled ?? false,
+    hyperliquidMasterWallet: tooling?.hyperliquidMasterWallet ?? null,
+    hyperliquidWsUrl: tooling?.hyperliquidWsUrl ?? null,
+    fourMemeActionNames: [],
+    fourMemeAgenticUrl: tooling?.fourMemeAgenticUrl ?? null,
+    fourMemeEnabled: tooling?.fourMemeEnabled ?? false,
+    loadedActionCount: availableActions.length,
+    loadedSkillCount: vendoredSkillNames.length,
+    solanaAgentKitConfigured: tooling?.solanaAgentKitConfigured ?? false,
+    solanaMcpConfigured: tooling?.solanaMcpConfigured ?? false,
+    tavilyApiKeyConfigured: tooling?.tavilyApiKeyConfigured ?? false,
+    tavilyMcpConfigured: tooling?.tavilyMcpConfigured ?? false,
+    taskMasterMcpConfigured: tooling?.taskMasterMcpConfigured ?? false,
+    telegramBroadcastEnabled: tooling?.telegramBroadcastEnabled ?? false,
+    telegramChatConfigured: tooling?.telegramChatConfigured ?? false,
+    vendoredSkillNames,
+    vertexOnly: tooling?.vertexOnly ?? false,
+  };
+}
 
 export async function GET() {
   try {
     const status = await getAutonomousStatusWithLiveReserve();
+    const publicStatus = {
+      ...status,
+      tooling: sanitizePublicTooling(status.tooling),
+    };
     const liveReserveLamports = solToLamports(status.treasury.reserveSol.toString());
     const treasuryPosture = getTreasuryPosture({
       currentTreasuryLamports: liveReserveLamports,
     });
 
     return NextResponse.json({
-      ...status,
+      ...publicStatus,
       reserveFloor: PUBLIC_ECONOMIC_STATE.reserve,
       billboardPrice: PUBLIC_ECONOMIC_STATE.billboard,
       creatorFeePolicy: PUBLIC_ECONOMIC_STATE.creatorFees,

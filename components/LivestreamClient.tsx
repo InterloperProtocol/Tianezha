@@ -188,7 +188,7 @@ export function LivestreamClient() {
       setState(payload.state);
       setCheckout(payload.item ?? checkout);
       setNotice(
-        "Payment confirmed and swept to the GoonClaw revenue wallet. If the room is open, your request will start right away.",
+        "Payment confirmed and swept to the Tianshi revenue wallet. If the room is open, your request will start right away.",
       );
     } catch (requestError) {
       setError(
@@ -205,7 +205,7 @@ export function LivestreamClient() {
     <div className="app-shell">
       <SiteNav />
       <RouteHeader
-        eyebrow="GoonClaw"
+        eyebrow="Tianshi"
         title="Public queue"
         summary="See what&apos;s live and join the queue."
         badges={[
@@ -256,7 +256,7 @@ export function LivestreamClient() {
           title="Live room video"
           description="Video shown with the live room."
           defaultUrl={state?.embedUrl || ""}
-          storageKey="goonclaw-livestream-media"
+          storageKey="tianshi-livestream-media"
         />
       </section>
 
@@ -264,7 +264,7 @@ export function LivestreamClient() {
         <TrenchesPanel />
         <AutonomousStatusPreviewPanel
           eyebrow="Room status"
-          title="GoonClaw status"
+          title="Tianshi status"
           description="Live room status updates here."
         />
       </section>

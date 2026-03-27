@@ -4,7 +4,7 @@ const faqItems = [
   {
     question: "What does HeartBeat show?",
     answer:
-      "HeartBeat is the public legibility layer for GoonClaw: live runtime health, reserve posture, recent updates, and the serious operating surface behind the network.",
+      "HeartBeat is the public legibility layer for Tianshi: live runtime health, reserve posture, recent updates, and the serious operating surface behind the network.",
   },
   {
     question: "Can I control anything from here?",
@@ -39,7 +39,7 @@ export function FaqPanel() {
       </div>
 
       <div className="home-inline-actions">
-        <Link className="button button-ghost small" href="/docs/support/goonclaw-faq">
+        <Link className="button button-ghost small" href="/docs/support/tianezha-faq">
           Read the full FAQ
         </Link>
       </div>

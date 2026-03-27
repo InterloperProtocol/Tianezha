@@ -1,0 +1,14 @@
+{
+  "command": "npx",
+  "args": [
+    "-y",
+    "tavily-mcp@latest"
+  ],
+  "env": {
+    "TAVILY_API_KEY": "${TAVILY_API_KEY}"
+  },
+  "notes": [
+    "Tavily MCP provides structured search, extract, crawl, map, and research tools for the Codex-operated Tianshi runtime.",
+    "Requires TAVILY_API_KEY when launched over stdio."
+  ]
+}

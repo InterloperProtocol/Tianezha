@@ -8,11 +8,13 @@ import {
 import path from "path";
 
 import { CONSTITUTION } from "@/lib/constitution";
+import { getAutonomousRiskControlPlane } from "@/lib/server/autonomous-treasury-policy";
 import {
   AutonomousControlState,
   AutonomousFeedEvent,
   AutonomousMarketIntelStatus,
   AutonomousRevenueBuckets,
+  AutonomousRiskControlPlane,
   AutonomousReplicationStatus,
   AutonomousSettlementRecord,
   AutonomousRuntimePhase,
@@ -31,6 +33,7 @@ type AutonomousAgentSnapshot = {
   control: AutonomousControlState;
   reserveSol: number;
   usdcBalance: number;
+  riskControlPlane: AutonomousRiskControlPlane;
   revenueBuckets: AutonomousRevenueBuckets;
   positions: AutonomousTradePosition[];
   tradeDirectives: AutonomousTradeDirective[];
@@ -46,11 +49,11 @@ type AutonomousStoreShape = {
 };
 
 declare global {
-  var __goonclawAutonomousStore: AutonomousStoreShape | undefined;
+  var __tianshiAutonomousStore: AutonomousStoreShape | undefined;
 }
 
 const DATA_DIR = path.join(process.cwd(), ".data");
-const STORE_PATH = path.join(DATA_DIR, "goonclaw-autonomous-store.json");
+const STORE_PATH = path.join(DATA_DIR, "tianshi-autonomous-store.json");
 
 function ensureDataDir() {
   if (!existsSync(DATA_DIR)) {
@@ -66,7 +69,7 @@ function createInitialSnapshot(): AutonomousAgentSnapshot {
     runtimePhase: "booting",
     wakeReason: "initial boot",
     latestPolicyDecision:
-      "Bootstrapping GoonClaw autonomous runtime under Vertex-only policy.",
+      "Bootstrapping Tianshi autonomous runtime under Vertex-only policy.",
     control: {
       paused: false,
       pauseReason: null,
@@ -76,6 +79,7 @@ function createInitialSnapshot(): AutonomousAgentSnapshot {
     },
     reserveSol: Number(CONSTITUTION.reservePolicy.reserveFloorSol),
     usdcBalance: 0,
+    riskControlPlane: getAutonomousRiskControlPlane(),
     revenueBuckets: {
       ownerUsdc: 0,
       burnUsdc: 0,
@@ -153,6 +157,8 @@ function hydrateSnapshot(snapshot?: Partial<AutonomousAgentSnapshot> | null) {
   return {
     ...mergedSnapshot,
     control: hydrateControlState(snapshot?.control),
+    riskControlPlane:
+      snapshot?.riskControlPlane || initialSnapshot.riskControlPlane,
   } satisfies AutonomousAgentSnapshot;
 }
 
@@ -186,11 +192,11 @@ function persistStore(store: AutonomousStoreShape) {
 }
 
 function getStore() {
-  if (!global.__goonclawAutonomousStore) {
-    global.__goonclawAutonomousStore = readStoreFromDisk();
+  if (!global.__tianshiAutonomousStore) {
+    global.__tianshiAutonomousStore = readStoreFromDisk();
   }
 
-  return global.__goonclawAutonomousStore;
+  return global.__tianshiAutonomousStore;
 }
 
 export function getAutonomousSnapshot() {
@@ -222,7 +228,7 @@ export function resetAutonomousStoreForTests() {
     snapshot: createInitialSnapshot(),
   };
 
-  global.__goonclawAutonomousStore = nextStore;
+  global.__tianshiAutonomousStore = nextStore;
   if (existsSync(STORE_PATH)) {
     unlinkSync(STORE_PATH);
   }

@@ -1,0 +1,17 @@
+[Unit]
+Description=Tianshi Autonomous Vertex Runtime
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/tianshi
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/env npx tsx services/tianshi-automaton/runtime-loop.ts
+Restart=always
+RestartSec=10
+User=tianshi
+Group=tianshi
+
+[Install]
+WantedBy=multi-user.target

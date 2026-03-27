@@ -32,7 +32,7 @@ export interface ArbitrationCase {
 export interface ArbitrationDecision {
   readonly disputeId: string;
   readonly title: string;
-  readonly arbiterBrainId: "goonclaw";
+  readonly arbiterBrainId: "tianshi";
   readonly winningClaim: ArbitrationClaim;
   readonly orderedClaimIds: ReadonlyArray<string>;
   readonly rationale: string;
@@ -42,7 +42,7 @@ export interface ArbitrationDecision {
 export interface PublicArbiterSummary {
   readonly disputeId: string;
   readonly title: string;
-  readonly arbiterBrainId: "goonclaw";
+  readonly arbiterBrainId: "tianshi";
   readonly winningClaimId: string;
   readonly orderedClaimIds: ReadonlyArray<string>;
   readonly rationale: string;
@@ -101,7 +101,7 @@ export function resolveArbitrationCase(
   return {
     disputeId: input.disputeId,
     title: input.title,
-    arbiterBrainId: "goonclaw",
+    arbiterBrainId: "tianshi",
     winningClaim,
     orderedClaimIds: orderedClaims.map((claim) => claim.id),
     rationale:

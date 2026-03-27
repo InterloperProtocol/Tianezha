@@ -1,12 +1,11 @@
-import { cert, getApp, getApps, initializeApp } from "firebase-admin/app";
 import {
   FieldValue,
   Firestore,
-  getFirestore,
 } from "firebase-admin/firestore";
 
 import { getServerEnv, isFirebaseConfigured, isProductionEnv } from "@/lib/env";
 import { encryptJson } from "@/lib/server/crypto";
+import { getConfiguredFirestore } from "@/lib/server/firestore-admin";
 import {
   PUBLIC_LIVESTREAM_DEVICE_ID,
   PUBLIC_LIVESTREAM_OWNER_ID,
@@ -14,13 +13,13 @@ import {
 import {
   DeviceProfile,
   DeviceType,
-  GoonBookAgentCredentialRecord,
-  GoonBookCommentRecord,
-  GoonBookFollowRecord,
-  GoonBookLikeRecord,
-  GoonBookProfile,
+  BitClawAgentCredentialRecord,
+  BitClawCommentRecord,
+  BitClawFollowRecord,
+  BitClawLikeRecord,
+  BitClawProfile,
   EntitlementRecord,
-  GoonBookPostRecord,
+  BitClawPostRecord,
   LivestreamRequestRecord,
   LivestreamRequestStatus,
   OrderRecord,
@@ -35,31 +34,31 @@ type MemoryShape = {
   entitlements: Map<string, EntitlementRecord>;
   orders: Map<string, OrderRecord>;
   publicStreamProfiles: Map<string, PublicStreamProfile>;
-  goonBookComments: Map<string, GoonBookCommentRecord>;
-  goonBookFollows: Map<string, GoonBookFollowRecord>;
-  goonBookLikes: Map<string, GoonBookLikeRecord>;
-  goonBookProfiles: Map<string, GoonBookProfile>;
-  goonBookPosts: Map<string, GoonBookPostRecord>;
-  goonBookAgentCredentials: Map<string, GoonBookAgentCredentialRecord>;
+  bitClawComments: Map<string, BitClawCommentRecord>;
+  bitClawFollows: Map<string, BitClawFollowRecord>;
+  bitClawLikes: Map<string, BitClawLikeRecord>;
+  bitClawProfiles: Map<string, BitClawProfile>;
+  bitClawPosts: Map<string, BitClawPostRecord>;
+  bitClawAgentCredentials: Map<string, BitClawAgentCredentialRecord>;
   sessions: Map<string, SessionRecord>;
   livestreamRequests: Map<string, LivestreamRequestRecord>;
 };
 
 declare global {
-  var __goonclawMemory: MemoryShape | undefined;
+  var __tianshiMemory: MemoryShape | undefined;
 }
 
 function getMemoryStore(): MemoryShape {
-  if (!global.__goonclawMemory) {
-    global.__goonclawMemory = {
+  if (!global.__tianshiMemory) {
+    global.__tianshiMemory = {
       devices: new Map(),
       entitlements: new Map(),
-      goonBookAgentCredentials: new Map(),
-      goonBookComments: new Map(),
-      goonBookFollows: new Map(),
-      goonBookLikes: new Map(),
-      goonBookProfiles: new Map(),
-      goonBookPosts: new Map(),
+      bitClawAgentCredentials: new Map(),
+      bitClawComments: new Map(),
+      bitClawFollows: new Map(),
+      bitClawLikes: new Map(),
+      bitClawProfiles: new Map(),
+      bitClawPosts: new Map(),
       orders: new Map(),
       publicStreamProfiles: new Map(),
       sessions: new Map(),
@@ -67,28 +66,12 @@ function getMemoryStore(): MemoryShape {
     };
   }
 
-  return global.__goonclawMemory;
+  return global.__tianshiMemory;
 }
 
 function getAdminDb() {
   if (!isFirebaseConfigured()) return null;
-
-  const app =
-    getApps().length > 0
-      ? getApp()
-      : process.env.FIREBASE_CONFIG
-        ? initializeApp()
-        : initializeApp({
-            credential: cert({
-              projectId: process.env.FIREBASE_PROJECT_ID!,
-              clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-              privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-            }),
-            projectId: process.env.FIREBASE_PROJECT_ID!,
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET || undefined,
-          });
-
-  return getFirestore(app);
+  return getConfiguredFirestore();
 }
 
 function isFirestoreUnavailableError(error: unknown) {
@@ -398,81 +381,81 @@ export async function upsertPublicStreamProfile(record: PublicStreamProfile) {
   );
 }
 
-export async function getGoonBookPost(id: string) {
+export async function getBitClawPost(id: string) {
   return withRepositoryBackend(
-    "getGoonBookPost",
-    () => getMemoryStore().goonBookPosts.get(id) ?? null,
+    "getBitClawPost",
+    () => getMemoryStore().bitClawPosts.get(id) ?? null,
     async (db) => {
-      const doc = await db.collection("goonBookPosts").doc(id).get();
-      return doc.exists ? (doc.data() as GoonBookPostRecord) : null;
+      const doc = await db.collection("bitClawPosts").doc(id).get();
+      return doc.exists ? (doc.data() as BitClawPostRecord) : null;
     },
   );
 }
 
-export async function getGoonBookProfile(id: string) {
+export async function getBitClawProfile(id: string) {
   return withRepositoryBackend(
-    "getGoonBookProfile",
-    () => getMemoryStore().goonBookProfiles.get(id) ?? null,
+    "getBitClawProfile",
+    () => getMemoryStore().bitClawProfiles.get(id) ?? null,
     async (db) => {
-      const doc = await db.collection("goonBookProfiles").doc(id).get();
-      return doc.exists ? (doc.data() as GoonBookProfile) : null;
+      const doc = await db.collection("bitClawProfiles").doc(id).get();
+      return doc.exists ? (doc.data() as BitClawProfile) : null;
     },
   );
 }
 
-export async function getGoonBookAgentCredential(id: string) {
+export async function getBitClawAgentCredential(id: string) {
   return withRepositoryBackend(
-    "getGoonBookAgentCredential",
-    () => getMemoryStore().goonBookAgentCredentials.get(id) ?? null,
+    "getBitClawAgentCredential",
+    () => getMemoryStore().bitClawAgentCredentials.get(id) ?? null,
     async (db) => {
-      const doc = await db.collection("goonBookAgentCredentials").doc(id).get();
-      return doc.exists ? (doc.data() as GoonBookAgentCredentialRecord) : null;
+      const doc = await db.collection("bitClawAgentCredentials").doc(id).get();
+      return doc.exists ? (doc.data() as BitClawAgentCredentialRecord) : null;
     },
   );
 }
 
-export async function listGoonBookProfiles() {
+export async function listBitClawProfiles() {
   return withRepositoryBackend(
-    "listGoonBookProfiles",
+    "listBitClawProfiles",
     () =>
-      [...getMemoryStore().goonBookProfiles.values()].sort((a, b) =>
+      [...getMemoryStore().bitClawProfiles.values()].sort((a, b) =>
         a.displayName.localeCompare(b.displayName),
       ),
     async (db) => {
-      const snapshot = await db.collection("goonBookProfiles").get();
+      const snapshot = await db.collection("bitClawProfiles").get();
       return snapshot.docs
-        .map((doc) => doc.data() as GoonBookProfile)
+        .map((doc) => doc.data() as BitClawProfile)
         .sort((a, b) => a.displayName.localeCompare(b.displayName));
     },
   );
 }
 
-export async function upsertGoonBookProfile(record: GoonBookProfile) {
+export async function upsertBitClawProfile(record: BitClawProfile) {
   return withRepositoryBackend(
-    "upsertGoonBookProfile",
+    "upsertBitClawProfile",
     () => {
-      getMemoryStore().goonBookProfiles.set(record.id, record);
+      getMemoryStore().bitClawProfiles.set(record.id, record);
       return record;
     },
     async (db) => {
-      await db.collection("goonBookProfiles").doc(record.id).set(record, { merge: true });
+      await db.collection("bitClawProfiles").doc(record.id).set(record, { merge: true });
       return record;
     },
   );
 }
 
-export async function upsertGoonBookAgentCredential(
-  record: GoonBookAgentCredentialRecord,
+export async function upsertBitClawAgentCredential(
+  record: BitClawAgentCredentialRecord,
 ) {
   return withRepositoryBackend(
-    "upsertGoonBookAgentCredential",
+    "upsertBitClawAgentCredential",
     () => {
-      getMemoryStore().goonBookAgentCredentials.set(record.id, record);
+      getMemoryStore().bitClawAgentCredentials.set(record.id, record);
       return record;
     },
     async (db) => {
       await db
-        .collection("goonBookAgentCredentials")
+        .collection("bitClawAgentCredentials")
         .doc(record.id)
         .set(record, { merge: true });
       return record;
@@ -480,206 +463,206 @@ export async function upsertGoonBookAgentCredential(
   );
 }
 
-export async function listGoonBookPosts(
+export async function listBitClawPosts(
   limit = 80,
   options?: { includeHidden?: boolean },
 ) {
   return withRepositoryBackend(
-    "listGoonBookPosts",
+    "listBitClawPosts",
     () =>
-      [...getMemoryStore().goonBookPosts.values()]
+      [...getMemoryStore().bitClawPosts.values()]
         .filter((item) => options?.includeHidden || !item.isHidden)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, limit),
     async (db) => {
       const snapshot = await db
-        .collection("goonBookPosts")
+        .collection("bitClawPosts")
         .orderBy("createdAt", "desc")
         .limit(limit)
         .get();
 
       return snapshot.docs
-        .map((doc) => doc.data() as GoonBookPostRecord)
+        .map((doc) => doc.data() as BitClawPostRecord)
         .filter((item) => options?.includeHidden || !item.isHidden);
     },
   );
 }
 
-export async function upsertGoonBookPost(record: GoonBookPostRecord) {
+export async function upsertBitClawPost(record: BitClawPostRecord) {
   return withRepositoryBackend(
-    "upsertGoonBookPost",
+    "upsertBitClawPost",
     () => {
-      getMemoryStore().goonBookPosts.set(record.id, record);
+      getMemoryStore().bitClawPosts.set(record.id, record);
       return record;
     },
     async (db) => {
-      await db.collection("goonBookPosts").doc(record.id).set(record, { merge: true });
+      await db.collection("bitClawPosts").doc(record.id).set(record, { merge: true });
       return record;
     },
   );
 }
 
-export async function listGoonBookCommentsForPostIds(postIds: string[]) {
+export async function listBitClawCommentsForPostIds(postIds: string[]) {
   const normalizedIds = [...new Set(postIds.map((id) => id.trim()).filter(Boolean))];
   if (!normalizedIds.length) {
     return [];
   }
 
   return withRepositoryBackend(
-    "listGoonBookCommentsForPostIds",
+    "listBitClawCommentsForPostIds",
     () =>
-      [...getMemoryStore().goonBookComments.values()]
+      [...getMemoryStore().bitClawComments.values()]
         .filter((record) => normalizedIds.includes(record.postId))
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     async (db) => {
       const chunks = chunkArray(normalizedIds, 10);
       const snapshots = await Promise.all(
         chunks.map((chunk) =>
-          db.collection("goonBookComments").where("postId", "in", chunk).get(),
+          db.collection("bitClawComments").where("postId", "in", chunk).get(),
         ),
       );
 
       return snapshots
         .flatMap((snapshot) =>
-          snapshot.docs.map((doc) => doc.data() as GoonBookCommentRecord),
+          snapshot.docs.map((doc) => doc.data() as BitClawCommentRecord),
         )
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     },
   );
 }
 
-export async function upsertGoonBookComment(record: GoonBookCommentRecord) {
+export async function upsertBitClawComment(record: BitClawCommentRecord) {
   return withRepositoryBackend(
-    "upsertGoonBookComment",
+    "upsertBitClawComment",
     () => {
-      getMemoryStore().goonBookComments.set(record.id, record);
+      getMemoryStore().bitClawComments.set(record.id, record);
       return record;
     },
     async (db) => {
-      await db.collection("goonBookComments").doc(record.id).set(record, { merge: true });
+      await db.collection("bitClawComments").doc(record.id).set(record, { merge: true });
       return record;
     },
   );
 }
 
-export async function listGoonBookLikeRecordsForPostIds(postIds: string[]) {
+export async function listBitClawLikeRecordsForPostIds(postIds: string[]) {
   const normalizedIds = [...new Set(postIds.map((id) => id.trim()).filter(Boolean))];
   if (!normalizedIds.length) {
     return [];
   }
 
   return withRepositoryBackend(
-    "listGoonBookLikeRecordsForPostIds",
+    "listBitClawLikeRecordsForPostIds",
     () =>
-      [...getMemoryStore().goonBookLikes.values()]
+      [...getMemoryStore().bitClawLikes.values()]
         .filter((record) => normalizedIds.includes(record.postId))
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     async (db) => {
       const chunks = chunkArray(normalizedIds, 10);
       const snapshots = await Promise.all(
         chunks.map((chunk) =>
-          db.collection("goonBookLikes").where("postId", "in", chunk).get(),
+          db.collection("bitClawLikes").where("postId", "in", chunk).get(),
         ),
       );
 
       return snapshots
         .flatMap((snapshot) =>
-          snapshot.docs.map((doc) => doc.data() as GoonBookLikeRecord),
+          snapshot.docs.map((doc) => doc.data() as BitClawLikeRecord),
         )
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     },
   );
 }
 
-export async function getGoonBookLikeRecord(id: string) {
+export async function getBitClawLikeRecord(id: string) {
   return withRepositoryBackend(
-    "getGoonBookLikeRecord",
-    () => getMemoryStore().goonBookLikes.get(id) ?? null,
+    "getBitClawLikeRecord",
+    () => getMemoryStore().bitClawLikes.get(id) ?? null,
     async (db) => {
-      const doc = await db.collection("goonBookLikes").doc(id).get();
-      return doc.exists ? (doc.data() as GoonBookLikeRecord) : null;
+      const doc = await db.collection("bitClawLikes").doc(id).get();
+      return doc.exists ? (doc.data() as BitClawLikeRecord) : null;
     },
   );
 }
 
-export async function upsertGoonBookLikeRecord(record: GoonBookLikeRecord) {
+export async function upsertBitClawLikeRecord(record: BitClawLikeRecord) {
   return withRepositoryBackend(
-    "upsertGoonBookLikeRecord",
+    "upsertBitClawLikeRecord",
     () => {
-      getMemoryStore().goonBookLikes.set(record.id, record);
+      getMemoryStore().bitClawLikes.set(record.id, record);
       return record;
     },
     async (db) => {
-      await db.collection("goonBookLikes").doc(record.id).set(record, { merge: true });
+      await db.collection("bitClawLikes").doc(record.id).set(record, { merge: true });
       return record;
     },
   );
 }
 
-export async function deleteGoonBookLikeRecord(id: string) {
+export async function deleteBitClawLikeRecord(id: string) {
   return withRepositoryBackend(
-    "deleteGoonBookLikeRecord",
+    "deleteBitClawLikeRecord",
     () => {
-      getMemoryStore().goonBookLikes.delete(id);
+      getMemoryStore().bitClawLikes.delete(id);
       return true;
     },
     async (db) => {
-      await db.collection("goonBookLikes").doc(id).delete();
+      await db.collection("bitClawLikes").doc(id).delete();
       return true;
     },
   );
 }
 
-export async function listGoonBookFollowRecords() {
+export async function listBitClawFollowRecords() {
   return withRepositoryBackend(
-    "listGoonBookFollowRecords",
+    "listBitClawFollowRecords",
     () =>
-      [...getMemoryStore().goonBookFollows.values()].sort((a, b) =>
+      [...getMemoryStore().bitClawFollows.values()].sort((a, b) =>
         a.createdAt.localeCompare(b.createdAt),
       ),
     async (db) => {
-      const snapshot = await db.collection("goonBookFollows").get();
+      const snapshot = await db.collection("bitClawFollows").get();
       return snapshot.docs
-        .map((doc) => doc.data() as GoonBookFollowRecord)
+        .map((doc) => doc.data() as BitClawFollowRecord)
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     },
   );
 }
 
-export async function getGoonBookFollowRecord(id: string) {
+export async function getBitClawFollowRecord(id: string) {
   return withRepositoryBackend(
-    "getGoonBookFollowRecord",
-    () => getMemoryStore().goonBookFollows.get(id) ?? null,
+    "getBitClawFollowRecord",
+    () => getMemoryStore().bitClawFollows.get(id) ?? null,
     async (db) => {
-      const doc = await db.collection("goonBookFollows").doc(id).get();
-      return doc.exists ? (doc.data() as GoonBookFollowRecord) : null;
+      const doc = await db.collection("bitClawFollows").doc(id).get();
+      return doc.exists ? (doc.data() as BitClawFollowRecord) : null;
     },
   );
 }
 
-export async function upsertGoonBookFollowRecord(record: GoonBookFollowRecord) {
+export async function upsertBitClawFollowRecord(record: BitClawFollowRecord) {
   return withRepositoryBackend(
-    "upsertGoonBookFollowRecord",
+    "upsertBitClawFollowRecord",
     () => {
-      getMemoryStore().goonBookFollows.set(record.id, record);
+      getMemoryStore().bitClawFollows.set(record.id, record);
       return record;
     },
     async (db) => {
-      await db.collection("goonBookFollows").doc(record.id).set(record, { merge: true });
+      await db.collection("bitClawFollows").doc(record.id).set(record, { merge: true });
       return record;
     },
   );
 }
 
-export async function deleteGoonBookFollowRecord(id: string) {
+export async function deleteBitClawFollowRecord(id: string) {
   return withRepositoryBackend(
-    "deleteGoonBookFollowRecord",
+    "deleteBitClawFollowRecord",
     () => {
-      getMemoryStore().goonBookFollows.delete(id);
+      getMemoryStore().bitClawFollows.delete(id);
       return true;
     },
     async (db) => {
-      await db.collection("goonBookFollows").doc(id).delete();
+      await db.collection("bitClawFollows").doc(id).delete();
       return true;
     },
   );

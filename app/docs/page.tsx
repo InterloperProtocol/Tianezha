@@ -4,27 +4,27 @@ import Link from "next/link";
 import { SiteNav } from "@/components/SiteNav";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
-  getGoonclawDoc,
-  getGoonclawDocHref,
-  getGoonclawDocsBySection,
-} from "@/lib/goonclaw-docs";
+  getMasterPackDoc,
+  getMasterPackDocHref,
+  listMasterPackDocsBySection,
+} from "@/lib/master-pack-docs";
 
 export const metadata: Metadata = {
-  title: "Docs | GoonClaw",
-  description: "Operator, builder, API, and FAQ docs for GoonClaw.",
+  title: "Docs | Tianezha",
+  description: "Master-pack product, architecture, module, and implementation docs for Tianezha.",
 };
 
-const faqSlug = ["support", "goonclaw-faq"];
+const overviewSlug = ["product-overview"];
+const roadmapSlug = ["roadmap"];
 
-export default function GoonclawDocsIndexPage() {
-  const docsBySection = getGoonclawDocsBySection();
-  const faqDoc = getGoonclawDoc(faqSlug);
-  const faqItems =
-    faqDoc?.blocks
-      .filter((block) => block.id !== "intro")
+export default function TianshiDocsIndexPage() {
+  const docsBySection = listMasterPackDocsBySection();
+  const summaryDoc = getMasterPackDoc(["product-summary"]);
+  const summaryItems =
+    summaryDoc?.blocks
       .slice(0, 6)
       .map((block) => ({
-        answer: block.body?.[0] || "",
+        answer: block.paragraphs[0] || block.bullets[0] || "",
         question: block.heading,
       })) || [];
 
@@ -35,28 +35,29 @@ export default function GoonclawDocsIndexPage() {
       <section className="panel home-hero-panel">
         <div className="home-hero-copy">
           <p className="eyebrow">Docs</p>
-          <h1>Operator docs, builder docs, and the FAQ are back.</h1>
+          <h1>The Tianezha master pack now drives the docs surface.</h1>
           <p className="route-summary">
-            This is the docs front door for GoonClaw. Start here for product context,
-            integration references, and the plain-language FAQ.
+            This docs front door reads directly from the in-repo Tianezha master pack, so
+            product truth, architecture, module boundaries, and implementation order stay
+            aligned while we build.
           </p>
           <div className="route-badges">
-            <StatusBadge tone="success">Docs restored</StatusBadge>
-            <StatusBadge tone="accent">FAQ live</StatusBadge>
-            <StatusBadge tone="warning">Machine docs linked</StatusBadge>
+            <StatusBadge tone="success">Master pack linked</StatusBadge>
+            <StatusBadge tone="accent">Naming locked</StatusBadge>
+            <StatusBadge tone="warning">Tasks visible</StatusBadge>
           </div>
           <div className="home-cta-row">
             <Link
               className="button button-primary home-uniform-button"
-              href={getGoonclawDocHref(["introduction", "what-is-goonclaw"])}
+              href={getMasterPackDocHref(overviewSlug)}
             >
-              Start with the Overview
+              Start with Overview
             </Link>
             <Link
               className="button button-secondary home-uniform-button"
-              href={getGoonclawDocHref(faqSlug)}
+              href={getMasterPackDocHref(roadmapSlug)}
             >
-              Open the Full FAQ
+              Open the Roadmap
             </Link>
           </div>
         </div>
@@ -65,16 +66,18 @@ export default function GoonclawDocsIndexPage() {
           <div className="rail-grid">
             <div className="rail-card">
               <p className="eyebrow">What lives here</p>
-              <strong>Operators, builders, and agents</strong>
+              <strong>Docs, modules, rules, and tasks</strong>
               <span>
-                Product explanations, integration paths, machine docs, and policy-facing FAQ.
+                The master pack includes product overview, architecture, identity, heartbeat,
+                formulas, rewards, Merkle coherence, bots, and the build sequence.
               </span>
             </div>
             <div className="rail-card">
               <p className="eyebrow">Fastest path</p>
-              <strong>Read the overview, then the FAQ</strong>
+              <strong>Overview, architecture, then modules</strong>
               <span>
-                The docs are structured so a human or another model can get oriented quickly.
+                It is organized so a human or another model can get oriented quickly and
+                then drop into the exact box they need.
               </span>
             </div>
           </div>
@@ -94,12 +97,10 @@ export default function GoonclawDocsIndexPage() {
             <article key={group.section} className="surface-card">
               <p className="eyebrow">{group.section}</p>
               <h3>{group.docs[0]?.title || group.section}</h3>
-              <p>
-                {group.docs.map((doc) => doc.title).join(" • ")}
-              </p>
+              <p>{group.docs.map((doc) => doc.title).join(" • ")}</p>
               <div className="home-copy-stack">
                 {group.docs.map((doc) => (
-                  <Link key={doc.slug.join("/")} href={getGoonclawDocHref(doc.slug)}>
+                  <Link key={doc.slug.join("/")} href={getMasterPackDocHref(doc.slug)}>
                     {doc.title}
                   </Link>
                 ))}
@@ -112,14 +113,14 @@ export default function GoonclawDocsIndexPage() {
       <section className="panel home-section-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">FAQ</p>
-            <h2>Questions, answered plainly</h2>
+            <p className="eyebrow">Summary</p>
+            <h2>High-level product read</h2>
           </div>
         </div>
 
         <div className="home-faq-preview">
           <div className="faq-list">
-            {faqItems.map((item) => (
+            {summaryItems.map((item) => (
               <article key={item.question} className="faq-item">
                 <strong>{item.question}</strong>
                 <p>{item.answer}</p>
@@ -130,9 +131,9 @@ export default function GoonclawDocsIndexPage() {
           <div className="home-inline-actions">
             <Link
               className="button button-primary home-uniform-button"
-              href={getGoonclawDocHref(faqSlug)}
+              href={getMasterPackDocHref(summaryDoc?.slug || overviewSlug)}
             >
-              Read the Full FAQ
+              Read the Source Doc
             </Link>
           </div>
         </div>

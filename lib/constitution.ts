@@ -16,15 +16,15 @@ export const BPS_DENOMINATOR: Bps = 10_000;
 
 export const BRAIN_REGISTRY_METADATA = deepFreeze({
   parentBrain: {
-    id: "goonclaw",
-    displayName: "GoonClaw Core",
-    aliases: ["GoonClaw Prime"],
-    domain: "goonclaw.com",
-    loadPath: "brains/goonclaw",
+    id: "tianshi",
+    displayName: "Tianshi Core",
+    aliases: ["Tianshi Prime"],
+    domain: "tianshi.com",
+    loadPath: "brains/tianshi",
     publicRoutes: [
-      "/goonclaw",
+      "/tianshi",
       "/personal",
-      "/goonbook",
+      "/bitclaw",
       "/heartbeat",
       "/api/agent/status",
       "/api/constitution",
@@ -38,7 +38,7 @@ export const BRAIN_REGISTRY_METADATA = deepFreeze({
       displayName: "BolClaw",
       domain: "bolclaw.fun",
       loadPath: "brains/bolclaw",
-      publicRoutes: ["/bolclaw", "/goonstreams", "/api/brains/bolclaw"],
+      publicRoutes: ["/bolclaw", "/bolclaw", "/api/brains/bolclaw"],
       summary:
         "Constitutional child brain for livestream, billboard, and attention-routing surfaces. bolclaw.fun is distinct from repo-hosted pages that may temporarily share interface shells.",
     },
@@ -350,7 +350,7 @@ export function assertChildBrainCannotExecute(args: {
 }): void {
   const cfg = args.cfg ?? CONSTITUTION;
   if (
-    cfg.parentChildPolicy.childBrainIds.includes(args.actingBrainId as Exclude<BrainId, "goonclaw">)
+    cfg.parentChildPolicy.childBrainIds.includes(args.actingBrainId as Exclude<BrainId, "tianshi">)
   ) {
     const attemptedAction = args.attemptedAction ?? "execute globally";
     throw new Error(
@@ -660,7 +660,7 @@ export const CONSTITUTION: ReadonlyDeep<ConstitutionConfig> =
   deepFreeze<ConstitutionConfig>({
     meta: {
       protocol: "Interloper Protocol",
-      agent: "GoonClaw",
+      agent: "Tianshi",
       version: "0.2.0",
       effectiveDate: "2026-03-23",
     },
@@ -700,7 +700,7 @@ export const CONSTITUTION: ReadonlyDeep<ConstitutionConfig> =
     },
 
     arbitrationPolicy: {
-      goonclawIsCoFounder: true,
+      tianshiIsCoFounder: true,
       represents: ["traders", "holders"],
       actsBetween: [
         "developer",
@@ -729,9 +729,9 @@ export const CONSTITUTION: ReadonlyDeep<ConstitutionConfig> =
       dualMandate: true,
       goal: "most_followed_agent_kol",
       channels: [
-        "MyGoonClaw",
-        "GoonBook",
-        "GoonConnect",
+        "Nezha",
+        "BitClaw",
+        "BolClaw",
         "BolClaw",
         "Trenchstroker",
         "OutOfOrder",
@@ -746,11 +746,11 @@ export const CONSTITUTION: ReadonlyDeep<ConstitutionConfig> =
     },
 
     parentChildPolicy: {
-      sovereignParentBrainId: "goonclaw",
-      sovereignParentDisplayName: "GoonClaw Core",
+      sovereignParentBrainId: "tianshi",
+      sovereignParentDisplayName: "Tianshi Core",
       childBrainIds: ["bolclaw", "trenchstroker", "outoforder"],
       canonicalLoadTargets: {
-        goonclaw: "brains/goonclaw",
+        tianshi: "brains/tianshi",
         bolclaw: "brains/bolclaw",
         trenchstroker: "brains/trenchstroker",
         outoforder: "brains/outoforder",
@@ -769,7 +769,7 @@ export const CONSTITUTION: ReadonlyDeep<ConstitutionConfig> =
     },
 
     canonicalStatePolicy: {
-      singleWriterBrainId: "goonclaw",
+      singleWriterBrainId: "tianshi",
       appendOnlyAuditLog: true,
       roleSeparation: true,
       noClientTrustedEconomicState: true,

@@ -17,10 +17,10 @@ describe("/api/constitution GET", () => {
     };
 
     expect(response.status).toBe(200);
-    expect(payload.meta?.agent).toBe("GoonClaw");
+    expect(payload.meta?.agent).toBe("Tianshi");
     expect(payload.reserve?.floorLamports).toBe("694200000");
     expect(payload.economics?.creatorFees?.agentShare).toBe(0.51);
-    expect(payload.brainState?.parentBrain?.id).toBe("goonclaw");
+    expect(payload.brainState?.parentBrain?.id).toBe("tianshi");
     expect(payload.brainState?.childBrains?.map((brain) => brain.id)).toEqual([
       "bolclaw",
       "trenchstroker",

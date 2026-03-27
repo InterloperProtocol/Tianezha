@@ -16,12 +16,12 @@ import {
 } from "@/lib/types/brains";
 
 import { BOLCLAW_BRAIN } from "./bolclaw";
-import { GOONCLAW_CORE_BRAIN } from "./goonclaw";
+import { TIANSHI_CORE_BRAIN } from "./tianshi";
 import { OUTOFORDER_BRAIN } from "./outoforder";
 import { TRENCHSTROKER_BRAIN } from "./trenchstroker";
 
 const ALL_BRAINS = [
-  GOONCLAW_CORE_BRAIN,
+  TIANSHI_CORE_BRAIN,
   BOLCLAW_BRAIN,
   TRENCHSTROKER_BRAIN,
   OUTOFORDER_BRAIN,
@@ -153,7 +153,7 @@ function toPublicBrainSummary(brain: BrainConfig): PublicBrainSummary {
 
 const BRAIN_REGISTRY_INTERNAL = deepFreeze({
   all: ALL_BRAINS,
-  parent: GOONCLAW_CORE_BRAIN,
+  parent: TIANSHI_CORE_BRAIN,
   children: ALL_BRAINS.filter(
     (brain) => brain.sovereignty === "child",
   ) as ReadonlyArray<BrainConfig>,

@@ -156,7 +156,7 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
 
       setLivestreamState(payload.state);
       setNotice(
-        "Payment confirmed and swept to the GoonClaw revenue wallet. Your chart job is now in the session queue.",
+        "Payment confirmed and swept to the Tianshi revenue wallet. Your chart job is now in the session queue.",
       );
     } catch (requestError) {
       setError(
@@ -288,8 +288,8 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
                 )}
 
                 <div className="button-row">
-                  <Link className="button button-secondary" href="/goonclaw">
-                    Back to GoonClaw
+                  <Link className="button button-secondary" href="/tianshi">
+                    Back to Tianshi
                   </Link>
                 </div>
               </div>
@@ -303,8 +303,8 @@ export function LivestreamJobClient({ requestId }: { requestId: string }) {
             page from the same browser session that created the payment address.
           </p>
           <div className="button-row">
-            <Link className="button button-secondary" href="/goonclaw">
-              Back to GoonClaw
+            <Link className="button button-secondary" href="/tianshi">
+              Back to Tianshi
             </Link>
           </div>
         </section>

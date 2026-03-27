@@ -18,6 +18,7 @@ const rawServerEnvSchema = z.object({
   INTERNAL_ADMIN_PASSWORD: z.string().optional(),
   SOLANA_NETWORK: z.enum(["devnet", "mainnet-beta"]).optional(),
   SOLANA_RPC_URL: z.string().optional(),
+  BNB_RPC_URL: z.string().optional(),
   TREASURY_WALLET: z.string().optional(),
   ACCESS_CNFT_PRICE_SOL: z.string().optional(),
   ACCESS_CNFT_NAME: z.string().optional(),
@@ -25,24 +26,24 @@ const rawServerEnvSchema = z.object({
   ACCESS_CNFT_COLLECTION: z.string().optional(),
   ACCESS_CNFT_TREE: z.string().optional(),
   ACCESS_CNFT_AUTHORITY_SECRET: z.string().optional(),
-  GOONCLAW_TOKEN_MINT: z.string().optional(),
-  GOONCLAW_OWNER_WALLET: z.string().optional(),
-  GOONCLAW_CREATOR_FEES_WALLET: z.string().optional(),
-  GOONCLAW_AGENT_WALLET_SECRET: z.string().optional(),
-  GOONCLAW_PAYMENT_SWEEP_SECRET: z.string().optional(),
-  GOONCLAW_AGENT_RESERVE_FLOOR_SOL: z.string().optional(),
-  GOONCLAW_SETTLEMENT_INTERVAL_MINUTES: z.string().optional(),
-  GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().optional(),
-  GOONCLAW_AUTONOMOUS_ENABLED: z.string().optional(),
-  GOONCLAW_PUBLIC_TRACE_MODE: z.string().optional(),
-  GOONCLAW_SKILLS_DIR: z.string().optional(),
-  GOONCLAW_AGENT_CONSTITUTION_PATH: z.string().optional(),
-  GOONCLAW_CONWAY_ALLOWED_HOSTS: z.string().optional(),
+  TIANSHI_TOKEN_MINT: z.string().optional(),
+  TIANSHI_OWNER_WALLET: z.string().optional(),
+  TIANSHI_CREATOR_FEES_WALLET: z.string().optional(),
+  TIANSHI_AGENT_WALLET_SECRET: z.string().optional(),
+  TIANSHI_PAYMENT_SWEEP_SECRET: z.string().optional(),
+  TIANSHI_AGENT_RESERVE_FLOOR_SOL: z.string().optional(),
+  TIANSHI_SETTLEMENT_INTERVAL_MINUTES: z.string().optional(),
+  TIANSHI_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().optional(),
+  TIANSHI_AUTONOMOUS_ENABLED: z.string().optional(),
+  TIANSHI_PUBLIC_TRACE_MODE: z.string().optional(),
+  TIANSHI_SKILLS_DIR: z.string().optional(),
+  TIANSHI_AGENT_CONSTITUTION_PATH: z.string().optional(),
+  TIANSHI_CONWAY_ALLOWED_HOSTS: z.string().optional(),
   CONWAY_API_KEY: z.string().optional(),
   TAVILY_API_KEY: z.string().optional(),
   CONTEXT7_API_KEY: z.string().optional(),
-  GOONCLAW_BURN_AMOUNT_RAW: z.string().optional(),
-  GOONCLAW_TOKEN_DECIMALS: z.string().optional(),
+  TIANSHI_BURN_AMOUNT_RAW: z.string().optional(),
+  TIANSHI_TOKEN_DECIMALS: z.string().optional(),
   BAGSTROKE_TOKEN_MINT: z.string().optional(),
   BAGSTROKE_BURN_AMOUNT_RAW: z.string().optional(),
   BAGSTROKE_TOKEN_DECIMALS: z.string().optional(),
@@ -64,25 +65,66 @@ const rawServerEnvSchema = z.object({
   ALLOW_IN_PROCESS_WORKER: z.string().optional(),
   PUBLIC_AUTOBLOW_DEVICE_TOKEN: z.string().optional(),
   PUBLIC_AUTOBLOW_DEVICE_LABEL: z.string().optional(),
-  GOONCLAW_TELEGRAM_BOT_TOKEN: z.string().optional(),
-  GOONCLAW_TELEGRAM_CHAT_ID: z.string().optional(),
-  GOONCLAW_TELEGRAM_THREAD_ID: z.string().optional(),
-  GOONCLAW_TELEGRAM_DESCRIPTION: z.string().optional(),
-  GOONCLAW_TELEGRAM_SHORT_DESCRIPTION: z.string().optional(),
-  GOONCLAW_GMGN_API_KEY: z.string().optional(),
-  GOONCLAW_GMGN_TRADING_WALLET: z.string().optional(),
-  GOONCLAW_GMGN_TRADING_SECRET: z.string().optional(),
-  GOONCLAW_GMGN_API_HOST: z.string().optional(),
+  TIANSHI_TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TIANSHI_TELEGRAM_CHAT_ID: z.string().optional(),
+  TIANSHI_TELEGRAM_THREAD_ID: z.string().optional(),
+  TIANSHI_TELEGRAM_DESCRIPTION: z.string().optional(),
+  TIANSHI_TELEGRAM_SHORT_DESCRIPTION: z.string().optional(),
+  TIANSHI_GMGN_API_KEY: z.string().optional(),
+  TIANSHI_GMGN_AUTH_PRIVATE_KEY: z.string().optional(),
+  TIANSHI_GMGN_TRADING_WALLET: z.string().optional(),
+  TIANSHI_GMGN_TRADING_SECRET: z.string().optional(),
+  TIANSHI_GMGN_API_HOST: z.string().optional(),
   LIVESTREAM_STANDARD_PRICE_SOL: z.string().optional(),
   LIVESTREAM_PRIORITY_PRICE_SOL: z.string().optional(),
   LIVESTREAM_SESSION_SECONDS: z.string().optional(),
   LIVESTREAM_REQUESTER_COOLDOWN_SECONDS: z.string().optional(),
   LIVESTREAM_CONTRACT_COOLDOWN_SECONDS: z.string().optional(),
   LIVESTREAM_MAX_QUEUE_LENGTH: z.string().optional(),
-  GOONCLAW_X402_BUDGET_USD: z.string().optional(),
-  GOONCLAW_X402_PER_REQUEST_USD: z.string().optional(),
-  GOONCLAW_X402_PER_HOUR_USD: z.string().optional(),
-  GOONCLAW_X402_ALLOWED_DOMAINS: z.string().optional(),
+  TIANSHI_X402_BUDGET_USD: z.string().optional(),
+  TIANSHI_X402_PER_REQUEST_USD: z.string().optional(),
+  TIANSHI_X402_PER_HOUR_USD: z.string().optional(),
+  TIANSHI_X402_ALLOWED_DOMAINS: z.string().optional(),
+  TIANSHI_DEXTER_ENABLED: z.string().optional(),
+  TIANSHI_DEXTER_PATH: z.string().optional(),
+  TIANSHI_DEXTER_PYTHON_BIN: z.string().optional(),
+  TIANSHI_DEXTER_DATABASE_URL: z.string().optional(),
+  TIANSHI_DEXTER_HTTP_URL: z.string().optional(),
+  TIANSHI_DEXTER_WS_URL: z.string().optional(),
+  TIANSHI_DEXTER_NETWORK: z.string().optional(),
+  TIANSHI_DEXTER_DEFAULT_MODE: z.string().optional(),
+  TIANSHI_DEXTER_ALLOW_LIVE: z.string().optional(),
+  TIANSHI_DEXTER_MAINNET_DRY_RUN: z.string().optional(),
+  TIANSHI_GODMODE_ENABLED: z.string().optional(),
+  TIANSHI_GODMODE_API_URL: z.string().optional(),
+  TIANSHI_GODMODE_API_KEY: z.string().optional(),
+  TIANSHI_GODMODE_OPENROUTER_KEY: z.string().optional(),
+  TIANSHI_GODMODE_DEFAULT_MODEL: z.string().optional(),
+  TIANSHI_AGFUND_ENABLED: z.string().optional(),
+  TIANSHI_AGFUND_API_URL: z.string().optional(),
+  TIANSHI_AGFUND_API_KEY: z.string().optional(),
+  TIANSHI_AGFUND_MARKETPLACE_URL: z.string().optional(),
+  TIANSHI_FOURMEME_ENABLED: z.string().optional(),
+  TIANSHI_FOURMEME_AGENTIC_URL: z.string().optional(),
+  TIANSHI_HYPERLIQUID_ENABLED: z.string().optional(),
+  TIANSHI_HYPERLIQUID_API_URL: z.string().optional(),
+  TIANSHI_HYPERLIQUID_WS_URL: z.string().optional(),
+  TIANSHI_HYPERLIQUID_MASTER_WALLET: z.string().optional(),
+  TIANSHI_HYPERLIQUID_API_WALLET: z.string().optional(),
+  TIANSHI_HYPERLIQUID_API_WALLET_SECRET: z.string().optional(),
+  TIANSHI_HYPERLIQUID_DEFAULT_DEX: z.string().optional(),
+  TIANSHI_HYPERLIQUID_ALLOW_LIVE: z.string().optional(),
+  TIANSHI_POLYMARKET_ENABLED: z.string().optional(),
+  TIANSHI_POLYMARKET_GAMMA_URL: z.string().optional(),
+  TIANSHI_POLYMARKET_CLOB_URL: z.string().optional(),
+  TIANSHI_POLYMARKET_DEFAULT_MODE: z.string().optional(),
+  TIANSHI_POLYMARKET_ALLOW_LIVE: z.string().optional(),
+  TIANSHI_POLYMARKET_TOS_ACK: z.string().optional(),
+  TIANSHI_REPORT_COMMERCE_ENABLED: z.string().optional(),
+  TIANSHI_REPORT_PRICE_USDC: z.string().optional(),
+  TIANSHI_REPORT_BUY_WINDOW_SECONDS: z.string().optional(),
+  TIANSHI_REPORT_TRADE_DELAY_SECONDS: z.string().optional(),
+  TIANSHI_KNOWLEDGE_SALES_ENABLED: z.string().optional(),
   YT_DLP_COOKIES_PATH: z.string().optional(),
   YT_DLP_COOKIES_FROM_BROWSER: z.string().optional(),
 });
@@ -97,6 +139,7 @@ const resolvedServerEnvSchema = z.object({
   INTERNAL_ADMIN_PASSWORD: z.string(),
   SOLANA_NETWORK: z.enum(["devnet", "mainnet-beta"]),
   SOLANA_RPC_URL: z.string().min(1),
+  BNB_RPC_URL: z.string().min(1),
   TREASURY_WALLET: z.string().min(1),
   ACCESS_CNFT_PRICE_SOL: z.string().min(1),
   ACCESS_CNFT_NAME: z.string().min(1),
@@ -105,18 +148,18 @@ const resolvedServerEnvSchema = z.object({
   ACCESS_CNFT_TREE: z.string(),
   ACCESS_CNFT_AUTHORITY_SECRET: z.string(),
   BAGSTROKE_TOKEN_MINT: z.string(),
-  GOONCLAW_OWNER_WALLET: z.string().min(1),
-  GOONCLAW_CREATOR_FEES_WALLET: z.string().min(1),
-  GOONCLAW_AGENT_WALLET_SECRET: z.string(),
-  GOONCLAW_PAYMENT_SWEEP_SECRET: z.string(),
-  GOONCLAW_AGENT_RESERVE_FLOOR_SOL: z.string().min(1),
-  GOONCLAW_SETTLEMENT_INTERVAL_MINUTES: z.string().min(1),
-  GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().min(1),
-  GOONCLAW_AUTONOMOUS_ENABLED: z.enum(["true", "false"]),
-  GOONCLAW_PUBLIC_TRACE_MODE: z.string().min(1),
-  GOONCLAW_SKILLS_DIR: z.string().min(1),
-  GOONCLAW_AGENT_CONSTITUTION_PATH: z.string().min(1),
-  GOONCLAW_CONWAY_ALLOWED_HOSTS: z.string().min(1),
+  TIANSHI_OWNER_WALLET: z.string().min(1),
+  TIANSHI_CREATOR_FEES_WALLET: z.string().min(1),
+  TIANSHI_AGENT_WALLET_SECRET: z.string(),
+  TIANSHI_PAYMENT_SWEEP_SECRET: z.string(),
+  TIANSHI_AGENT_RESERVE_FLOOR_SOL: z.string().min(1),
+  TIANSHI_SETTLEMENT_INTERVAL_MINUTES: z.string().min(1),
+  TIANSHI_MEMECOIN_MAX_PORTFOLIO_PCT: z.string().min(1),
+  TIANSHI_AUTONOMOUS_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_PUBLIC_TRACE_MODE: z.string().min(1),
+  TIANSHI_SKILLS_DIR: z.string().min(1),
+  TIANSHI_AGENT_CONSTITUTION_PATH: z.string().min(1),
+  TIANSHI_CONWAY_ALLOWED_HOSTS: z.string().min(1),
   CONWAY_API_KEY: z.string(),
   TAVILY_API_KEY: z.string(),
   CONTEXT7_API_KEY: z.string(),
@@ -140,25 +183,66 @@ const resolvedServerEnvSchema = z.object({
   ALLOW_IN_PROCESS_WORKER: z.enum(["true", "false"]),
   PUBLIC_AUTOBLOW_DEVICE_TOKEN: z.string(),
   PUBLIC_AUTOBLOW_DEVICE_LABEL: z.string().min(1),
-  GOONCLAW_TELEGRAM_BOT_TOKEN: z.string(),
-  GOONCLAW_TELEGRAM_CHAT_ID: z.string(),
-  GOONCLAW_TELEGRAM_THREAD_ID: z.string(),
-  GOONCLAW_TELEGRAM_DESCRIPTION: z.string(),
-  GOONCLAW_TELEGRAM_SHORT_DESCRIPTION: z.string(),
-  GOONCLAW_GMGN_API_KEY: z.string(),
-  GOONCLAW_GMGN_TRADING_WALLET: z.string(),
-  GOONCLAW_GMGN_TRADING_SECRET: z.string(),
-  GOONCLAW_GMGN_API_HOST: z.string().min(1),
+  TIANSHI_TELEGRAM_BOT_TOKEN: z.string(),
+  TIANSHI_TELEGRAM_CHAT_ID: z.string(),
+  TIANSHI_TELEGRAM_THREAD_ID: z.string(),
+  TIANSHI_TELEGRAM_DESCRIPTION: z.string(),
+  TIANSHI_TELEGRAM_SHORT_DESCRIPTION: z.string(),
+  TIANSHI_GMGN_API_KEY: z.string(),
+  TIANSHI_GMGN_AUTH_PRIVATE_KEY: z.string(),
+  TIANSHI_GMGN_TRADING_WALLET: z.string(),
+  TIANSHI_GMGN_TRADING_SECRET: z.string(),
+  TIANSHI_GMGN_API_HOST: z.string().min(1),
   LIVESTREAM_STANDARD_PRICE_SOL: z.string().min(1),
   LIVESTREAM_PRIORITY_PRICE_SOL: z.string().min(1),
   LIVESTREAM_SESSION_SECONDS: z.string().min(1),
   LIVESTREAM_REQUESTER_COOLDOWN_SECONDS: z.string().min(1),
   LIVESTREAM_CONTRACT_COOLDOWN_SECONDS: z.string().min(1),
   LIVESTREAM_MAX_QUEUE_LENGTH: z.string().min(1),
-  GOONCLAW_X402_BUDGET_USD: z.string().min(1),
-  GOONCLAW_X402_PER_REQUEST_USD: z.string().min(1),
-  GOONCLAW_X402_PER_HOUR_USD: z.string().min(1),
-  GOONCLAW_X402_ALLOWED_DOMAINS: z.string(),
+  TIANSHI_X402_BUDGET_USD: z.string().min(1),
+  TIANSHI_X402_PER_REQUEST_USD: z.string().min(1),
+  TIANSHI_X402_PER_HOUR_USD: z.string().min(1),
+  TIANSHI_X402_ALLOWED_DOMAINS: z.string(),
+  TIANSHI_DEXTER_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_DEXTER_PATH: z.string().min(1),
+  TIANSHI_DEXTER_PYTHON_BIN: z.string(),
+  TIANSHI_DEXTER_DATABASE_URL: z.string(),
+  TIANSHI_DEXTER_HTTP_URL: z.string(),
+  TIANSHI_DEXTER_WS_URL: z.string(),
+  TIANSHI_DEXTER_NETWORK: z.enum(["devnet", "mainnet"]),
+  TIANSHI_DEXTER_DEFAULT_MODE: z.enum(["read_only", "paper", "simulate", "live"]),
+  TIANSHI_DEXTER_ALLOW_LIVE: z.enum(["true", "false"]),
+  TIANSHI_DEXTER_MAINNET_DRY_RUN: z.enum(["true", "false"]),
+  TIANSHI_GODMODE_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_GODMODE_API_URL: z.string(),
+  TIANSHI_GODMODE_API_KEY: z.string(),
+  TIANSHI_GODMODE_OPENROUTER_KEY: z.string(),
+  TIANSHI_GODMODE_DEFAULT_MODEL: z.string().min(1),
+  TIANSHI_AGFUND_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_AGFUND_API_URL: z.string().min(1),
+  TIANSHI_AGFUND_API_KEY: z.string(),
+  TIANSHI_AGFUND_MARKETPLACE_URL: z.string().min(1),
+  TIANSHI_FOURMEME_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_FOURMEME_AGENTIC_URL: z.string().min(1),
+  TIANSHI_HYPERLIQUID_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_HYPERLIQUID_API_URL: z.string().min(1),
+  TIANSHI_HYPERLIQUID_WS_URL: z.string().min(1),
+  TIANSHI_HYPERLIQUID_MASTER_WALLET: z.string(),
+  TIANSHI_HYPERLIQUID_API_WALLET: z.string(),
+  TIANSHI_HYPERLIQUID_API_WALLET_SECRET: z.string(),
+  TIANSHI_HYPERLIQUID_DEFAULT_DEX: z.string(),
+  TIANSHI_HYPERLIQUID_ALLOW_LIVE: z.enum(["true", "false"]),
+  TIANSHI_POLYMARKET_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_POLYMARKET_GAMMA_URL: z.string().min(1),
+  TIANSHI_POLYMARKET_CLOB_URL: z.string().min(1),
+  TIANSHI_POLYMARKET_DEFAULT_MODE: z.enum(["read_only", "paper", "live"]),
+  TIANSHI_POLYMARKET_ALLOW_LIVE: z.enum(["true", "false"]),
+  TIANSHI_POLYMARKET_TOS_ACK: z.enum(["true", "false"]),
+  TIANSHI_REPORT_COMMERCE_ENABLED: z.enum(["true", "false"]),
+  TIANSHI_REPORT_PRICE_USDC: z.string().min(1),
+  TIANSHI_REPORT_BUY_WINDOW_SECONDS: z.string().min(1),
+  TIANSHI_REPORT_TRADE_DELAY_SECONDS: z.string().min(1),
+  TIANSHI_KNOWLEDGE_SALES_ENABLED: z.enum(["true", "false"]),
   YT_DLP_COOKIES_PATH: z.string(),
   YT_DLP_COOKIES_FROM_BROWSER: z.string(),
 });
@@ -171,23 +255,23 @@ const rawPublicEnvSchema = z.object({
     .optional(),
   NEXT_PUBLIC_TREASURY_WALLET: z.string().optional(),
   NEXT_PUBLIC_ACCESS_CNFT_PRICE_SOL: z.string().optional(),
-  NEXT_PUBLIC_GOONCLAW_TOKEN_MINT: z.string().optional(),
-  NEXT_PUBLIC_GOONCLAW_BURN_AMOUNT_RAW: z.string().optional(),
-  NEXT_PUBLIC_GOONCLAW_TOKEN_DECIMALS: z.string().optional(),
+  NEXT_PUBLIC_TIANSHI_TOKEN_MINT: z.string().optional(),
+  NEXT_PUBLIC_TIANSHI_BURN_AMOUNT_RAW: z.string().optional(),
+  NEXT_PUBLIC_TIANSHI_TOKEN_DECIMALS: z.string().optional(),
   NEXT_PUBLIC_BAGSTROKE_TOKEN_MINT: z.string().optional(),
   NEXT_PUBLIC_BAGSTROKE_BURN_AMOUNT_RAW: z.string().optional(),
   NEXT_PUBLIC_BAGSTROKE_TOKEN_DECIMALS: z.string().optional(),
   NEXT_PUBLIC_FREE_ACCESS_UNTIL: z.string().optional(),
   NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL: z.string().optional(),
   NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT: z.string().optional(),
-  NEXT_PUBLIC_GOONCLAW_MEDIA_URL: z.string().optional(),
+  NEXT_PUBLIC_TIANSHI_MEDIA_URL: z.string().optional(),
   NEXT_PUBLIC_LIVESTREAM_EMBED_URL: z.string().optional(),
   NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL: z.string().optional(),
   NEXT_PUBLIC_LIVESTREAM_PRIORITY_PRICE_SOL: z.string().optional(),
   NEXT_PUBLIC_LIVESTREAM_SESSION_SECONDS: z.string().optional(),
 });
 
-const DEFAULT_GOONCLAW_STREAM_URL = "https://www.youtube.com/watch?v=e5nyQmaq4k4";
+const DEFAULT_TIANSHI_STREAM_URL = "https://www.youtube.com/watch?v=e5nyQmaq4k4";
 
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_NAME: z.string().min(1),
@@ -201,7 +285,7 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_FREE_ACCESS_UNTIL: z.string().min(1),
   NEXT_PUBLIC_ACCESS_TOKEN_SYMBOL: z.string().min(1),
   NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT: z.string(),
-  NEXT_PUBLIC_GOONCLAW_MEDIA_URL: z.string(),
+  NEXT_PUBLIC_TIANSHI_MEDIA_URL: z.string(),
   NEXT_PUBLIC_LIVESTREAM_EMBED_URL: z.string(),
   NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL: z.string().min(1),
   NEXT_PUBLIC_LIVESTREAM_PRIORITY_PRICE_SOL: z.string().min(1),
@@ -293,98 +377,100 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
     NODE_ENV: raw.NODE_ENV,
     APP_SESSION_SECRET: resolveValue(
       raw.APP_SESSION_SECRET,
-      "goonclaw-dev-session-secret",
+      "tianshi-dev-session-secret",
       isProduction,
       "APP_SESSION_SECRET",
       16,
     ),
     DEVICE_CREDENTIALS_AES_KEY: resolveValue(
       raw.DEVICE_CREDENTIALS_AES_KEY,
-      "goonclaw-dev-device-key",
+      "tianshi-dev-device-key",
       isProduction,
       "DEVICE_CREDENTIALS_AES_KEY",
       16,
     ),
     PAYLOAD_SECRET: resolveValue(
       raw.PAYLOAD_SECRET?.trim() || raw.APP_SESSION_SECRET?.trim(),
-      "goonclaw-dev-payload-secret",
+      "tianshi-dev-payload-secret",
       isProduction,
       "PAYLOAD_SECRET",
       16,
     ),
     PAYLOAD_DATABASE_URL:
-      raw.PAYLOAD_DATABASE_URL?.trim() || "file:./.data/goonclaw-payload.db",
+      raw.PAYLOAD_DATABASE_URL?.trim() || "file:./.data/tianshi-payload.db",
     INTERNAL_ADMIN_LOGIN: raw.INTERNAL_ADMIN_LOGIN?.trim() || "admin",
     INTERNAL_ADMIN_PASSWORD: raw.INTERNAL_ADMIN_PASSWORD?.trim() || "",
     SOLANA_NETWORK: raw.SOLANA_NETWORK ?? "mainnet-beta",
     SOLANA_RPC_URL:
       raw.SOLANA_RPC_URL?.trim() || "https://api.mainnet-beta.solana.com",
+    BNB_RPC_URL:
+      raw.BNB_RPC_URL?.trim() || "https://bsc-dataseed.bnbchain.org",
     TREASURY_WALLET:
       raw.TREASURY_WALLET?.trim() ||
       "HQhD7ZRMp4jv2NFdN26nJ5NCWySQD6nQM9KoG5doapDi",
     ACCESS_CNFT_PRICE_SOL: raw.ACCESS_CNFT_PRICE_SOL?.trim() || "0.25",
     ACCESS_CNFT_NAME:
-      raw.ACCESS_CNFT_NAME?.trim() || "GoonClaw Access Pass",
+      raw.ACCESS_CNFT_NAME?.trim() || "Tianshi Access Pass",
     ACCESS_CNFT_METADATA_URI:
       raw.ACCESS_CNFT_METADATA_URI?.trim() ||
-      "https://example.com/goonclaw-access.json",
+      "https://example.com/tianshi-access.json",
     ACCESS_CNFT_COLLECTION: raw.ACCESS_CNFT_COLLECTION?.trim() || "",
     ACCESS_CNFT_TREE: raw.ACCESS_CNFT_TREE?.trim() || "",
     ACCESS_CNFT_AUTHORITY_SECRET:
       raw.ACCESS_CNFT_AUTHORITY_SECRET?.trim() || "",
     BAGSTROKE_TOKEN_MINT:
-      raw.GOONCLAW_TOKEN_MINT?.trim() ||
+      raw.TIANSHI_TOKEN_MINT?.trim() ||
       raw.BAGSTROKE_TOKEN_MINT?.trim() ||
       DEFAULT_PUMP_TOKEN_MINT,
-    GOONCLAW_OWNER_WALLET:
-      raw.GOONCLAW_OWNER_WALLET?.trim() ||
+    TIANSHI_OWNER_WALLET:
+      raw.TIANSHI_OWNER_WALLET?.trim() ||
       raw.TREASURY_WALLET?.trim() ||
       "HQhD7ZRMp4jv2NFdN26nJ5NCWySQD6nQM9KoG5doapDi",
-    GOONCLAW_CREATOR_FEES_WALLET:
-      raw.GOONCLAW_CREATOR_FEES_WALLET?.trim() ||
-      raw.GOONCLAW_OWNER_WALLET?.trim() ||
+    TIANSHI_CREATOR_FEES_WALLET:
+      raw.TIANSHI_CREATOR_FEES_WALLET?.trim() ||
+      raw.TIANSHI_OWNER_WALLET?.trim() ||
       raw.TREASURY_WALLET?.trim() ||
       "HQhD7ZRMp4jv2NFdN26nJ5NCWySQD6nQM9KoG5doapDi",
-    GOONCLAW_AGENT_WALLET_SECRET:
-      raw.GOONCLAW_AGENT_WALLET_SECRET?.trim() || "",
-    GOONCLAW_PAYMENT_SWEEP_SECRET:
-      raw.GOONCLAW_PAYMENT_SWEEP_SECRET?.trim() ||
-      raw.GOONCLAW_AGENT_WALLET_SECRET?.trim() ||
+    TIANSHI_AGENT_WALLET_SECRET:
+      raw.TIANSHI_AGENT_WALLET_SECRET?.trim() || "",
+    TIANSHI_PAYMENT_SWEEP_SECRET:
+      raw.TIANSHI_PAYMENT_SWEEP_SECRET?.trim() ||
+      raw.TIANSHI_AGENT_WALLET_SECRET?.trim() ||
       "",
-    GOONCLAW_AGENT_RESERVE_FLOOR_SOL:
-      raw.GOONCLAW_AGENT_RESERVE_FLOOR_SOL?.trim() ||
+    TIANSHI_AGENT_RESERVE_FLOOR_SOL:
+      raw.TIANSHI_AGENT_RESERVE_FLOOR_SOL?.trim() ||
       CONSTITUTION.reservePolicy.reserveFloorSol,
-    GOONCLAW_SETTLEMENT_INTERVAL_MINUTES:
-      raw.GOONCLAW_SETTLEMENT_INTERVAL_MINUTES?.trim() || "15",
-    GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT:
-      raw.GOONCLAW_MEMECOIN_MAX_PORTFOLIO_PCT?.trim() || "10",
-    GOONCLAW_AUTONOMOUS_ENABLED:
-      raw.GOONCLAW_AUTONOMOUS_ENABLED?.trim().toLowerCase() || "true",
-    GOONCLAW_PUBLIC_TRACE_MODE:
-      raw.GOONCLAW_PUBLIC_TRACE_MODE?.trim() || "maximum-available",
-    GOONCLAW_SKILLS_DIR:
-      raw.GOONCLAW_SKILLS_DIR?.trim() ||
-      "services/goonclaw-automaton/vendor",
-    GOONCLAW_AGENT_CONSTITUTION_PATH:
-      raw.GOONCLAW_AGENT_CONSTITUTION_PATH?.trim() ||
+    TIANSHI_SETTLEMENT_INTERVAL_MINUTES:
+      raw.TIANSHI_SETTLEMENT_INTERVAL_MINUTES?.trim() || "15",
+    TIANSHI_MEMECOIN_MAX_PORTFOLIO_PCT:
+      raw.TIANSHI_MEMECOIN_MAX_PORTFOLIO_PCT?.trim() || "10",
+    TIANSHI_AUTONOMOUS_ENABLED:
+      raw.TIANSHI_AUTONOMOUS_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_PUBLIC_TRACE_MODE:
+      raw.TIANSHI_PUBLIC_TRACE_MODE?.trim() || "maximum-available",
+    TIANSHI_SKILLS_DIR:
+      raw.TIANSHI_SKILLS_DIR?.trim() ||
+      "services/tianshi-automaton/vendor",
+    TIANSHI_AGENT_CONSTITUTION_PATH:
+      raw.TIANSHI_AGENT_CONSTITUTION_PATH?.trim() ||
       "docs/CONSTITUTION.md",
-    GOONCLAW_CONWAY_ALLOWED_HOSTS:
-      raw.GOONCLAW_CONWAY_ALLOWED_HOSTS?.trim() ||
+    TIANSHI_CONWAY_ALLOWED_HOSTS:
+      raw.TIANSHI_CONWAY_ALLOWED_HOSTS?.trim() ||
       "conway.tech,*.conway.tech,conway.ai,*.conway.ai",
     CONWAY_API_KEY: raw.CONWAY_API_KEY?.trim() || "",
     TAVILY_API_KEY: raw.TAVILY_API_KEY?.trim() || "",
     CONTEXT7_API_KEY: raw.CONTEXT7_API_KEY?.trim() || "",
     BAGSTROKE_BURN_AMOUNT_RAW:
-      raw.GOONCLAW_BURN_AMOUNT_RAW?.trim() ||
+      raw.TIANSHI_BURN_AMOUNT_RAW?.trim() ||
       raw.BAGSTROKE_BURN_AMOUNT_RAW?.trim() ||
       "100000000000",
     BAGSTROKE_TOKEN_DECIMALS:
-      raw.GOONCLAW_TOKEN_DECIMALS?.trim() ||
+      raw.TIANSHI_TOKEN_DECIMALS?.trim() ||
       raw.BAGSTROKE_TOKEN_DECIMALS?.trim() ||
       "6",
     LAUNCHONOMICS_TOKEN_MINT:
       raw.LAUNCHONOMICS_TOKEN_MINT?.trim() ||
-      raw.GOONCLAW_TOKEN_MINT?.trim() ||
+      raw.TIANSHI_TOKEN_MINT?.trim() ||
       raw.BAGSTROKE_TOKEN_MINT?.trim() ||
       DEFAULT_PUMP_TOKEN_MINT,
     LAUNCHONOMICS_LAUNCH_AT:
@@ -404,13 +490,13 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       raw.VERTEX_AI_PROJECT_ID?.trim() ||
       raw.FIREBASE_PROJECT_ID?.trim() ||
       firebaseConfigProjectId ||
-      (!isProduction ? "goonclaw-app" : ""),
+      (!isProduction ? "tianezha-app" : ""),
     VERTEX_AI_LOCATION: raw.VERTEX_AI_LOCATION?.trim() || "global",
     VERTEX_AI_MODEL: raw.VERTEX_AI_MODEL?.trim() || "gemini-2.5-flash",
     WORKER_URL: raw.WORKER_URL?.trim() || "",
     WORKER_TOKEN: resolveValue(
       raw.WORKER_TOKEN,
-      "goonclaw-worker-secret",
+      "tianshi-worker-secret",
       isProduction,
       "WORKER_TOKEN",
       16,
@@ -418,26 +504,28 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
     ALLOW_IN_PROCESS_WORKER: allowInProcessWorker,
     PUBLIC_AUTOBLOW_DEVICE_TOKEN: raw.PUBLIC_AUTOBLOW_DEVICE_TOKEN?.trim() || "",
     PUBLIC_AUTOBLOW_DEVICE_LABEL:
-      raw.PUBLIC_AUTOBLOW_DEVICE_LABEL?.trim() || "GoonClaw Public Device",
-    GOONCLAW_TELEGRAM_BOT_TOKEN:
-      raw.GOONCLAW_TELEGRAM_BOT_TOKEN?.trim() || "",
-    GOONCLAW_TELEGRAM_CHAT_ID:
-      raw.GOONCLAW_TELEGRAM_CHAT_ID?.trim() || "",
-    GOONCLAW_TELEGRAM_THREAD_ID:
-      raw.GOONCLAW_TELEGRAM_THREAD_ID?.trim() || "",
-    GOONCLAW_TELEGRAM_DESCRIPTION:
-      raw.GOONCLAW_TELEGRAM_DESCRIPTION?.trim() ||
-      "Read-only GoonClaw telemetry bot. Posts heartbeats, reasoning, and trade traces from the autonomous runtime.",
-    GOONCLAW_TELEGRAM_SHORT_DESCRIPTION:
-      raw.GOONCLAW_TELEGRAM_SHORT_DESCRIPTION?.trim() ||
-      "Read-only GoonClaw runtime feed.",
-    GOONCLAW_GMGN_API_KEY: raw.GOONCLAW_GMGN_API_KEY?.trim() || "",
-    GOONCLAW_GMGN_TRADING_WALLET:
-      raw.GOONCLAW_GMGN_TRADING_WALLET?.trim() || "",
-    GOONCLAW_GMGN_TRADING_SECRET:
-      raw.GOONCLAW_GMGN_TRADING_SECRET?.trim() || "",
-    GOONCLAW_GMGN_API_HOST:
-      raw.GOONCLAW_GMGN_API_HOST?.trim() || "https://gmgn.ai",
+      raw.PUBLIC_AUTOBLOW_DEVICE_LABEL?.trim() || "Tianshi Public Device",
+    TIANSHI_TELEGRAM_BOT_TOKEN:
+      raw.TIANSHI_TELEGRAM_BOT_TOKEN?.trim() || "",
+    TIANSHI_TELEGRAM_CHAT_ID:
+      raw.TIANSHI_TELEGRAM_CHAT_ID?.trim() || "",
+    TIANSHI_TELEGRAM_THREAD_ID:
+      raw.TIANSHI_TELEGRAM_THREAD_ID?.trim() || "",
+    TIANSHI_TELEGRAM_DESCRIPTION:
+      raw.TIANSHI_TELEGRAM_DESCRIPTION?.trim() ||
+      "Read-only Tianshi telemetry bot. Posts heartbeats, reasoning, and trade traces from the autonomous runtime.",
+    TIANSHI_TELEGRAM_SHORT_DESCRIPTION:
+      raw.TIANSHI_TELEGRAM_SHORT_DESCRIPTION?.trim() ||
+      "Read-only Tianshi runtime feed.",
+    TIANSHI_GMGN_API_KEY: raw.TIANSHI_GMGN_API_KEY?.trim() || "",
+    TIANSHI_GMGN_AUTH_PRIVATE_KEY:
+      raw.TIANSHI_GMGN_AUTH_PRIVATE_KEY?.trim() || "",
+    TIANSHI_GMGN_TRADING_WALLET:
+      raw.TIANSHI_GMGN_TRADING_WALLET?.trim() || "",
+    TIANSHI_GMGN_TRADING_SECRET:
+      raw.TIANSHI_GMGN_TRADING_SECRET?.trim() || "",
+    TIANSHI_GMGN_API_HOST:
+      raw.TIANSHI_GMGN_API_HOST?.trim() || "https://gmgn.ai",
     LIVESTREAM_STANDARD_PRICE_SOL:
       raw.LIVESTREAM_STANDARD_PRICE_SOL?.trim() || "0.0069",
     LIVESTREAM_PRIORITY_PRICE_SOL:
@@ -450,14 +538,96 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
       raw.LIVESTREAM_CONTRACT_COOLDOWN_SECONDS?.trim() || "600",
     LIVESTREAM_MAX_QUEUE_LENGTH:
       raw.LIVESTREAM_MAX_QUEUE_LENGTH?.trim() || "25",
-    GOONCLAW_X402_BUDGET_USD:
-      raw.GOONCLAW_X402_BUDGET_USD?.trim() || "25.00",
-    GOONCLAW_X402_PER_REQUEST_USD:
-      raw.GOONCLAW_X402_PER_REQUEST_USD?.trim() || "1.00",
-    GOONCLAW_X402_PER_HOUR_USD:
-      raw.GOONCLAW_X402_PER_HOUR_USD?.trim() || "5.00",
-    GOONCLAW_X402_ALLOWED_DOMAINS:
-      raw.GOONCLAW_X402_ALLOWED_DOMAINS?.trim() || "",
+    TIANSHI_X402_BUDGET_USD:
+      raw.TIANSHI_X402_BUDGET_USD?.trim() || "25.00",
+    TIANSHI_X402_PER_REQUEST_USD:
+      raw.TIANSHI_X402_PER_REQUEST_USD?.trim() || "1.00",
+    TIANSHI_X402_PER_HOUR_USD:
+      raw.TIANSHI_X402_PER_HOUR_USD?.trim() || "5.00",
+    TIANSHI_X402_ALLOWED_DOMAINS:
+      raw.TIANSHI_X402_ALLOWED_DOMAINS?.trim() || "",
+    TIANSHI_DEXTER_ENABLED:
+      raw.TIANSHI_DEXTER_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_DEXTER_PATH:
+      raw.TIANSHI_DEXTER_PATH?.trim() ||
+      "services/tianshi-automaton/vendor/dexter-upstream",
+    TIANSHI_DEXTER_PYTHON_BIN:
+      raw.TIANSHI_DEXTER_PYTHON_BIN?.trim() || "",
+    TIANSHI_DEXTER_DATABASE_URL:
+      raw.TIANSHI_DEXTER_DATABASE_URL?.trim() || "",
+    TIANSHI_DEXTER_HTTP_URL:
+      raw.TIANSHI_DEXTER_HTTP_URL?.trim() || raw.SOLANA_RPC_URL?.trim() || "",
+    TIANSHI_DEXTER_WS_URL:
+      raw.TIANSHI_DEXTER_WS_URL?.trim() || "",
+    TIANSHI_DEXTER_NETWORK:
+      raw.TIANSHI_DEXTER_NETWORK?.trim().toLowerCase() || "mainnet",
+    TIANSHI_DEXTER_DEFAULT_MODE:
+      raw.TIANSHI_DEXTER_DEFAULT_MODE?.trim().toLowerCase() || "read_only",
+    TIANSHI_DEXTER_ALLOW_LIVE:
+      raw.TIANSHI_DEXTER_ALLOW_LIVE?.trim().toLowerCase() || "false",
+    TIANSHI_DEXTER_MAINNET_DRY_RUN:
+      raw.TIANSHI_DEXTER_MAINNET_DRY_RUN?.trim().toLowerCase() || "true",
+    TIANSHI_GODMODE_ENABLED:
+      raw.TIANSHI_GODMODE_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_GODMODE_API_URL:
+      raw.TIANSHI_GODMODE_API_URL?.trim() || "https://godmod3.ai",
+    TIANSHI_GODMODE_API_KEY:
+      raw.TIANSHI_GODMODE_API_KEY?.trim() || "",
+    TIANSHI_GODMODE_OPENROUTER_KEY:
+      raw.TIANSHI_GODMODE_OPENROUTER_KEY?.trim() || "",
+    TIANSHI_GODMODE_DEFAULT_MODEL:
+      raw.TIANSHI_GODMODE_DEFAULT_MODEL?.trim() || "ultraplinian/fast",
+    TIANSHI_AGFUND_ENABLED:
+      raw.TIANSHI_AGFUND_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_AGFUND_API_URL:
+      raw.TIANSHI_AGFUND_API_URL?.trim() || "https://agfund.xyz",
+    TIANSHI_AGFUND_API_KEY:
+      raw.TIANSHI_AGFUND_API_KEY?.trim() || "",
+    TIANSHI_AGFUND_MARKETPLACE_URL:
+      raw.TIANSHI_AGFUND_MARKETPLACE_URL?.trim() || "https://agfund.xyz/marketplace",
+    TIANSHI_FOURMEME_ENABLED:
+      raw.TIANSHI_FOURMEME_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_FOURMEME_AGENTIC_URL:
+      raw.TIANSHI_FOURMEME_AGENTIC_URL?.trim() || "https://four.meme/agentic",
+    TIANSHI_HYPERLIQUID_ENABLED:
+      raw.TIANSHI_HYPERLIQUID_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_HYPERLIQUID_API_URL:
+      raw.TIANSHI_HYPERLIQUID_API_URL?.trim() || "https://api.hyperliquid.xyz",
+    TIANSHI_HYPERLIQUID_WS_URL:
+      raw.TIANSHI_HYPERLIQUID_WS_URL?.trim() || "wss://api.hyperliquid.xyz/ws",
+    TIANSHI_HYPERLIQUID_MASTER_WALLET:
+      raw.TIANSHI_HYPERLIQUID_MASTER_WALLET?.trim().toLowerCase() || "",
+    TIANSHI_HYPERLIQUID_API_WALLET:
+      raw.TIANSHI_HYPERLIQUID_API_WALLET?.trim().toLowerCase() || "",
+    TIANSHI_HYPERLIQUID_API_WALLET_SECRET:
+      raw.TIANSHI_HYPERLIQUID_API_WALLET_SECRET?.trim() || "",
+    TIANSHI_HYPERLIQUID_DEFAULT_DEX:
+      raw.TIANSHI_HYPERLIQUID_DEFAULT_DEX?.trim() || "",
+    TIANSHI_HYPERLIQUID_ALLOW_LIVE:
+      raw.TIANSHI_HYPERLIQUID_ALLOW_LIVE?.trim().toLowerCase() || "false",
+    TIANSHI_POLYMARKET_ENABLED:
+      raw.TIANSHI_POLYMARKET_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_POLYMARKET_GAMMA_URL:
+      raw.TIANSHI_POLYMARKET_GAMMA_URL?.trim() ||
+      "https://gamma-api.polymarket.com",
+    TIANSHI_POLYMARKET_CLOB_URL:
+      raw.TIANSHI_POLYMARKET_CLOB_URL?.trim() || "https://clob.polymarket.com",
+    TIANSHI_POLYMARKET_DEFAULT_MODE:
+      raw.TIANSHI_POLYMARKET_DEFAULT_MODE?.trim().toLowerCase() || "read_only",
+    TIANSHI_POLYMARKET_ALLOW_LIVE:
+      raw.TIANSHI_POLYMARKET_ALLOW_LIVE?.trim().toLowerCase() || "false",
+    TIANSHI_POLYMARKET_TOS_ACK:
+      raw.TIANSHI_POLYMARKET_TOS_ACK?.trim().toLowerCase() || "false",
+    TIANSHI_REPORT_COMMERCE_ENABLED:
+      raw.TIANSHI_REPORT_COMMERCE_ENABLED?.trim().toLowerCase() || "true",
+    TIANSHI_REPORT_PRICE_USDC:
+      raw.TIANSHI_REPORT_PRICE_USDC?.trim() || "0.01",
+    TIANSHI_REPORT_BUY_WINDOW_SECONDS:
+      raw.TIANSHI_REPORT_BUY_WINDOW_SECONDS?.trim() || "1",
+    TIANSHI_REPORT_TRADE_DELAY_SECONDS:
+      raw.TIANSHI_REPORT_TRADE_DELAY_SECONDS?.trim() || "1",
+    TIANSHI_KNOWLEDGE_SALES_ENABLED:
+      raw.TIANSHI_KNOWLEDGE_SALES_ENABLED?.trim().toLowerCase() || "true",
     YT_DLP_COOKIES_PATH: raw.YT_DLP_COOKIES_PATH?.trim() || "",
     YT_DLP_COOKIES_FROM_BROWSER:
       raw.YT_DLP_COOKIES_FROM_BROWSER?.trim() || "",
@@ -475,7 +645,7 @@ export function getServerEnv(): ServerEnv {
 export function getPublicEnv(): PublicEnv {
   const raw = rawPublicEnvSchema.parse(process.env);
   return publicEnvSchema.parse({
-    NEXT_PUBLIC_APP_NAME: raw.NEXT_PUBLIC_APP_NAME?.trim() || "GoonClaw",
+    NEXT_PUBLIC_APP_NAME: raw.NEXT_PUBLIC_APP_NAME?.trim() || "Tianshi",
     NEXT_PUBLIC_SOLANA_RPC_URL:
       raw.NEXT_PUBLIC_SOLANA_RPC_URL?.trim() ||
       "https://api.mainnet-beta.solana.com",
@@ -490,21 +660,21 @@ export function getPublicEnv(): PublicEnv {
       process.env.ACCESS_CNFT_PRICE_SOL?.trim() ||
       "0.25",
     NEXT_PUBLIC_BAGSTROKE_TOKEN_MINT:
-      raw.NEXT_PUBLIC_GOONCLAW_TOKEN_MINT?.trim() ||
+      raw.NEXT_PUBLIC_TIANSHI_TOKEN_MINT?.trim() ||
       raw.NEXT_PUBLIC_BAGSTROKE_TOKEN_MINT?.trim() ||
-      process.env.GOONCLAW_TOKEN_MINT?.trim() ||
+      process.env.TIANSHI_TOKEN_MINT?.trim() ||
       process.env.BAGSTROKE_TOKEN_MINT?.trim() ||
       DEFAULT_PUMP_TOKEN_MINT,
     NEXT_PUBLIC_BAGSTROKE_BURN_AMOUNT_RAW:
-      raw.NEXT_PUBLIC_GOONCLAW_BURN_AMOUNT_RAW?.trim() ||
+      raw.NEXT_PUBLIC_TIANSHI_BURN_AMOUNT_RAW?.trim() ||
       raw.NEXT_PUBLIC_BAGSTROKE_BURN_AMOUNT_RAW?.trim() ||
-      process.env.GOONCLAW_BURN_AMOUNT_RAW?.trim() ||
+      process.env.TIANSHI_BURN_AMOUNT_RAW?.trim() ||
       process.env.BAGSTROKE_BURN_AMOUNT_RAW?.trim() ||
       "100000000000",
     NEXT_PUBLIC_BAGSTROKE_TOKEN_DECIMALS:
-      raw.NEXT_PUBLIC_GOONCLAW_TOKEN_DECIMALS?.trim() ||
+      raw.NEXT_PUBLIC_TIANSHI_TOKEN_DECIMALS?.trim() ||
       raw.NEXT_PUBLIC_BAGSTROKE_TOKEN_DECIMALS?.trim() ||
-      process.env.GOONCLAW_TOKEN_DECIMALS?.trim() ||
+      process.env.TIANSHI_TOKEN_DECIMALS?.trim() ||
       process.env.BAGSTROKE_TOKEN_DECIMALS?.trim() ||
       "6",
     NEXT_PUBLIC_FREE_ACCESS_UNTIL:
@@ -517,14 +687,14 @@ export function getPublicEnv(): PublicEnv {
       raw.NEXT_PUBLIC_LAUNCHONOMICS_LAUNCH_AT?.trim() ||
       process.env.LAUNCHONOMICS_LAUNCH_AT?.trim() ||
       inferLaunchAtFromFreeUntil(raw.NEXT_PUBLIC_FREE_ACCESS_UNTIL),
-    NEXT_PUBLIC_GOONCLAW_MEDIA_URL:
-      raw.NEXT_PUBLIC_GOONCLAW_MEDIA_URL?.trim() ||
+    NEXT_PUBLIC_TIANSHI_MEDIA_URL:
+      raw.NEXT_PUBLIC_TIANSHI_MEDIA_URL?.trim() ||
       raw.NEXT_PUBLIC_LIVESTREAM_EMBED_URL?.trim() ||
-      DEFAULT_GOONCLAW_STREAM_URL,
+      DEFAULT_TIANSHI_STREAM_URL,
     NEXT_PUBLIC_LIVESTREAM_EMBED_URL:
       raw.NEXT_PUBLIC_LIVESTREAM_EMBED_URL?.trim() ||
-      raw.NEXT_PUBLIC_GOONCLAW_MEDIA_URL?.trim() ||
-      DEFAULT_GOONCLAW_STREAM_URL,
+      raw.NEXT_PUBLIC_TIANSHI_MEDIA_URL?.trim() ||
+      DEFAULT_TIANSHI_STREAM_URL,
     NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL:
       raw.NEXT_PUBLIC_LIVESTREAM_STANDARD_PRICE_SOL?.trim() ||
       process.env.LIVESTREAM_STANDARD_PRICE_SOL?.trim() ||

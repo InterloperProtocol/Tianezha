@@ -9,7 +9,7 @@ import {
 import { getPayloadClient } from "@/lib/server/payload";
 import {
   getSession,
-  listGoonBookPosts,
+  listBitClawPosts,
   listPublicStreamProfiles,
   listRecoverableSessions,
   upsertPublicStreamProfile,
@@ -17,12 +17,12 @@ import {
 import { dispatchSessionStop } from "@/lib/server/worker-client";
 import {
   AutonomousRuntimeSummary,
-  GoonBookPostRecord,
+  BitClawPostRecord,
   SessionRecord,
 } from "@/lib/types";
 import { addDays, fromBase64Url, nowIso, toBase64Url } from "@/lib/utils";
 
-const INTERNAL_ADMIN_COOKIE = "goonclaw_internal_admin";
+const INTERNAL_ADMIN_COOKIE = "tianshi_internal_admin";
 export const INTERNAL_ADMIN_ROUTE = "/amber-vault-ops";
 
 type StreamerControlDoc = {
@@ -65,7 +65,7 @@ type DashboardUser = {
   reason: string | null;
 };
 
-type DashboardGoonConnectProfile = {
+type DashboardBolClawProfile = {
   guestId: string;
   slug: string;
   defaultContractAddress: string | null;
@@ -81,7 +81,7 @@ type DashboardGoonConnectProfile = {
   moderationReason: string | null;
 };
 
-type DashboardGoonBookPost = GoonBookPostRecord & {
+type DashboardBitClawPost = BitClawPostRecord & {
   displayName: string;
   handle: string;
 };
@@ -198,7 +198,7 @@ function logPayloadUnavailable(context: string, error: unknown) {
 }
 
 function deriveAdminEmail(username: string) {
-  return `${username}@goonclaw.internal`;
+  return `${username}@tianshi.internal`;
 }
 
 export async function ensureSeededInternalAdmin() {
@@ -567,8 +567,8 @@ function getProfileHandle(profileId?: string, agentId?: string) {
   const source = profileId || agentId || "unknown";
   const normalized = source.startsWith("human:") ? source.slice(6) : source;
 
-  return normalized === "goonclaw"
-    ? { displayName: "GoonClaw", handle: "goonclaw" }
+  return normalized === "tianshi"
+    ? { displayName: "Tianshi", handle: "tianshi" }
     : { displayName: normalized, handle: normalized };
 }
 
@@ -596,12 +596,12 @@ export async function stopSessionFromAdmin(sessionId: string) {
 }
 
 export async function getInternalAdminDashboardData() {
-  const [controls, publicProfiles, recoverableSessions, goonBookPosts] =
+  const [controls, publicProfiles, recoverableSessions, bitClawPosts] =
     await Promise.all([
     listStreamerControls(),
     listPublicStreamProfiles(),
     listRecoverableSessions(),
-    listGoonBookPosts(24, { includeHidden: true }),
+    listBitClawPosts(24, { includeHidden: true }),
   ]);
 
   const controlMap = new Map(controls.map((item) => [item.guestId, item]));
@@ -657,7 +657,7 @@ export async function getInternalAdminDashboardData() {
       return (left.slug || left.guestId).localeCompare(right.slug || right.guestId);
     });
 
-  const goonConnectProfiles: DashboardGoonConnectProfile[] = publicProfiles
+  const bolClawProfiles: DashboardBolClawProfile[] = publicProfiles
     .map((profile) => {
       const control = controlMap.get(profile.guestId);
       const activeSession =
@@ -681,7 +681,7 @@ export async function getInternalAdminDashboardData() {
     })
     .sort((left, right) => left.slug.localeCompare(right.slug));
 
-  const dashboardGoonBookPosts: DashboardGoonBookPost[] = goonBookPosts.map((post) => {
+  const dashboardBitClawPosts: DashboardBitClawPost[] = bitClawPosts.map((post) => {
     const profile = getProfileHandle(post.profileId, post.agentId);
     return {
       ...post,
@@ -692,8 +692,8 @@ export async function getInternalAdminDashboardData() {
 
   return {
     activeSessions,
-    goonBookPosts: dashboardGoonBookPosts,
-    goonConnectProfiles,
+    bitClawPosts: dashboardBitClawPosts,
+    bolClawProfiles,
     runtimeSummary: buildRuntimeSummary(),
     users,
   };

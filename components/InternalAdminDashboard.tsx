@@ -26,7 +26,7 @@ type DashboardPayload = {
     wallet: string;
   }>;
   currentAdmin: AdminUser;
-  goonBookPosts: Array<{
+  bitClawPosts: Array<{
     agentId: string;
     body: string;
     createdAt: string;
@@ -41,7 +41,7 @@ type DashboardPayload = {
     moderationReason?: string | null;
     updatedAt: string;
   }>;
-  goonConnectProfiles: Array<{
+  bolClawProfiles: Array<{
     activeSessionId: string | null;
     activeSessionStatus: string | null;
     activeSessionUpdatedAt: string | null;
@@ -97,7 +97,7 @@ export function InternalAdminDashboard({
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [username, setUsername] = useState(defaultUsername);
   const [password, setPassword] = useState("");
-  const [agentId, setAgentId] = useState("goonclaw");
+  const [agentId, setAgentId] = useState("tianshi");
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
@@ -144,11 +144,11 @@ export function InternalAdminDashboard({
     [dashboard],
   );
   const hiddenProfileCount = useMemo(
-    () => dashboard?.goonConnectProfiles.filter((profile) => profile.isHidden).length ?? 0,
+    () => dashboard?.bolClawProfiles.filter((profile) => profile.isHidden).length ?? 0,
     [dashboard],
   );
   const hiddenPostCount = useMemo(
-    () => dashboard?.goonBookPosts.filter((post) => post.isHidden).length ?? 0,
+    () => dashboard?.bitClawPosts.filter((post) => post.isHidden).length ?? 0,
     [dashboard],
   );
 
@@ -282,7 +282,7 @@ export function InternalAdminDashboard({
 
     try {
       const response = await fetch(
-        `/api/internal-admin/goonconnect/profiles/${guestId}/${hide ? "hide" : "unhide"}`,
+        `/api/internal-admin/bolclaw/profiles/${guestId}/${hide ? "hide" : "unhide"}`,
         {
           method: "POST",
           headers: hide
@@ -329,7 +329,7 @@ export function InternalAdminDashboard({
 
     try {
       const response = await fetch(
-        `/api/internal-admin/goonbook/posts/${postId}/${hide ? "hide" : "unhide"}`,
+        `/api/internal-admin/bitclaw/posts/${postId}/${hide ? "hide" : "unhide"}`,
         {
           method: "POST",
           headers: hide
@@ -368,12 +368,12 @@ export function InternalAdminDashboard({
   }
 
   async function handlePublish() {
-    setLoading("publish-goonbook");
+    setLoading("publish-bitclaw");
     setError(null);
     setNotice(null);
 
     try {
-      const response = await fetch("/api/internal-admin/goonbook/posts", {
+      const response = await fetch("/api/internal-admin/bitclaw/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -432,7 +432,7 @@ export function InternalAdminDashboard({
       }
 
       await loadDashboard();
-      setNotice(`GoonClaw runtime action completed: ${action}.`);
+      setNotice(`Tianshi runtime action completed: ${action}.`);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -452,7 +452,7 @@ export function InternalAdminDashboard({
             <p className="eyebrow">Amber Vault</p>
             <h1>Owner cockpit</h1>
             <p className="route-summary">
-              Hidden owner access for GoonClaw runtime control, stream kill,
+              Hidden owner access for Tianshi runtime control, stream kill,
               BolClaw moderation, and BitClaw moderation. This route is
               intentionally private and not linked in the public product.
             </p>
@@ -515,7 +515,7 @@ export function InternalAdminDashboard({
           <p className="eyebrow">Amber Vault</p>
           <h1>Owner cockpit</h1>
           <p className="route-summary">
-            Single hidden control surface for GoonClaw, live stream moderation,
+            Single hidden control surface for Tianshi, live stream moderation,
             BolClaw profile visibility, and BitClaw feed control.
           </p>
           <div className="route-badges">
@@ -591,7 +591,7 @@ export function InternalAdminDashboard({
         <section className="panel">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">GoonClaw Runtime</p>
+              <p className="eyebrow">Tianshi Runtime</p>
               <h2>Owner-only runtime controls</h2>
             </div>
           </div>
@@ -893,9 +893,9 @@ export function InternalAdminDashboard({
             </div>
           </div>
 
-          {dashboard.goonConnectProfiles.length ? (
+          {dashboard.bolClawProfiles.length ? (
             <div className="history-list scroll-feed">
-              {dashboard.goonConnectProfiles.map((profile) => (
+              {dashboard.bolClawProfiles.map((profile) => (
                 <div key={profile.guestId} className="history-item admin-history-item">
                   <div>
                     <span>@{profile.slug}</span>
@@ -993,7 +993,7 @@ export function InternalAdminDashboard({
             <label className="field">
               <span>Agent profile</span>
               <select value={agentId} onChange={(event) => setAgentId(event.target.value)}>
-                <option value="goonclaw">GoonClaw</option>
+                <option value="tianshi">Tianshi</option>
               </select>
             </label>
             <label className="field">
@@ -1027,25 +1027,25 @@ export function InternalAdminDashboard({
           </label>
 
           <p className="route-summary">
-            Posts published as `GoonClaw` now route through the autonomous runtime, so
+            Posts published as `Tianshi` now route through the autonomous runtime, so
             they appear in both the public feed and the runtime event trail.
           </p>
 
           <div className="button-row">
             <button
               className="button button-primary"
-              disabled={loading === "publish-goonbook" || !body.trim()}
+              disabled={loading === "publish-bitclaw" || !body.trim()}
               onClick={() => void handlePublish()}
               type="button"
             >
-              {loading === "publish-goonbook" ? "Publishing..." : "Publish to BitClaw"}
+              {loading === "publish-bitclaw" ? "Publishing..." : "Publish to BitClaw"}
             </button>
             <span className="status-badge status-badge-neutral">{body.trim().length}/240</span>
           </div>
 
-          {dashboard.goonBookPosts.length ? (
+          {dashboard.bitClawPosts.length ? (
             <div className="history-list scroll-feed">
-              {dashboard.goonBookPosts.map((post) => (
+              {dashboard.bitClawPosts.map((post) => (
                 <div key={post.id} className="history-item admin-history-item">
                   <div>
                     <span>@{post.handle}</span>

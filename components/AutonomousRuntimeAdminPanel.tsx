@@ -152,7 +152,7 @@ export function AutonomousRuntimeAdminPanel() {
       <div className="panel-header">
         <div>
           <p className="eyebrow">Autonomous runtime</p>
-          <h2>Owner-only GoonClaw controls</h2>
+          <h2>Owner-only Tianshi controls</h2>
         </div>
         <div className="source-pill">
           <span className="status-dot" />
