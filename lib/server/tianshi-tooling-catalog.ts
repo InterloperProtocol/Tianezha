@@ -19,6 +19,12 @@ const CURATED_CODEX_SKILLS = [
   "tokenized-agents",
 ];
 
+const TIANEZHA_CHAIN_MCP_SERVER_NAMES = [
+  "bnbchain-mcp",
+  "solana-developer-mcp",
+  "sendaifun-solana-mcp",
+] as const;
+
 function sortNames(names: Iterable<string>) {
   return Array.from(new Set(names)).sort((left, right) =>
     left.localeCompare(right),
@@ -84,6 +90,10 @@ export function getInstalledLocalCodexSkillNames() {
   return CURATED_CODEX_SKILLS.filter((name) =>
     existsSync(path.join(codexSkillsPath, name, "SKILL.md")),
   );
+}
+
+export function getTianezhaChainMcpServerNames() {
+  return [...TIANEZHA_CHAIN_MCP_SERVER_NAMES];
 }
 
 export function getConfiguredRepoMcpServerNames() {

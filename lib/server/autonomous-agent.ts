@@ -61,6 +61,7 @@ import {
   getAutonomousRiskControlPlane,
   getAutonomousTransferGuardrails,
 } from "@/lib/server/autonomous-treasury-policy";
+import { getMeshCommerceSummary } from "@/lib/server/mesh-commerce";
 import {
   AutonomousAgentStatus,
   AutonomousControlAction,
@@ -389,28 +390,46 @@ function getRepoMcpConfigPath(fileName: string) {
   return path.resolve(process.cwd(), "services/tianshi-automaton/mcp", fileName);
 }
 
-function hasSolanaMcpBridgeConfig() {
-  return existsSync(getRepoMcpConfigPath("solana-mcp.config.json"));
+function hasRepoMcpBridgeConfig(fileName: string) {
+  return existsSync(getRepoMcpConfigPath(fileName));
+}
+
+function hasBnbChainMcpBridgeConfig() {
+  return hasRepoMcpBridgeConfig("bnbchain-mcp.config.json");
+}
+
+function hasSolanaDeveloperMcpBridgeConfig() {
+  return hasRepoMcpBridgeConfig("solana-developer-mcp.config.json");
+}
+
+function hasSendaifunSolanaMcpBridgeConfig() {
+  return hasRepoMcpBridgeConfig("sendaifun-solana-mcp.config.json");
+}
+
+function hasAnySolanaMcpBridgeConfig() {
+  return (
+    hasSolanaDeveloperMcpBridgeConfig() || hasSendaifunSolanaMcpBridgeConfig()
+  );
 }
 
 function hasConwayCodexMcpBridgeConfig() {
-  return existsSync(getRepoMcpConfigPath("conway-codex.config.json"));
+  return hasRepoMcpBridgeConfig("conway-codex.config.json");
 }
 
 function hasTavilyMcpBridgeConfig() {
-  return existsSync(getRepoMcpConfigPath("tavily-mcp.config.json"));
+  return hasRepoMcpBridgeConfig("tavily-mcp.config.json");
 }
 
 function hasContext7McpBridgeConfig() {
-  return existsSync(getRepoMcpConfigPath("context7-mcp.config.json"));
+  return hasRepoMcpBridgeConfig("context7-mcp.config.json");
 }
 
 function hasTaskMasterMcpBridgeConfig() {
-  return existsSync(getRepoMcpConfigPath("taskmaster-mcp.config.json"));
+  return hasRepoMcpBridgeConfig("taskmaster-mcp.config.json");
 }
 
 function hasExcelMcpBridgeConfig() {
-  return existsSync(getRepoMcpConfigPath("excel-mcp.config.json"));
+  return hasRepoMcpBridgeConfig("excel-mcp.config.json");
 }
 
 function isConwayTerminalReady() {
@@ -2082,6 +2101,7 @@ export function getAutonomousStatus() {
   const riskControlPlane = snapshot.riskControlPlane || getAutonomousRiskControlPlane();
   const watchlistMetadata = getAutonomousPassiveWatchlistMetadata();
   const circuitBreakerState = getCircuitBreakerState(snapshot);
+  const meshCommerce = getMeshCommerceSummary();
   const availableActions = [
     ...solanaRuntime.actionNames,
     ...dexterAgent.actionNames,
@@ -2132,11 +2152,23 @@ export function getAutonomousStatus() {
       "Use Polymarket market data and agent participation plumbing as an internal prediction-market ability, with live execution gated behind explicit compliance and operator acknowledgement.",
       "Allow audited self-mod proposals to tune runtime behavior without granting arbitrary code execution.",
       "Autonomously spawn replica child runtimes inside the same constitutional envelope.",
+      meshCommerce.sentence,
+      "Price discovery for compute uses native spot execution plus offchain Nezha perps and Tianzi forecast markets so the mesh can discover a floating compute price without inventing a new chain.",
+      "Treat humans, Tianshi, and RA agents as first-class market actors while keeping every commercial principal chain accountable to a human in the end.",
       "Prefer Google Cloud execution first; use Conway domains only when needed and Conway Codex services only as fallback.",
     ],
     heartbeatAt: snapshot.heartbeatAt,
     latestPolicyDecision: snapshot.latestPolicyDecision,
     modelRuntime,
+    meshCommerce: {
+      adapters: meshCommerce.adapters,
+      community: meshCommerce.state.community,
+      compute: meshCommerce.compute,
+      paymentAdapters: meshCommerce.paymentAdapters,
+      sentence: meshCommerce.sentence,
+      subagents: meshCommerce.subagents,
+      vendors: meshCommerce.vendors,
+    },
     name: "Tianshi",
     positions: snapshot.positions,
     publicTraceMode: env.TIANSHI_PUBLIC_TRACE_MODE,
@@ -2205,7 +2237,19 @@ export function getAutonomousStatus() {
       loadedActionCount: availableActions.length,
       loadedSkillCount: skillCount,
       solanaAgentKitConfigured: solanaRuntime.configured,
-      solanaMcpConfigured: hasSolanaMcpBridgeConfig(),
+      bnbChainMcpConfigured:
+        hasBnbChainMcpBridgeConfig() ||
+        configuredMcpServerNames.includes("bnbchain-mcp"),
+      solanaDeveloperMcpConfigured:
+        hasSolanaDeveloperMcpBridgeConfig() ||
+        configuredMcpServerNames.includes("solana-developer-mcp"),
+      sendaifunSolanaMcpConfigured:
+        hasSendaifunSolanaMcpBridgeConfig() ||
+        configuredMcpServerNames.includes("sendaifun-solana-mcp"),
+      solanaMcpConfigured:
+        hasAnySolanaMcpBridgeConfig() ||
+        configuredMcpServerNames.includes("solana-developer-mcp") ||
+        configuredMcpServerNames.includes("sendaifun-solana-mcp"),
       polymarketActionNames: polymarketAgent.actionNames,
       polymarketDefaultMode: polymarketAgent.defaultMode,
       polymarketEnabled: polymarketAgent.enabled,

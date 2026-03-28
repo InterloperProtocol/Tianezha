@@ -1,6 +1,7 @@
 import { TianezhaScaffold } from "@/components/shell/TianezhaScaffold";
 import { TianziTradeForm } from "@/components/tianzi/TianziTradeForm";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { getMeshCommerceSummary } from "@/lib/server/mesh-commerce";
 import {
   getCurrentLoadedIdentity,
   getTianziState,
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function TianziPage() {
   const loadedIdentity = await getCurrentLoadedIdentity();
   const tianzi = await getTianziState(loadedIdentity?.profile.id);
+  const meshCommerce = getMeshCommerceSummary();
 
   return (
     <TianezhaScaffold>
@@ -27,6 +29,7 @@ export default async function TianziPage() {
           <div className="route-badges">
             <StatusBadge tone="success">Auto-resolution</StatusBadge>
             <StatusBadge tone="accent">Binary books</StatusBadge>
+            <StatusBadge tone="accent">Compute forecasts</StatusBadge>
             <StatusBadge tone="warning">Simulation-only</StatusBadge>
           </div>
         </div>
@@ -132,6 +135,53 @@ export default async function TianziPage() {
                   {question.resolution
                     ? `${question.resolution.result.toUpperCase()} at ${new Date(question.resolution.resolvedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`
                     : `Open until ${new Date(question.closesAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </section>
+
+      <section className="stack-grid">
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Compute forecast bands</p>
+              <h2>Tianzi price questions for mesh compute</h2>
+            </div>
+          </div>
+          <div className="mini-list">
+            {meshCommerce.compute.forecastQuestions.map((question) => (
+              <article key={question.id} className="mini-item-card">
+                <div>
+                  <span>{question.resourceClass}</span>
+                  <strong>{question.prompt}</strong>
+                </div>
+                <p className="route-summary compact">
+                  Threshold {formatUsd(question.thresholdPrice)} | {question.region} | {question.tier}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Reference prices</p>
+              <h2>Spot + perp + forecast blend</h2>
+            </div>
+          </div>
+          <div className="mini-list">
+            {meshCommerce.compute.referencePrices.map((price) => (
+              <article key={price.id} className="mini-item-card">
+                <div>
+                  <span>{price.resourceClass}</span>
+                  <strong>{formatUsd(price.referencePrice)}</strong>
+                </div>
+                <p className="route-summary compact">
+                  Spot {formatUsd(price.spotIndex)} | Perp {formatUsd(price.perpMark || 0)} | Forecast{" "}
+                  {formatUsd(price.forecastPrice || 0)} | {price.liquidityMode}
                 </p>
               </article>
             ))}

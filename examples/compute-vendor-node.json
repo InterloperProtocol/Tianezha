@@ -1,0 +1,169 @@
+{
+  "version": "tianezha-savegame/v1",
+  "exportedAt": "2026-03-27T12:00:00.000Z",
+  "state": {
+    "community": {
+      "id": "community:compute-vendor-node",
+      "label": "Compute Vendor Node",
+      "bootstrapMintAddresses": ["So11111111111111111111111111111111111111112"],
+      "localFirst": true,
+      "relayFallbackEnabled": true,
+      "walletConnectRequired": false,
+      "paymentAdapters": ["x402", "manual_invoice", "solana_memo", "conway"],
+      "rewardPoolPolicy": {
+        "totalRewardsPoolPct": 49,
+        "tokenHolderProportionalPct": 51,
+        "proofOfComputePct": 21,
+        "userRewardPct": 28
+      },
+      "savegameRequired": true,
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "peers": {
+      "id": "peers:compute-vendor-node",
+      "peers": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "subagents": {
+      "id": "subagents:compute-vendor-node",
+      "actors": [
+        {
+          "id": "actor:vendor-node",
+          "kind": "node",
+          "label": "Vendor Node",
+          "nodeId": "peer:vendor-node",
+          "principalChain": {
+            "links": [
+              {
+                "id": "agent:vendor-node",
+                "kind": "agent",
+                "label": "Vendor Node"
+              },
+              {
+                "id": "human:rahul",
+                "kind": "human",
+                "label": "Rahul"
+              }
+            ],
+            "terminalHumanId": "human:rahul"
+          },
+          "capabilities": ["compute", "storage", "preservation", "domain_vendor"],
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "rewards": {
+      "id": "rewards:compute-vendor-node",
+      "policy": {
+        "totalRewardsPoolPct": 49,
+        "tokenHolderProportionalPct": 51,
+        "proofOfComputePct": 21,
+        "userRewardPct": 28
+      },
+      "entries": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "computeMarket": {
+      "id": "compute-market:compute-vendor-node",
+      "offers": [
+        {
+          "id": "offer:gpu",
+          "actorId": "actor:vendor-node",
+          "peerId": "peer:vendor-node",
+          "title": "Edge GPU lane",
+          "resourceClass": "gpu_second",
+          "capability": "compute",
+          "region": "us-east",
+          "tier": "edge",
+          "availableUnits": 800,
+          "minUnits": 25,
+          "maxUnits": 800,
+          "unitPrice": 0.83,
+          "priceCurrency": "USD",
+          "reliabilityScore": 0.95,
+          "latencyMs": 28,
+          "settlementAdapters": ["x402", "manual_invoice", "solana_memo"],
+          "rewardClass": "simulated",
+          "status": "open",
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "requests": [],
+      "bids": [],
+      "assignments": [],
+      "completions": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "computePriceMarkets": {
+      "id": "compute-price:compute-vendor-node",
+      "indexBars": [],
+      "perpContracts": [],
+      "perpPositions": [],
+      "forecastQuestions": [],
+      "forecastPositions": [],
+      "referencePrices": [
+        {
+          "id": "ref:vendor-node:gpu",
+          "resourceClass": "gpu_second",
+          "region": "us-east",
+          "tier": "edge",
+          "spotIndex": 0.83,
+          "perpMark": null,
+          "forecastPrice": null,
+          "referencePrice": 0.83,
+          "liquidityMode": "spot_only",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "vendorMarket": {
+      "id": "vendor-market:compute-vendor-node",
+      "offers": [
+        {
+          "id": "vendor:domains",
+          "actorId": "actor:vendor-node",
+          "peerId": "peer:vendor-node",
+          "kind": "domain",
+          "title": "Domain vending lane",
+          "description": "Native mesh domain reservations with adapter settlement.",
+          "region": "global",
+          "tier": "edge",
+          "unitPrice": 7.5,
+          "priceCurrency": "USD",
+          "settlementAdapters": ["manual_invoice", "x402", "conway"],
+          "status": "open",
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "domainOffers": [
+        {
+          "id": "domain:mesh",
+          "vendorOfferId": "vendor:domains",
+          "actorId": "actor:vendor-node",
+          "peerId": "peer:vendor-node",
+          "label": "Mesh domain reservation",
+          "brand": "Vendor Node",
+          "tld": ".mesh",
+          "searchTerm": "superlative-compute",
+          "reservationWindowMinutes": 30,
+          "unitPrice": 9.25,
+          "priceCurrency": "USD",
+          "settlementAdapters": ["manual_invoice", "x402", "conway"],
+          "status": "open",
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "intents": [],
+      "assignments": [],
+      "completions": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    }
+  }
+}

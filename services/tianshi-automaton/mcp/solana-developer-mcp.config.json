@@ -1,0 +1,7 @@
+{
+  "url": "https://mcp.solana.com/mcp",
+  "notes": [
+    "Adds the official Solana Developer MCP server to the Tianezha runtime tool stack.",
+    "This remote MCP is streamable HTTP and complements the local Sendaifun Solana MCP bridge."
+  ]
+}

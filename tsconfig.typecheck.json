@@ -9,6 +9,8 @@
   "exclude": [
     "node_modules",
     ".next",
+    "**/*.test.ts",
+    "**/*.test.tsx",
     "tests/regression",
     "services/tianshi-automaton/vendor",
     "vendor_automaton_probe",

@@ -1,5 +1,13 @@
 import type { CircuitBreakerState } from "@/lib/types/constitution";
 import type { MainBrainBoundaryStatus } from "@/lib/types/brains";
+import type {
+  CommunityConfig,
+  ComputeForecastQuestion,
+  ComputePerpContract,
+  DomainOffer,
+  ReferenceComputePrice,
+  RewardEntryKind,
+} from "@/packages/core/src/protocol";
 
 export type DeviceType = "autoblow" | "handy" | "rest";
 
@@ -794,6 +802,9 @@ export interface AutonomousToolingStatus {
   vertexOnly: boolean;
   solanaAgentKitConfigured: boolean;
   solanaMcpConfigured: boolean;
+  bnbChainMcpConfigured: boolean;
+  solanaDeveloperMcpConfigured: boolean;
+  sendaifunSolanaMcpConfigured: boolean;
   conwayCodexMcpConfigured: boolean;
   conwayApiKeyConfigured: boolean;
   tavilyMcpConfigured: boolean;
@@ -962,6 +973,57 @@ export interface AutonomousMarketIntelStatus {
   lastOutcome?: string | null;
 }
 
+export interface AutonomousMeshPaymentAdapterStatus {
+  kind: string;
+  label: string;
+  enabled: boolean;
+  optional: boolean;
+}
+
+export interface AutonomousMeshComputeStatus {
+  openOffers: number;
+  openRequests: number;
+  activeAssignments: number;
+  completedAssignments: number;
+  walletConnectRequired: boolean;
+  referencePrices: ReferenceComputePrice[];
+  perpContracts: ComputePerpContract[];
+  forecastQuestions: ComputeForecastQuestion[];
+  rewardSummary: Record<RewardEntryKind, number>;
+}
+
+export interface AutonomousMeshVendorStatus {
+  totalOffers: number;
+  conwayRequired: boolean;
+  domainOffers: DomainOffer[];
+}
+
+export interface AutonomousMeshAdapterFlags {
+  gistbookEnabled: boolean;
+  cancerhawkEnabled: boolean;
+  cancerPredictionEnabled: boolean;
+  conwayEnabled: boolean;
+}
+
+export interface AutonomousMeshCommerceStatus {
+  sentence: string;
+  community: CommunityConfig;
+  paymentAdapters: AutonomousMeshPaymentAdapterStatus[];
+  compute: AutonomousMeshComputeStatus;
+  vendors: AutonomousMeshVendorStatus;
+  adapters: AutonomousMeshAdapterFlags;
+  subagents: {
+    actorCount: number;
+    actorMcpBindings: Array<{
+      actorId: string;
+      mcpServerNames: string[];
+    }>;
+    mcpServerNames: string[];
+    tianshiActorId: string;
+    raActorIds: string[];
+  };
+}
+
 export interface AutonomousAgentStatus {
   agentId: string;
   name: string;
@@ -990,6 +1052,7 @@ export interface AutonomousAgentStatus {
   replication: AutonomousReplicationStatus;
   selfModification: AutonomousSelfModificationStatus;
   marketIntel: AutonomousMarketIntelStatus;
+  meshCommerce: AutonomousMeshCommerceStatus;
   recentFeed: AutonomousFeedEvent[];
   feedSize: number;
   circuitBreakerState?: CircuitBreakerState;

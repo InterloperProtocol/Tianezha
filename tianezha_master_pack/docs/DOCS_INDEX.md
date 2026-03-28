@@ -14,6 +14,7 @@ Core:
 - MERKLE_COHERENCE.md
 - DATA_MODEL.md
 - API_SURFACE.md
+- REWARDS.md
 
 Modules:
 - TIANEZHA.md
@@ -26,7 +27,6 @@ Modules:
 
 System:
 - AGENTS.md
-- REWARDS.md
 - BADGES.md
 - RANKS.md
 - PERMISSIONS.md
@@ -37,3 +37,11 @@ System:
 - FORMULAS.md
 - CODEX_HANDOFF.md
 - GITBOOK_SUMMARY.md
+
+Commerce and compute-price doctrine now lives primarily in:
+
+- ARCHITECTURE.md
+- DATA_MODEL.md
+- TIANZI.md
+- NEZHA.md
+- REWARDS.md

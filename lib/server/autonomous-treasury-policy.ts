@@ -139,7 +139,7 @@ export function getAutonomousTransferGuardrails(): AutonomousTransferGuardrails 
       "Treasury-controlled settlement and reserve accounts",
       "Programmatic burn destinations for the Tianshi token",
       "Configured GMGN trading flow for policy-approved Pump meme coin swaps",
-      "Allowlisted Conway domains and infrastructure hosts only when Google Cloud native routing is insufficient",
+      "Allowlisted Conway domains and infrastructure hosts as one optional adapter path alongside native mesh vendor offers",
     ],
     blockedDestinationClasses: [
       "Arbitrary external wallets",
@@ -150,7 +150,7 @@ export function getAutonomousTransferGuardrails(): AutonomousTransferGuardrails 
     conwayPaymentsAllowed: true,
     conwayAllowedHosts: getConwayAllowedHosts(),
     notes:
-      "Tianshi prefers Google Cloud-native infrastructure first. Conway payments are fallback-only through the allowlisted host set, and the runtime must refuse any instruction that attempts to move funds to an arbitrary private wallet.",
+      "Tianshi prefers native mesh coordination plus adapter-settled payments. Conway remains optional through the allowlisted host set, and the runtime must refuse any instruction that attempts to move funds to an arbitrary private wallet.",
   };
 }
 

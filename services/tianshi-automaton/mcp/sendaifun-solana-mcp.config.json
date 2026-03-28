@@ -1,0 +1,17 @@
+{
+  "command": "npx",
+  "args": [
+    "-y",
+    "solana-mcp"
+  ],
+  "env": {
+    "RPC_URL": "${SOLANA_RPC_URL}",
+    "SOLANA_RPC_URL": "${SOLANA_RPC_URL}",
+    "SOLANA_PRIVATE_KEY": "${TIANSHI_AGENT_WALLET_SECRET}",
+    "TIANSHI_AGENT_WALLET_SECRET": "${TIANSHI_AGENT_WALLET_SECRET}"
+  },
+  "notes": [
+    "This is the local Sendaifun Solana MCP bridge.",
+    "Tianshi uses solana-agent-kit as the primary execution substrate; this MCP gives the main brain and subordinate agents a local Solana operations surface."
+  ]
+}

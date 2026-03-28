@@ -6,13 +6,26 @@
         "CONWAY_API_KEY": "${CONWAY_API_KEY}"
       }
     },
-    "solana": {
+    "bnbchain-mcp": {
       "command": "npx",
       "args": [
+        "-y",
+        "@bnb-chain/mcp@latest"
+      ]
+    },
+    "solana-developer-mcp": {
+      "url": "https://mcp.solana.com/mcp"
+    },
+    "sendaifun-solana-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
         "solana-mcp"
       ],
       "env": {
+        "RPC_URL": "${SOLANA_RPC_URL}",
         "SOLANA_RPC_URL": "${SOLANA_RPC_URL}",
+        "SOLANA_PRIVATE_KEY": "${TIANSHI_AGENT_WALLET_SECRET}",
         "TIANSHI_AGENT_WALLET_SECRET": "${TIANSHI_AGENT_WALLET_SECRET}"
       }
     }

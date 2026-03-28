@@ -1,0 +1,11 @@
+{
+  "command": "npx",
+  "args": [
+    "-y",
+    "@bnb-chain/mcp@latest"
+  ],
+  "notes": [
+    "Adds the official BNB Chain MCP server to the Tianezha runtime tool stack.",
+    "This bridge is optional for baseline boot, but it is available to the main brain and subordinate agents when the Codex MCP manifest is loaded."
+  ]
+}

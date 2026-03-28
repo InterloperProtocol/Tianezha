@@ -209,11 +209,36 @@ describe("autonomous agent policy", () => {
     expect(status.reportCommerce.priceUsdc).toBe(0.01);
     expect(status.reportCommerce.purchaseWindowSeconds).toBe(1);
     expect(status.tooling.agfundEnabled).toBe(true);
+    expect(status.tooling.bnbChainMcpConfigured).toBe(true);
     expect(status.tooling.fourMemeEnabled).toBe(true);
     expect(status.tooling.hyperliquidEnabled).toBe(true);
     expect(status.tooling.hyperliquidApiUrl).toBe("https://api.hyperliquid.xyz");
+    expect(status.tooling.solanaDeveloperMcpConfigured).toBe(true);
+    expect(status.tooling.sendaifunSolanaMcpConfigured).toBe(true);
+    expect(status.tooling.configuredMcpServerNames).toEqual(
+      expect.arrayContaining([
+        "bnbchain-mcp",
+        "solana-developer-mcp",
+        "sendaifun-solana-mcp",
+      ]),
+    );
     expect(status.tooling.wechatBroadcastEnabled).toBe(false);
     expect(status.tooling.wechatWebhookConfigured).toBe(false);
+    expect(status.meshCommerce.subagents.mcpServerNames).toEqual(
+      expect.arrayContaining([
+        "bnbchain-mcp",
+        "solana-developer-mcp",
+        "sendaifun-solana-mcp",
+      ]),
+    );
+    expect(
+      status.meshCommerce.subagents.actorMcpBindings.every(
+        (binding) =>
+          binding.mcpServerNames.includes("bnbchain-mcp") &&
+          binding.mcpServerNames.includes("solana-developer-mcp") &&
+          binding.mcpServerNames.includes("sendaifun-solana-mcp"),
+      ),
+    ).toBe(true);
     expect(status.mainBrainBoundary.parentBrainId).toBe("tianshi");
     expect(status.mainBrainBoundary.configured).toBe(false);
     expect(status.mainBrainBoundary.subAgentsMayMutateParent).toBe(false);

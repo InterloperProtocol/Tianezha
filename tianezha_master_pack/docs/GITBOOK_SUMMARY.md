@@ -1,5 +1,7 @@
 # GitBook Navigation
 
+This navigation now describes a shell/runtime/adapters product with native mesh commerce, floating compute price discovery, and portable savegames.
+
 - Welcome
 - Product Overview
 - Product Summary

@@ -1,6 +1,7 @@
 import { NezhaOrderForm } from "@/components/nezha/NezhaOrderForm";
 import { TianezhaScaffold } from "@/components/shell/TianezhaScaffold";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { getMeshCommerceSummary } from "@/lib/server/mesh-commerce";
 import {
   getCurrentLoadedIdentity,
   getNezhaState,
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function NezhaPage() {
   const loadedIdentity = await getCurrentLoadedIdentity();
   const nezha = await getNezhaState(loadedIdentity?.profile.id);
+  const meshCommerce = getMeshCommerceSummary();
 
   return (
     <TianezhaScaffold>
@@ -27,6 +29,7 @@ export default async function NezhaPage() {
           <div className="route-badges">
             <StatusBadge tone="success">Market + limit + reduce-only</StatusBadge>
             <StatusBadge tone="accent">5x max leverage</StatusBadge>
+            <StatusBadge tone="accent">Compute perps</StatusBadge>
             <StatusBadge tone="warning">Local liquidations only</StatusBadge>
           </div>
         </div>
@@ -123,6 +126,53 @@ export default async function NezhaPage() {
                 <p className="route-summary compact">High-risk positions will appear here if the simulation trips liquidation tiers.</p>
               </article>
             )}
+          </div>
+        </section>
+      </section>
+
+      <section className="stack-grid">
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Compute perps</p>
+              <h2>Offchain Nezha books for compute cost</h2>
+            </div>
+          </div>
+          <div className="mini-list">
+            {meshCommerce.compute.perpContracts.map((contract) => (
+              <article key={contract.id} className="mini-item-card">
+                <div>
+                  <span>{contract.resourceClass}</span>
+                  <strong>{formatUsd(contract.markPrice)}</strong>
+                </div>
+                <p className="route-summary compact">
+                  Last {formatUsd(contract.lastPrice)} | {contract.region} | {contract.tier}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Floating price</p>
+              <h2>Current compute reference lanes</h2>
+            </div>
+          </div>
+          <div className="mini-list">
+            {meshCommerce.compute.referencePrices.map((price) => (
+              <article key={price.id} className="mini-item-card">
+                <div>
+                  <span>{price.resourceClass}</span>
+                  <strong>{formatUsd(price.referencePrice)}</strong>
+                </div>
+                <p className="route-summary compact">
+                  Spot {formatUsd(price.spotIndex)} | Perp {formatUsd(price.perpMark || 0)} | Forecast{" "}
+                  {formatUsd(price.forecastPrice || 0)}
+                </p>
+              </article>
+            ))}
           </div>
         </section>
       </section>

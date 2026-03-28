@@ -1,0 +1,184 @@
+{
+  "version": "tianezha-savegame/v1",
+  "exportedAt": "2026-03-27T12:00:00.000Z",
+  "state": {
+    "community": {
+      "id": "community:cancer-dual-mint",
+      "label": "Cancer Dual Mint Mesh",
+      "bootstrapMintAddresses": [
+        "So11111111111111111111111111111111111111112",
+        "0x8f31a56bc0d4f1ed90aa5d79f501ab3419810abc"
+      ],
+      "localFirst": true,
+      "relayFallbackEnabled": true,
+      "walletConnectRequired": false,
+      "paymentAdapters": ["x402", "manual_invoice", "solana_memo", "btc_watcher"],
+      "rewardPoolPolicy": {
+        "totalRewardsPoolPct": 49,
+        "tokenHolderProportionalPct": 51,
+        "proofOfComputePct": 21,
+        "userRewardPct": 28
+      },
+      "savegameRequired": true,
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "peers": {
+      "id": "peers:cancer-dual-mint",
+      "peers": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "subagents": {
+      "id": "subagents:cancer-dual-mint",
+      "actors": [
+        {
+          "id": "actor:tianshi:dual-mint",
+          "kind": "runtime",
+          "label": "Dual Mint Research Runtime",
+          "nodeId": "peer:dual-mint-node",
+          "principalChain": {
+            "links": [
+              {
+                "id": "agent:tianshi:dual-mint",
+                "kind": "agent",
+                "label": "Dual Mint Research Runtime"
+              },
+              {
+                "id": "human:rahul",
+                "kind": "human",
+                "label": "Rahul"
+              }
+            ],
+            "terminalHumanId": "human:rahul"
+          },
+          "capabilities": ["compute", "cancer_research", "cancer_prediction_sim"],
+          "metadata": {
+            "dualMintGovernance": true
+          },
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "rewards": {
+      "id": "rewards:cancer-dual-mint",
+      "policy": {
+        "totalRewardsPoolPct": 49,
+        "tokenHolderProportionalPct": 51,
+        "proofOfComputePct": 21,
+        "userRewardPct": 28
+      },
+      "entries": [
+        {
+          "id": "reward:compute:dual-mint",
+          "actorId": "actor:tianshi:dual-mint",
+          "kind": "proof_of_compute",
+          "rewardClass": "simulated",
+          "amount": 18.5,
+          "referenceId": "assignment:dual-mint:gpu",
+          "reason": "Proof-of-compute credit for a dual-mint oncology batch.",
+          "createdAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "computeMarket": {
+      "id": "compute-market:cancer-dual-mint",
+      "offers": [],
+      "requests": [],
+      "bids": [],
+      "assignments": [],
+      "completions": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "computePriceMarkets": {
+      "id": "compute-price:cancer-dual-mint",
+      "indexBars": [],
+      "perpContracts": [
+        {
+          "id": "perp:gpu-second:research",
+          "resourceClass": "gpu_second",
+          "region": "us-east",
+          "tier": "research",
+          "settlementCurrency": "USD",
+          "markPrice": 0.94,
+          "lastPrice": 0.91,
+          "status": "open",
+          "epochStartAt": "2026-03-27T12:00:00.000Z",
+          "epochEndAt": "2026-03-27T13:00:00.000Z",
+          "source": "nezha-compute",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "perpPositions": [
+        {
+          "id": "perp-position:research",
+          "contractId": "perp:gpu-second:research",
+          "actorId": "actor:tianshi:dual-mint",
+          "side": "long",
+          "size": 150,
+          "entryPrice": 0.9,
+          "markPrice": 0.94,
+          "margin": 30,
+          "realizedPnl": 0,
+          "unrealizedPnl": 6,
+          "status": "open",
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "forecastQuestions": [
+        {
+          "id": "forecast:gpu-threshold",
+          "resourceClass": "gpu_second",
+          "region": "us-east",
+          "tier": "research",
+          "prompt": "Will research GPU seconds clear above $0.95 this epoch?",
+          "thresholdPrice": 0.95,
+          "closesAt": "2026-03-27T12:20:00.000Z",
+          "resolvesAt": "2026-03-27T13:00:00.000Z",
+          "status": "open",
+          "resolution": null,
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "forecastPositions": [
+        {
+          "id": "forecast-position:gpu-threshold",
+          "questionId": "forecast:gpu-threshold",
+          "actorId": "actor:tianshi:dual-mint",
+          "selection": "yes",
+          "stake": 55,
+          "impliedProbability": 0.57,
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "referencePrices": [
+        {
+          "id": "ref:dual-mint:gpu",
+          "resourceClass": "gpu_second",
+          "region": "us-east",
+          "tier": "research",
+          "spotIndex": 0.9,
+          "perpMark": 0.94,
+          "forecastPrice": 0.95,
+          "referencePrice": 0.9125,
+          "liquidityMode": "full_blend",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "vendorMarket": {
+      "id": "vendor-market:cancer-dual-mint",
+      "offers": [],
+      "domainOffers": [],
+      "intents": [],
+      "assignments": [],
+      "completions": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    }
+  }
+}

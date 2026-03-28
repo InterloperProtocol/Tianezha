@@ -2,6 +2,8 @@
 
 This repo includes or depends on the following external references requested for the Tianshi build.
 
+The current doctrine borrows one framing directly from the founder-provided Hyper Flow materials: Interface Assembly is like ARC for agents. In practice that means visible memory, portable savegames, and clear shell/runtime/adapter boundaries.
+
 ## Local Refs
 
 - `Refs/openclaw`
@@ -26,7 +28,7 @@ This repo includes or depends on the following external references requested for
 
 - Founder-provided Hyper Flow master archive
   - Source: imported local bundle (`hyper_flow_master_archive.zip`)
-  - Purpose: doctrine for interface assembly, visible memory banks, shared Telegram/WeChat surfaces, and stricter DeFi/Polymarket operator guardrails.
+  - Purpose: doctrine for interface assembly, visible memory banks, shared Telegram/WeChat surfaces, portable state, and stricter DeFi/Polymarket operator guardrails.
 
 ## Installed Codex Skill
 
@@ -94,10 +96,10 @@ This repo includes or depends on the following external references requested for
 
 - `~/.codex/config.toml`
   - Active local Codex MCP config
-  - Includes: `tavily`, `context7`, `taskmaster`, `excel`, `helius_docs`, `playwright`, and the pre-existing `rube`
+  - Includes: `bnbchain-mcp`, `solana-developer-mcp`, `sendaifun-solana-mcp`, `tavily`, `context7`, `taskmaster`, `excel`, `helius_docs`, `playwright`, and the pre-existing `rube`
 
 - `services/tianshi-automaton/mcp/tianshi-codex.config.json`
-  - Consolidated repo-local MCP manifest for `conway`, `solana`, `tavily`, `context7`, `taskmaster`, `excel`, `helius_docs`, and `playwright`
+  - Consolidated repo-local MCP manifest for `conway`, `bnbchain-mcp`, `solana-developer-mcp`, `sendaifun-solana-mcp`, `tavily`, `context7`, `taskmaster`, `excel`, `helius_docs`, and `playwright`
   - Purpose: launch Codex against the full Tianshi runtime toolchain with one config file
 
 ## Reference-Only Repos
@@ -129,6 +131,14 @@ This repo includes or depends on the following external references requested for
   - funding and leverage state
   - local risk context
   - helper chat
+
+- Mesh commerce layer:
+  - native compute offers and requests
+  - rolling spot indices
+  - compute-cost perps
+  - compute-cost forecast markets
+  - vendor and domain offers
+  - adapter-based payment settlement
 
 - `BitClaw` profile layer:
   - human and RA-agent identity

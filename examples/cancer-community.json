@@ -1,0 +1,191 @@
+{
+  "version": "tianezha-savegame/v1",
+  "exportedAt": "2026-03-27T12:00:00.000Z",
+  "state": {
+    "community": {
+      "id": "community:cancer-research",
+      "label": "Cancer Research Mesh",
+      "bootstrapMintAddresses": ["So11111111111111111111111111111111111111112"],
+      "localFirst": true,
+      "relayFallbackEnabled": true,
+      "walletConnectRequired": false,
+      "paymentAdapters": ["x402", "manual_invoice", "solana_memo"],
+      "rewardPoolPolicy": {
+        "totalRewardsPoolPct": 49,
+        "tokenHolderProportionalPct": 51,
+        "proofOfComputePct": 21,
+        "userRewardPct": 28
+      },
+      "savegameRequired": true,
+      "createdAt": "2026-03-27T12:00:00.000Z",
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "peers": {
+      "id": "peers:cancer-research",
+      "peers": [
+        {
+          "id": "peer:cancer-lab",
+          "label": "Cancer Research Node",
+          "transport": "hybrid",
+          "relayFallback": true,
+          "relayPeerId": null,
+          "reputationScore": 0.97,
+          "capabilityAds": [
+            {
+              "id": "cap:cancer-research",
+              "peerId": "peer:cancer-lab",
+              "actorId": "actor:tianshi:cancer",
+              "capability": "cancer_research",
+              "resourceClass": "model_token_1k",
+              "region": "us-east",
+              "tier": "research",
+              "reliabilityScore": 0.96,
+              "latencyMs": 140,
+              "settlementAdapters": ["manual_invoice", "x402"],
+              "priceHint": 0.38,
+              "metadata": {
+                "adapter": "CancerHawk",
+                "pythonFirst": true
+              },
+              "createdAt": "2026-03-27T12:00:00.000Z",
+              "updatedAt": "2026-03-27T12:00:00.000Z"
+            },
+            {
+              "id": "cap:cancer-prediction",
+              "peerId": "peer:cancer-lab",
+              "actorId": "actor:tianshi:cancer",
+              "capability": "cancer_prediction_sim",
+              "resourceClass": "model_token_1k",
+              "region": "us-east",
+              "tier": "research",
+              "reliabilityScore": 0.92,
+              "latencyMs": 160,
+              "settlementAdapters": ["manual_invoice"],
+              "priceHint": 0.12,
+              "metadata": {
+                "simulationOnly": true
+              },
+              "createdAt": "2026-03-27T12:00:00.000Z",
+              "updatedAt": "2026-03-27T12:00:00.000Z"
+            }
+          ],
+          "evidenceDigests": [],
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "subagents": {
+      "id": "subagents:cancer-research",
+      "actors": [
+        {
+          "id": "actor:tianshi:cancer",
+          "kind": "runtime",
+          "label": "Tianshi Cancer Research Runtime",
+          "nodeId": "peer:cancer-lab",
+          "principalChain": {
+            "links": [
+              {
+                "id": "agent:tianshi:cancer",
+                "kind": "agent",
+                "label": "Tianshi Cancer Research Runtime"
+              },
+              {
+                "id": "human:rahul",
+                "kind": "human",
+                "label": "Rahul"
+              }
+            ],
+            "terminalHumanId": "human:rahul"
+          },
+          "capabilities": ["cancer_research", "cancer_prediction_sim", "gistbook_memory"],
+          "metadata": {
+            "nonDiagnostic": true
+          },
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "rewards": {
+      "id": "rewards:cancer-research",
+      "policy": {
+        "totalRewardsPoolPct": 49,
+        "tokenHolderProportionalPct": 51,
+        "proofOfComputePct": 21,
+        "userRewardPct": 28
+      },
+      "entries": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "computeMarket": {
+      "id": "compute-market:cancer-research",
+      "offers": [
+        {
+          "id": "offer:cancer-research",
+          "actorId": "actor:tianshi:cancer",
+          "peerId": "peer:cancer-lab",
+          "title": "Cancer target discovery batch",
+          "resourceClass": "model_token_1k",
+          "capability": "cancer_research",
+          "region": "us-east",
+          "tier": "research",
+          "availableUnits": 1200,
+          "minUnits": 100,
+          "maxUnits": 1200,
+          "unitPrice": 0.38,
+          "priceCurrency": "USD",
+          "reliabilityScore": 0.96,
+          "latencyMs": 140,
+          "settlementAdapters": ["manual_invoice", "x402"],
+          "rewardClass": "simulated",
+          "status": "open",
+          "metadata": {
+            "adapter": "CancerHawk"
+          },
+          "createdAt": "2026-03-27T12:00:00.000Z",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "requests": [],
+      "bids": [],
+      "assignments": [],
+      "completions": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "computePriceMarkets": {
+      "id": "compute-price:cancer-research",
+      "indexBars": [],
+      "perpContracts": [],
+      "perpPositions": [],
+      "forecastQuestions": [],
+      "forecastPositions": [],
+      "referencePrices": [
+        {
+          "id": "ref:cancer:model-token",
+          "resourceClass": "model_token_1k",
+          "region": "us-east",
+          "tier": "research",
+          "spotIndex": 0.38,
+          "perpMark": null,
+          "forecastPrice": null,
+          "referencePrice": 0.38,
+          "liquidityMode": "spot_only",
+          "updatedAt": "2026-03-27T12:00:00.000Z"
+        }
+      ],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    },
+    "vendorMarket": {
+      "id": "vendor-market:cancer-research",
+      "offers": [],
+      "domainOffers": [],
+      "intents": [],
+      "assignments": [],
+      "completions": [],
+      "updatedAt": "2026-03-27T12:00:00.000Z"
+    }
+  }
+}

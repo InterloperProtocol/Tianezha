@@ -550,6 +550,127 @@ export function AutonomousAgentPanel() {
 
       <div className="panel-header">
         <div>
+          <p className="eyebrow">Mesh Commerce</p>
+          <h2>Native compute, vendor, and payment rails</h2>
+        </div>
+      </div>
+
+      <div className="route-badges">
+        <StatusBadge tone={status?.meshCommerce.compute.walletConnectRequired ? "danger" : "success"}>
+          {status?.meshCommerce.compute.walletConnectRequired
+            ? "Wallet connect required"
+            : "Wallet-free baseline"}
+        </StatusBadge>
+        <StatusBadge tone="accent">
+          {status?.meshCommerce.adapters.gistbookEnabled ? "Gistbook on" : "Gistbook off"}
+        </StatusBadge>
+        <StatusBadge
+          tone={status?.meshCommerce.adapters.cancerhawkEnabled ? "warning" : "neutral"}
+        >
+          {status?.meshCommerce.adapters.cancerhawkEnabled
+            ? "CancerHawk adapter"
+            : "CancerHawk off"}
+        </StatusBadge>
+        <StatusBadge
+          tone={status?.meshCommerce.adapters.cancerPredictionEnabled ? "warning" : "neutral"}
+        >
+          {status?.meshCommerce.adapters.cancerPredictionEnabled
+            ? "Cancer prediction sim"
+            : "Cancer prediction off"}
+        </StatusBadge>
+      </div>
+
+      <div className="history-list">
+        <div className="history-item">
+          <div>
+            <span>Mesh doctrine</span>
+            <strong>{status?.meshCommerce.sentence || "Waiting"}</strong>
+          </div>
+          <div>
+            <span>Community bootstrap</span>
+            <strong>
+              {status?.meshCommerce.community.bootstrapMintAddresses.join(" | ") || "Waiting"}
+            </strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Open compute offers</span>
+            <strong>{status?.meshCommerce.compute.openOffers ?? 0}</strong>
+          </div>
+          <div>
+            <span>Completed jobs</span>
+            <strong>{status?.meshCommerce.compute.completedAssignments ?? 0}</strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Proof-of-compute lane</span>
+            <strong>
+              {status
+                ? formatNumber(
+                    status.meshCommerce.compute.rewardSummary.proof_of_compute || 0,
+                    2,
+                  )
+                : "0.00"}
+            </strong>
+          </div>
+          <div>
+            <span>Domain offers</span>
+            <strong>{status?.meshCommerce.vendors.domainOffers.length ?? 0}</strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Gistbook atlas</span>
+            <strong>Vectorless RAG, session terrain, and browser resume</strong>
+          </div>
+          <div className="button-row">
+            <a className="button button-secondary small" href="/gistbook">
+              Open Gistbook
+            </a>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Payment adapters</span>
+            <strong>
+              {status?.meshCommerce.paymentAdapters.length
+                ? status.meshCommerce.paymentAdapters
+                    .map((adapter) =>
+                      adapter.enabled ? adapter.label : `${adapter.label} (off)`,
+                    )
+                    .join(" | ")
+                : "Waiting"}
+            </strong>
+          </div>
+          <div>
+            <span>RA market actors</span>
+            <strong>{status?.meshCommerce.subagents.raActorIds.length ?? 0}</strong>
+          </div>
+        </div>
+      </div>
+
+      {status?.meshCommerce.compute.referencePrices.length ? (
+        <div className="detail-list compact">
+          {status.meshCommerce.compute.referencePrices.map((price) => (
+            <div key={price.id} className="detail">
+              <dt>
+                {price.resourceClass} | {price.region} | {price.tier}
+              </dt>
+              <dd>
+                Ref {formatNumber(price.referencePrice, 4)} | Spot{" "}
+                {formatNumber(price.spotIndex, 4)} | Perp{" "}
+                {formatNumber(price.perpMark || 0, 4)} | Forecast{" "}
+                {formatNumber(price.forecastPrice || 0, 4)} | {price.liquidityMode}
+              </dd>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="panel-header">
+        <div>
           <p className="eyebrow">Market Heartbeat</p>
           <h2>Live tape and runtime candidate</h2>
         </div>

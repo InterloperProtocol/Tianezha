@@ -3230,13 +3230,372 @@ details.panel[open] > summary {
   min-height: 1.15rem;
 }
 
+.gistbook-shell,
+.gistbook-grid,
+.gistbook-metric-grid,
+.gistbook-memory-list,
+.gistbook-source-grid,
+.gistbook-answer-shell,
+.gistbook-path-strip {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.gistbook-hero,
+.gistbook-session-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+  gap: 0.9rem;
+  align-items: stretch;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(155, 200, 192, 0.14), transparent 26%),
+    radial-gradient(circle at 80% 20%, rgba(248, 223, 141, 0.09), transparent 22%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.98), rgba(0, 0, 0, 0.98));
+}
+
+.gistbook-hero::after,
+.gistbook-session-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(
+      circle at 20% 10%,
+      rgba(155, 200, 192, 0.1) 0,
+      rgba(155, 200, 192, 0.1) 1px,
+      transparent 1px,
+      transparent 22px
+    );
+  opacity: 0.12;
+}
+
+.gistbook-hero-copy,
+.gistbook-hero-side,
+.gistbook-session-copy,
+.gistbook-session-rail {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.gistbook-hero h1,
+.gistbook-session-hero h1 {
+  margin: 0;
+  max-width: 12ch;
+  font-size: clamp(2.8rem, 5vw, 5.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
+
+.gistbook-metric-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gistbook-metric-card,
+.gistbook-generated-note,
+.gistbook-path-card,
+.gistbook-memory-card,
+.gistbook-source-card {
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(155, 200, 192, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.02);
+  padding: 0.85rem;
+}
+
+.gistbook-metric-card span,
+.gistbook-generated-note span,
+.gistbook-path-card span,
+.gistbook-memory-card span,
+.gistbook-source-card span,
+.gistbook-session-card span,
+.gistbook-transcript-message span,
+.gistbook-heatmap-cell span {
+  color: var(--text-dim);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.gistbook-metric-card strong,
+.gistbook-generated-note strong,
+.gistbook-path-card strong,
+.gistbook-memory-card strong,
+.gistbook-source-card strong,
+.gistbook-session-card strong,
+.gistbook-transcript-message strong {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--seafoam-soft);
+}
+
+.gistbook-metric-card p,
+.gistbook-memory-card p,
+.gistbook-source-card p,
+.gistbook-path-card p,
+.gistbook-generated-note p {
+  margin: 0.35rem 0 0;
+  color: var(--text-subtle);
+  line-height: 1.6;
+}
+
+.gistbook-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gistbook-terrain-panel,
+.gistbook-console-panel {
+  min-height: 100%;
+}
+
+.gistbook-terrain-stage {
+  position: relative;
+  min-height: 20rem;
+  border-radius: 0.24rem;
+  overflow: hidden;
+  border: 1px solid rgba(155, 200, 192, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(155, 200, 192, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(2, 7, 7, 0.98), rgba(0, 0, 0, 0.98));
+}
+
+.gistbook-terrain-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(155, 200, 192, 0.08), transparent 36%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(155, 200, 192, 0.07) 0,
+      rgba(155, 200, 192, 0.07) 1px,
+      transparent 1px,
+      transparent 26px
+    );
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.gistbook-terrain-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 20rem;
+}
+
+.gistbook-terrain-face,
+.gistbook-terrain-wall {
+  stroke: rgba(0, 0, 0, 0.28);
+  stroke-width: 1;
+}
+
+.gistbook-terrain-face {
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.gistbook-console-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.gistbook-query-input {
+  min-height: 7.5rem;
+}
+
+.gistbook-source-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gistbook-source-card {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.gistbook-card-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gistbook-session-card {
+  display: grid;
+  gap: 0.7rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(155, 200, 192, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(155, 200, 192, 0.1), transparent 34%),
+    rgba(255, 255, 255, 0.02);
+  padding: 0.9rem;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.gistbook-session-card:hover,
+.gistbook-session-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(155, 200, 192, 0.34);
+  box-shadow:
+    inset 0 0 0 1px rgba(155, 200, 192, 0.14),
+    0 14px 34px rgba(0, 0, 0, 0.34);
+}
+
+.gistbook-session-card-head,
+.gistbook-session-card-foot {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.gistbook-session-token {
+  white-space: nowrap;
+}
+
+.gistbook-session-summary {
+  margin: 0;
+  color: var(--text-subtle);
+  line-height: 1.65;
+}
+
+.gistbook-session-prompts {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 220ms ease,
+    opacity 220ms ease;
+}
+
+.gistbook-session-card:hover .gistbook-session-prompts,
+.gistbook-session-card:focus-visible .gistbook-session-prompts {
+  max-height: 18rem;
+  opacity: 1;
+}
+
+.gistbook-session-prompts article {
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(155, 200, 192, 0.12);
+}
+
+.gistbook-session-prompts p {
+  margin: 0.25rem 0 0;
+  color: var(--text-subtle);
+  line-height: 1.55;
+}
+
+.gistbook-treemap {
+  position: relative;
+  min-height: 21rem;
+  border-radius: 0.28rem;
+  overflow: hidden;
+  border: 1px solid rgba(155, 200, 192, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.gistbook-treemap-node {
+  position: absolute;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(155, 200, 192, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(155, 200, 192, 0.1), transparent 34%),
+    rgba(255, 255, 255, 0.03);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.gistbook-treemap-node:hover,
+.gistbook-treemap-node.is-selected {
+  transform: scale(1.01);
+  border-color: rgba(248, 223, 141, 0.38);
+}
+
+.gistbook-treemap-node p {
+  margin: 0;
+  color: var(--text-subtle);
+}
+
+.gistbook-heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 0.38rem;
+}
+
+.gistbook-heatmap-cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 0.16rem;
+  border: 1px solid rgba(155, 200, 192, 0.08);
+}
+
+.gistbook-memory-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.gistbook-memory-tags span {
+  display: inline-flex;
+  min-height: 1.9rem;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(155, 200, 192, 0.14);
+  background: rgba(155, 200, 192, 0.05);
+}
+
+.gistbook-transcript {
+  display: grid;
+  gap: 0.75rem;
+  max-height: min(70vh, 52rem);
+  overflow: auto;
+  padding-right: 0.35rem;
+}
+
+.gistbook-transcript-message {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(155, 200, 192, 0.14);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.gistbook-transcript-message.is-user {
+  border-color: rgba(248, 223, 141, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(248, 223, 141, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.gistbook-transcript-message p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.72;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 1180px) {
   .tianezha-layout,
   .module-grid-3x2,
   .bitclaw-fantasy-grid,
   .loaded-home-grid,
   .simulation-card-grid,
-  .stack-grid {
+  .stack-grid,
+  .gistbook-grid,
+  .gistbook-hero,
+  .gistbook-session-hero {
     grid-template-columns: 1fr;
   }
 
@@ -3251,15 +3610,24 @@ details.panel[open] > summary {
 @media (max-width: 720px) {
   .quote-grid,
   .loaded-identity-card,
-  .detail-grid {
+  .detail-grid,
+  .gistbook-metric-grid,
+  .gistbook-card-grid,
+  .gistbook-source-grid {
     grid-template-columns: 1fr;
   }
 
   .loaded-rail-heading,
   .trade-form-actions,
   .identity-load-actions,
-  .chat-shell-actions {
+  .chat-shell-actions,
+  .gistbook-session-card-head,
+  .gistbook-session-card-foot {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .gistbook-heatmap-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
   }
 }

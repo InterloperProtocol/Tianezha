@@ -24,7 +24,20 @@ If you want product and world-design documentation, start in `tianezha_master_pa
 - `ECONOMIC_POLICY.md`
 - `IMPLEMENTATION_NOTES.md`
 - `reference-stack.md`
+- `computeMarket.md`
+- `vendorMarket.md`
+- `payments.md`
+- `gistbook.md`
+- `cancerhawk.md`
+- `cancerMarkets.md`
+- `rewards.md`
 - `builders/`
+
+## Portable Examples
+
+- `../examples/cancer-community.json`
+- `../examples/cancer-dual-mint-community.json`
+- `../examples/compute-vendor-node.json`
 
 ## Intended Split
 

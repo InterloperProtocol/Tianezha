@@ -82,3 +82,10 @@ export function setTianshiRuntimeControl(
   persistControl(control);
   return control;
 }
+
+export function resetTianshiRuntimeControl() {
+  const control = createDefaultControl();
+  global.__tianshiRuntimeControl = control;
+  persistControl(control);
+  return control;
+}

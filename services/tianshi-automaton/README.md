@@ -12,6 +12,7 @@ This directory holds the in-repo autonomous runtime assets for Tianshi.
 - Owner-only intervention through the hidden admin dashboard
 - Conway domains and infrastructure access only through an allowlisted host set when Google-native routing is insufficient
 - Conway Terminal available to Codex as a fallback path through [`mcp/conway-codex.config.json`](/c:/SessionMint/BagStroker/services/tianshi-automaton/mcp/conway-codex.config.json)
+- `bnbchain-mcp`, `solana-developer-mcp`, and `sendaifun-solana-mcp` are bundled into the consolidated Codex manifest so the main brain and subordinate agents share the same chain tool stack
 - Tavily, Context7, Task Master, Excel, Helius Docs, and Playwright are bundled into the consolidated Codex manifest at [`mcp/tianshi-codex.config.json`](/c:/SessionMint/BagStroker/services/tianshi-automaton/mcp/tianshi-codex.config.json)
 - Pump meme coin trading only, capped at 10% portfolio exposure per position
 - Live replica child spawning with no numeric cap, so long as children inherit the same constitution path and runtime envelope
@@ -51,7 +52,9 @@ codex --mcp-config services/tianshi-automaton/mcp/tianshi-codex.config.json
 ## Bundled dependencies
 
 - `solana-agent-kit` is the primary onchain execution layer
-- `solana-mcp` is configured as an MCP bridge in [`mcp/solana-mcp.config.json`](/c:/SessionMint/BagStroker/services/tianshi-automaton/mcp/solana-mcp.config.json)
+- `@bnb-chain/mcp` is configured in [`mcp/bnbchain-mcp.config.json`](/c:/SessionMint/Tianezha/services/tianshi-automaton/mcp/bnbchain-mcp.config.json)
+- the official Solana Developer MCP is configured in [`mcp/solana-developer-mcp.config.json`](/c:/SessionMint/Tianezha/services/tianshi-automaton/mcp/solana-developer-mcp.config.json)
+- the local Sendaifun Solana MCP bridge is configured in [`mcp/sendaifun-solana-mcp.config.json`](/c:/SessionMint/Tianezha/services/tianshi-automaton/mcp/sendaifun-solana-mcp.config.json)
 - `conway-terminal` is wired for Codex fallback use through [`mcp/conway-codex.config.json`](/c:/SessionMint/BagStroker/services/tianshi-automaton/mcp/conway-codex.config.json)
 - `tavily-mcp`, `@upstash/context7-mcp`, `task-master-ai`, and `excel-mcp-server` are declared under [`mcp/tianshi-codex.config.json`](/c:/SessionMint/BagStroker/services/tianshi-automaton/mcp/tianshi-codex.config.json) with per-server references in the same folder
 - official Anthropic workflow packs are vendored in [`vendor/anthropic-skills`](/c:/SessionMint/BagStroker/services/tianshi-automaton/vendor/anthropic-skills)

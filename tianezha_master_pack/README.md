@@ -2,6 +2,12 @@
 
 All-in-one starter pack for Tianezha.
 
+Tianezha is built as a HyperFlow shell with Tianezha Node as the runtime and adapters as extensions.
+
+Tianezha nodes natively buy and sell compute, services, storage, and preservation across the mesh. Payment rails are adapters. Conway is optional.
+
+Interface Assembly is like ARC for agents: the shell remains composable, the runtime remains portable, and saved state can move across communities without rewriting the doctrine.
+
 Includes:
 - docs
 - starter repo tree
@@ -33,3 +39,6 @@ Core rules:
 - profile masks rotate every 10 minutes
 - hybrid futarchy score = 0.42 / 0.42 / 0.16
 - Percolator scales optional perks under stress
+- native mesh commerce is first-class
+- compute price discovery blends spot jobs, compute perps, and compute forecast markets
+- every commercial agent chain must terminate in a human principal

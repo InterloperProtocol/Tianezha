@@ -1,10 +1,16 @@
 # Tianezha
 
-Tianezha is a simulation-first Next.js application for identity reconstruction, public social walls, governance, prediction markets, simulated perps, livestream commerce, and the Tianshi autonomous runtime.
+Tianezha is a simulation-first HyperFlow shell with a Tianezha Node runtime and adapter-driven extensions for identity reconstruction, public social walls, governance, prediction markets, simulated perps, mesh commerce, and the Tianshi autonomous runtime.
 
-This repository combines four main layers:
+Tianezha nodes natively buy and sell compute, services, storage, and preservation across the mesh. Payment rails are adapters. Conway is optional.
+
+Interface Assembly is like ARC for agents: the shell stays legible, the runtime stays portable, and state can move as savegames instead of being trapped inside one deployment.
+
+This repository combines six main layers:
 
 - A Next.js 15 app-router web application in `app/` and `components/`
+- Canonical mesh-commerce state owners in `packages/core/`
+- Adapter modules in `packages/adapters/`
 - Shared product and server logic in `lib/`
 - A Fastify worker in `workers/` for runtime session orchestration
 - An autonomous agent/runtime package in `services/tianshi-automaton/`
@@ -15,11 +21,12 @@ The product-facing source of truth lives in `tianezha_master_pack/`, and the in-
 
 - `BitClaw`: reconstructed identity, profiles, rewards, balances, and posting identity
 - `BolClaw`: public social feed with replies, reactions, and thesis chatter
-- `Tianshi`: public-facing brain surface and runtime telemetry
-- `Tianzi`: simulated prediction and futarchy markets
-- `Nezha`: simulated perp markets across the world state
+- `Tianshi`: public-facing brain surface, sovereign writer, and runtime telemetry
+- `Tianzi`: simulated prediction and futarchy markets plus compute-cost forecast bands
+- `Nezha`: simulated perp markets plus compute-cost perp books
 - `GenDelve`: governance and owner-verification flows
-- `HeartBeat`: 42-agent runtime status, Merkle state, and autonomous telemetry
+- `Heartbeat`: 42-agent runtime status, Merkle state, and autonomous telemetry
+- `Mesh Commerce`: native compute, storage, preservation, and vendor/domain price discovery
 - `Docs`: master-pack-backed documentation and machine-readable onboarding
 
 ## Architecture Snapshot
@@ -37,10 +44,23 @@ The product-facing source of truth lives in `tianezha_master_pack/`, and the in-
 - `lib/server/` contains the main application services for identity, posting, livestream, autonomous state, charts, moderation, and integrations
 - `lib/master-pack-docs.ts` parses the master pack into the `/docs` UI
 
+### Canonical Mesh Package Layer
+
+- `packages/core/src/community.ts`: community bootstrap, reward policy, and no-wallet-connect defaults
+- `packages/core/src/peer.ts`: peer registry, relay fallback, capability ads, and evidence digests
+- `packages/core/src/subagents.ts`: Tianshi and RA market actors with human-terminal principal chains
+- `packages/core/src/rewards.ts`: offchain reward ledger and `proof_of_compute`
+- `packages/core/src/computeMarket.ts`: native spot compute market
+- `packages/core/src/computePriceMarkets.ts`: compute indices, perps, forecasts, and reference-price engine
+- `packages/core/src/vendorMarket.ts`: vendor and domain-market flows
+- `packages/core/src/savegame.ts`: portable state export/import
+- `packages/adapters/src/`: payment, Gistbook, and optional CancerHawk adapters
+
 ### Persistence and Runtime
 
 - Payload CMS uses SQLite locally and a temp-path SQLite database in production unless overridden
 - Firebase Admin is used for hosted production infrastructure and stateful services
+- Mesh-commerce state is portable through savegame bundles and persisted locally under `.data/`
 - Node instrumentation boots in-process autonomous and livestream loops when enabled
 - `workers/server.ts` exposes a token-protected Fastify worker for runtime sessions
 
@@ -49,17 +69,21 @@ The product-facing source of truth lives in `tianezha_master_pack/`, and the in-
 - `services/tianshi-automaton/` contains runtime-loop code, MCP manifests, operating docs, and vendored agent/tooling references
 - Public autonomous status is exposed through `GET /api/agent/status`
 - Internal controls stay under `app/api/internal-admin/`
+- Tianshi remains the single writer for sovereign state even when RA agents request, sell, or hedge compute
 
 ## Repository Layout
 
 ```text
 app/                         Next.js pages and route handlers
 components/                  React UI and client components
+packages/core/               Canonical mesh-commerce state owners
+packages/adapters/           Payment and domain-specific adapters
 lib/                         Shared types, env parsing, product logic, server logic
 workers/                     Fastify worker server and runtime helpers
 services/tianshi-automaton/  Autonomous runtime package and tooling manifests
 docs/                        Developer/operator docs for this repository
 tianezha_master_pack/        Canonical product pack, task sequence, and handoff docs
+examples/                    Portable mesh-commerce savegame examples
 public/                      Static assets and machine-readable docs
 ```
 
@@ -157,6 +181,13 @@ See `docs/DEPLOYMENT.md` for the full release checklist.
 
 - `docs/README.md`: documentation index
 - `docs/ARCHITECTURE_OVERVIEW.md`: developer architecture guide
+- `docs/computeMarket.md`: native compute-market doctrine and matching rules
+- `docs/vendorMarket.md`: vendor/domain market doctrine
+- `docs/payments.md`: payment adapter behavior and settlement modes
+- `docs/gistbook.md`: Gistbook adapter scope
+- `docs/cancerhawk.md`: CancerHawk adapter scope
+- `docs/cancerMarkets.md`: simulated cancer-market scope
+- `docs/rewards.md`: reward lanes and proof-of-compute policy
 - `docs/DEPLOYMENT.md`: deploy and release notes
 - `docs/CODEBASE_REVIEW.md`: codebase review snapshot
 - `docs/install.md`: machine-oriented onboarding flow

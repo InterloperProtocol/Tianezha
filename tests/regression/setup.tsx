@@ -128,7 +128,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => globalThis.__testRouter,
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-03-27T12:00:00.000Z"));
   process.env.TIANEZHA_BNB_TOKEN_ADDRESS = baseEnv.TIANEZHA_BNB_TOKEN_ADDRESS;
@@ -147,6 +147,12 @@ beforeEach(() => {
   };
   globalThis.__tianezhaSimulationStore = undefined;
   globalThis.__tianshiMemory = undefined;
+  const [{ resetMeshCommerceState }, { resetTianshiRuntimeControl }] = await Promise.all([
+    import("@/lib/server/mesh-commerce"),
+    import("@/lib/server/tianshi-runtime-control"),
+  ]);
+  resetMeshCommerceState();
+  resetTianshiRuntimeControl();
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => {

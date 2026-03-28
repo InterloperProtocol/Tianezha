@@ -45,6 +45,7 @@ function sanitizePublicTooling(tooling?: Partial<AutonomousToolingStatus>) {
     blockedActionNames,
     codexSkillNames: tooling?.codexSkillNames ?? [],
     configuredMcpServerNames: tooling?.configuredMcpServerNames ?? [],
+    bnbChainMcpConfigured: tooling?.bnbChainMcpConfigured ?? false,
     conwayApiKeyConfigured: tooling?.conwayApiKeyConfigured ?? false,
     conwayCodexMcpConfigured: tooling?.conwayCodexMcpConfigured ?? false,
     context7McpConfigured: tooling?.context7McpConfigured ?? false,
@@ -75,6 +76,10 @@ function sanitizePublicTooling(tooling?: Partial<AutonomousToolingStatus>) {
     loadedSkillCount: vendoredSkillNames.length,
     solanaAgentKitConfigured: tooling?.solanaAgentKitConfigured ?? false,
     solanaMcpConfigured: tooling?.solanaMcpConfigured ?? false,
+    solanaDeveloperMcpConfigured:
+      tooling?.solanaDeveloperMcpConfigured ?? false,
+    sendaifunSolanaMcpConfigured:
+      tooling?.sendaifunSolanaMcpConfigured ?? false,
     tavilyApiKeyConfigured: tooling?.tavilyApiKeyConfigured ?? false,
     tavilyMcpConfigured: tooling?.tavilyMcpConfigured ?? false,
     taskMasterMcpConfigured: tooling?.taskMasterMcpConfigured ?? false,
