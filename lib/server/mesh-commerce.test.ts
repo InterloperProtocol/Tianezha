@@ -58,7 +58,11 @@ describe("mesh commerce runtime", () => {
       ...state,
       subagents: {
         ...state.subagents,
-        actors: state.subagents.actors.map(({ metadata, ...actor }) => actor),
+        actors: state.subagents.actors.map((actor) => {
+          const nextActor = { ...actor };
+          delete nextActor.metadata;
+          return nextActor;
+        }),
       },
     });
 
