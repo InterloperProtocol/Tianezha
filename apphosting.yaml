@@ -34,7 +34,7 @@ env:
       - RUNTIME
 
   - variable: TIANEZHA_ALLOWED_MUTATION_ORIGINS
-    value: "https://tianshi--tianezha-app.us-east4.hosted.app"
+    value: "https://tianshi--tianezha-app.us-east4.hosted.app,https://larpa.fun,https://www.larpa.fun"
     availability:
       - RUNTIME
 

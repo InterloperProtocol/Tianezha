@@ -171,6 +171,7 @@ This repo is configured for Firebase App Hosting.
 - Firebase config: `firebase.json`
 - App Hosting runtime config: `apphosting.yaml`
 - Firestore config: `firestore.rules`, `firestore.indexes.json`
+- Intended public domain: `larpa.fun`
 
 Before deploying, make sure the required secrets are configured in App Hosting:
 
@@ -181,6 +182,11 @@ Before deploying, make sure the required secrets are configured in App Hosting:
 - `INTERNAL_ADMIN_PASSWORD`
 - `TIANEZHA_ALLOWED_MUTATION_ORIGINS` if your public App Hosting origin differs from the runtime request URL seen by Next.js
 - any Firebase, Vertex AI, Telegram, GMGN, or other integration secrets needed by your target environment
+
+For the `larpa.fun` deployment, the allowed origins should include both:
+
+- `https://larpa.fun`
+- `https://www.larpa.fun`
 
 See `docs/DEPLOYMENT.md` for the full release checklist.
 
