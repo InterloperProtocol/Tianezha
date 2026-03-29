@@ -12,7 +12,7 @@ import {
 
 export async function POST(request: Request) {
   try {
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "public-chat",
       max: 12,
       request,

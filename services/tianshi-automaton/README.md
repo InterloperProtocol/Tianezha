@@ -64,6 +64,7 @@ codex --mcp-config services/tianshi-automaton/mcp/tianshi-codex.config.json
 - bootstrap Dexter's Python environment with `npm run tianshi:dexter:bootstrap`
 - elder-plinius G0DM0D3 is vendored in [`vendor/g0dm0d3-upstream`](/c:/SessionMint/Tianezha/services/tianshi-automaton/vendor/g0dm0d3-upstream) and exposed through the agent-only adapter at [`../../lib/server/godmode-agent.ts`](/c:/SessionMint/Tianezha/lib/server/godmode-agent.ts)
 - Polymarket Agents is vendored in [`vendor/polymarket-agents-upstream`](/c:/SessionMint/Tianezha/services/tianshi-automaton/vendor/polymarket-agents-upstream) and exposed through the agent-only adapter at [`../../lib/server/polymarket-agent.ts`](/c:/SessionMint/Tianezha/lib/server/polymarket-agent.ts)
+- the Tianshi Skill Hub is vendored in [`vendor/skill-hub`](/c:/SessionMint/Tianezha/services/tianshi-automaton/vendor/skill-hub) and surfaced through [`../../packages/adapters/src/skillhub.ts`](/c:/SessionMint/Tianezha/packages/adapters/src/skillhub.ts)
 
 ## Telegram relay
 

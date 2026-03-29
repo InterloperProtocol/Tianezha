@@ -53,7 +53,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "bitclaw-post",
       max: 8,
       request,

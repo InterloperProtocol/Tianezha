@@ -2,6 +2,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import os from "os";
 import path from "path";
 
+import { getSkillHubSummary } from "@/packages/adapters/src/skillhub";
+
 const CURATED_CODEX_SKILLS = [
   "pdf",
   "docx",
@@ -128,4 +130,8 @@ export function getConfiguredRepoMcpServerNames() {
       )
       .map((entry) => entry.name.replace(/\.config\.json$/, "")),
   );
+}
+
+export function getTianshiSkillHubSummary() {
+  return getSkillHubSummary();
 }

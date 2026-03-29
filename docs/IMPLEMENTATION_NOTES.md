@@ -10,6 +10,16 @@ Repo-ready notes for the sovereign parent-brain architecture
 - public constitutional endpoints in `app/api/constitution` and `app/api/brains`
 - HeartBeat status enrichment in `app/api/agent/status`
 
+## 2026-03-28 hardening plan
+- Box 1: request trust boundary
+  Replace implicit proxy-header trust with an explicit mutation-origin allowlist so App Hosting uses a declared public origin instead of raw `x-forwarded-*` headers.
+- Box 2: internal admin seed safety
+  Only update a Payload admin when the configured username already exists. Never overwrite an arbitrary first admin record.
+- Box 3: policy runtime persistence
+  Move request rate limiting onto a Firestore-backed path when Firebase Admin is configured. Keep idempotency, replay, and audit migration as the next persistence box.
+- Box 4: assembly formalization
+  Add a machine-readable HyperFlow assembly manifest after the security boundary and persistence fixes are stable.
+
 ## File roles
 - `lib/constitution.ts`
   Canonical policy constants, lamport helpers, basis-point helpers, public-safe serializers, and parent-child execution boundaries.
@@ -113,6 +123,7 @@ This constitutional layer does not remove or overwrite the repo's existing `$PUM
 - persistent circuit-breaker state
 - persistent idempotency and replay stores
 - persistent append-only audit storage
+- request rate limiting now has a Firestore-backed runtime path in `lib/server/policy-runtime-store.ts` when App Hosting has Firebase Admin configured
 - Firestore-backed canonical state
 - Helius-backed execution and telemetry hooks
 

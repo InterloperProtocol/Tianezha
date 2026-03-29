@@ -14,6 +14,8 @@ This repository combines six main layers:
 - Shared product and server logic in `lib/`
 - A Fastify worker in `workers/` for runtime session orchestration
 - An autonomous agent/runtime package in `services/tianshi-automaton/`
+- A shared skill hub in `services/tianshi-automaton/vendor/skill-hub/`
+- Project overlays in `.claude/` and `.codex/` for agent entrypoints and operating rules
 
 The product-facing source of truth lives in `tianezha_master_pack/`, and the in-app `/docs` route reads from that master pack so product documentation stays aligned with implementation.
 
@@ -55,6 +57,7 @@ The product-facing source of truth lives in `tianezha_master_pack/`, and the in-
 - `packages/core/src/vendorMarket.ts`: vendor and domain-market flows
 - `packages/core/src/savegame.ts`: portable state export/import
 - `packages/adapters/src/`: payment, Gistbook, and optional CancerHawk adapters
+- `docs/skill-hub.md`: shared adapter/reference registry and install decision log
 
 ### Persistence and Runtime
 
@@ -81,6 +84,8 @@ packages/adapters/           Payment and domain-specific adapters
 lib/                         Shared types, env parsing, product logic, server logic
 workers/                     Fastify worker server and runtime helpers
 services/tianshi-automaton/  Autonomous runtime package and tooling manifests
+.claude/                     Claude overlay instructions and repo-specific operating rules
+.codex/                      Codex overlay instructions and repo-specific operating rules
 docs/                        Developer/operator docs for this repository
 tianezha_master_pack/        Canonical product pack, task sequence, and handoff docs
 examples/                    Portable mesh-commerce savegame examples
@@ -110,6 +115,7 @@ For development, a minimal `.env.local` should include at least:
 APP_SESSION_SECRET=replace-with-at-least-16-chars
 DEVICE_CREDENTIALS_AES_KEY=replace-with-at-least-16-chars
 PAYLOAD_SECRET=replace-with-at-least-16-chars
+TIANEZHA_ALLOWED_MUTATION_ORIGINS=http://localhost:3000
 INTERNAL_ADMIN_LOGIN=admin
 INTERNAL_ADMIN_PASSWORD=
 WORKER_TOKEN=replace-with-at-least-16-chars
@@ -173,6 +179,7 @@ Before deploying, make sure the required secrets are configured in App Hosting:
 - `DEVICE_CREDENTIALS_AES_KEY`
 - `WORKER_TOKEN`
 - `INTERNAL_ADMIN_PASSWORD`
+- `TIANEZHA_ALLOWED_MUTATION_ORIGINS` if your public App Hosting origin differs from the runtime request URL seen by Next.js
 - any Firebase, Vertex AI, Telegram, GMGN, or other integration secrets needed by your target environment
 
 See `docs/DEPLOYMENT.md` for the full release checklist.
@@ -185,6 +192,7 @@ See `docs/DEPLOYMENT.md` for the full release checklist.
 - `docs/vendorMarket.md`: vendor/domain market doctrine
 - `docs/payments.md`: payment adapter behavior and settlement modes
 - `docs/gistbook.md`: Gistbook adapter scope
+- `docs/skill-hub.md`: shared adapter registry and install policy
 - `docs/cancerhawk.md`: CancerHawk adapter scope
 - `docs/cancerMarkets.md`: simulated cancer-market scope
 - `docs/rewards.md`: reward lanes and proof-of-compute policy

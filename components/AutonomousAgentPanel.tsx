@@ -175,6 +175,7 @@ export function AutonomousAgentPanel() {
   const openPositions = status?.positions.filter((item) => item.status === "open") ?? [];
   const topTape = status?.marketIntel.topTape.slice(0, 4) ?? [];
   const configuredMcpNames = status?.tooling.configuredMcpServerNames ?? [];
+  const skillHub = status?.tooling.skillHub;
   const vendoredSkillNames = (status?.tooling.vendoredSkillNames ?? []).filter(
     (name) =>
       name !== "dexter-agent" &&
@@ -510,6 +511,24 @@ export function AutonomousAgentPanel() {
               {vendoredSkillNames.length
                 ? `${vendoredSkillNames.length} loaded`
                 : "No vendored skills"}
+            </strong>
+          </div>
+        </div>
+        <div className="history-item">
+          <div>
+            <span>Skill hub</span>
+            <strong>
+              {skillHub
+                ? `${skillHub.vendorableAdapterCount} vendorable | ${skillHub.optionalAdapterCount} optional | ${skillHub.referenceCount} references`
+                : "Waiting"}
+            </strong>
+          </div>
+          <div>
+            <span>Hub anchors</span>
+            <strong>
+              {skillHub
+                ? formatNameList(skillHub.vendorableAdapterNames, 5)
+                : "Waiting"}
             </strong>
           </div>
         </div>

@@ -8,7 +8,7 @@ import {
 
 export async function POST(request: Request) {
   try {
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "bitclaw-agent-register",
       max: 5,
       request,

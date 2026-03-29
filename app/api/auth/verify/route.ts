@@ -14,7 +14,7 @@ import {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "wallet-verify",
       max: 10,
       request,

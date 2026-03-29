@@ -33,6 +33,11 @@ env:
     availability:
       - RUNTIME
 
+  - variable: TIANEZHA_ALLOWED_MUTATION_ORIGINS
+    value: "https://tianshi--tianezha-app.us-east4.hosted.app"
+    availability:
+      - RUNTIME
+
   - variable: VERTEX_AI_PROJECT_ID
     value: "tianezha-app"
     availability:

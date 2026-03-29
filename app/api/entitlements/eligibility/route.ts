@@ -25,7 +25,7 @@ function getStatusCode(message: string) {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "eligibility-cnft",
       max: 5,
       request,

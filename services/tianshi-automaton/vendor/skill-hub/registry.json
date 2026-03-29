@@ -1,0 +1,215 @@
+{
+  "name": "Tianshi Skill Hub",
+  "version": 1,
+  "summary": "Canonical repo registry for vendorable adapters, optional sidecars, and reference-only research material.",
+  "entries": [
+    {
+      "id": "iflytek-skillhub",
+      "repo": "iflytek/skillhub",
+      "sourceUrl": "https://github.com/iflytek/skillhub",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Canonical skill registry upstream for namespaced agent skills and governance."
+    },
+    {
+      "id": "aden-hive-hive",
+      "repo": "aden-hive/hive",
+      "sourceUrl": "https://github.com/aden-hive/hive",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "Production agent harness with state isolation and observability."
+    },
+    {
+      "id": "panniantong-agent-reach",
+      "repo": "Panniantong/Agent-Reach",
+      "sourceUrl": "https://github.com/Panniantong/Agent-Reach",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Bootstrap reach layer that gives agents broader web and platform access."
+    },
+    {
+      "id": "feuersteiner-contextrie",
+      "repo": "feuersteiner/contextrie",
+      "sourceUrl": "https://github.com/feuersteiner/contextrie",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Context separation and composition pipeline for keeping agent state isolated."
+    },
+    {
+      "id": "we-promise-sure",
+      "repo": "we-promise/sure",
+      "sourceUrl": "https://github.com/we-promise/sure",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "Finance dashboard and gamified layer, better kept as a separate product surface."
+    },
+    {
+      "id": "calesthio-crucix",
+      "repo": "calesthio/Crucix",
+      "sourceUrl": "https://github.com/calesthio/Crucix",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Open-data intelligence dashboard that can feed normalized signals into Tianshi."
+    },
+    {
+      "id": "itsowen-cyberscraper-2077",
+      "repo": "itsOwen/CyberScraper-2077",
+      "sourceUrl": "https://github.com/itsOwen/CyberScraper-2077",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Scraping and extraction worker that fits cleanly behind an adapter boundary."
+    },
+    {
+      "id": "lum1104-understand-anything",
+      "repo": "Lum1104/Understand-Anything",
+      "sourceUrl": "https://github.com/Lum1104/Understand-Anything",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Codebase and document understanding layer with a strong fit for repo exploration."
+    },
+    {
+      "id": "firecrawl-open-lovable",
+      "repo": "firecrawl/open-lovable",
+      "sourceUrl": "https://github.com/firecrawl/open-lovable",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "Website-to-React generation lab that is useful, but separate from the core brain."
+    },
+    {
+      "id": "aldinokemal-go-whatsapp-web-multidevice",
+      "repo": "aldinokemal/go-whatsapp-web-multidevice",
+      "sourceUrl": "https://github.com/aldinokemal/go-whatsapp-web-multidevice",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "WhatsApp messaging adapter with multi-account and webhook-style access."
+    },
+    {
+      "id": "hkjarral-ava-ai-voice-agent-for-asterisk",
+      "repo": "hkjarral/AVA-AI-Voice-Agent-for-Asterisk",
+      "sourceUrl": "https://github.com/hkjarral/AVA-AI-Voice-Agent-for-Asterisk",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "Telephony and voice gateway surface; useful only if voice calling is a real requirement."
+    },
+    {
+      "id": "blinkospace-blinko",
+      "repo": "blinkospace/blinko",
+      "sourceUrl": "https://github.com/blinkospace/blinko",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "Memory and notes product that can act as a read-only memory backend."
+    },
+    {
+      "id": "pinchtab-pinchtab",
+      "repo": "pinchtab/pinchtab",
+      "sourceUrl": "https://github.com/pinchtab/pinchtab",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Local-first browser control plane that is useful for research and scraping agents."
+    },
+    {
+      "id": "fluxerapp-fluxer",
+      "repo": "fluxerapp/fluxer",
+      "sourceUrl": "https://github.com/fluxerapp/fluxer",
+      "skillClass": "out_of_scope",
+      "installTarget": "exclude",
+      "notes": "Interesting comms platform, but upstream self-hosting is not ready for this install plan."
+    },
+    {
+      "id": "elder-plinius-g0dm0d3",
+      "repo": "elder-plinius/G0DM0D3",
+      "sourceUrl": "https://github.com/elder-plinius/G0DM0D3",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Internal multi-model cognition and evaluator surface for agent-only use."
+    },
+    {
+      "id": "mtdvio-every-programmer-should-know",
+      "repo": "mtdvio/every-programmer-should-know",
+      "sourceUrl": "https://github.com/mtdvio/every-programmer-should-know",
+      "skillClass": "documentation_only_reference",
+      "installTarget": "docs",
+      "notes": "Developer reference list for skills, workflows, and broad engineering study."
+    },
+    {
+      "id": "qeeqbox-social-analyzer",
+      "repo": "qeeqbox/social-analyzer",
+      "sourceUrl": "https://github.com/qeeqbox/social-analyzer",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "OSINT and profile discovery adapter, but it needs legal and privacy controls."
+    },
+    {
+      "id": "pear-devs-pear-desktop",
+      "repo": "pear-devs/pear-desktop",
+      "sourceUrl": "https://github.com/pear-devs/pear-desktop",
+      "skillClass": "out_of_scope",
+      "installTarget": "exclude",
+      "notes": "Desktop music app with little relevance to the agent/runtime architecture."
+    },
+    {
+      "id": "c4illin-convertx",
+      "repo": "C4illin/ConvertX",
+      "sourceUrl": "https://github.com/C4illin/ConvertX",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "File conversion service that is useful as a utility microservice."
+    },
+    {
+      "id": "youmind-openlab-awesome-nano-banana-pro-prompts",
+      "repo": "YouMind-OpenLab/awesome-nano-banana-pro-prompts",
+      "sourceUrl": "https://github.com/YouMind-OpenLab/awesome-nano-banana-pro-prompts",
+      "skillClass": "documentation_only_reference",
+      "installTarget": "docs",
+      "notes": "Prompt reference material, not runtime code."
+    },
+    {
+      "id": "raiper34-spooty",
+      "repo": "Raiper34/spooty",
+      "sourceUrl": "https://github.com/Raiper34/spooty",
+      "skillClass": "out_of_scope",
+      "installTarget": "exclude",
+      "notes": "Downloader-oriented product with legal and product-fit risk for this install plan."
+    },
+    {
+      "id": "getstream-vision-agents",
+      "repo": "GetStream/Vision-Agents",
+      "sourceUrl": "https://github.com/GetStream/Vision-Agents",
+      "skillClass": "vendorable_adapter",
+      "installTarget": "vendor",
+      "notes": "Multimodal and video agent surface that fits the cinematic and visual agent layer."
+    },
+    {
+      "id": "hunvreus-devpush",
+      "repo": "hunvreus/devpush",
+      "sourceUrl": "https://github.com/hunvreus/devpush",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "Deployment platform for agent-generated apps, best kept separate from the core brain."
+    },
+    {
+      "id": "yeachan-heo-oh-my-claudecode",
+      "repo": "Yeachan-Heo/oh-my-claudecode",
+      "sourceUrl": "https://github.com/Yeachan-Heo/oh-my-claudecode",
+      "skillClass": "optional_adapter",
+      "installTarget": "sidecar",
+      "notes": "Claude Code orchestration reference useful for .claude ergonomics."
+    },
+    {
+      "id": "felixrieseberg-windows95",
+      "repo": "felixrieseberg/windows95",
+      "sourceUrl": "https://github.com/felixrieseberg/windows95",
+      "skillClass": "out_of_scope",
+      "installTarget": "exclude",
+      "notes": "Novelty/emulation project with no practical fit for the agent runtime."
+    },
+    {
+      "id": "hesamsheikh-awesome-openclaw-usecases",
+      "repo": "hesamsheikh/awesome-openclaw-usecases",
+      "sourceUrl": "https://github.com/hesamsheikh/awesome-openclaw-usecases",
+      "skillClass": "documentation_only_reference",
+      "installTarget": "docs",
+      "notes": "Use-case inspiration for the knowledge base, not an install target."
+    }
+  ]
+}

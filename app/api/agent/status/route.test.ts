@@ -70,4 +70,48 @@ describe("/api/agent/status GET", () => {
       "Children may think locally, but only the parent executes globally.",
     );
   });
+
+  it("forwards the shared skill hub summary into the public status surface", async () => {
+    autonomousAgentModule.getAutonomousStatusWithLiveReserve.mockResolvedValue({
+      agentId: "tianshi-autonomous-agent",
+      tooling: {
+        skillHub: {
+          available: true,
+          entryCount: 2,
+          name: "Tianshi Skill Hub",
+          optionalAdapterCount: 0,
+          optionalAdapterNames: [],
+          outOfScopeCount: 0,
+          outOfScopeNames: [],
+          referenceCount: 0,
+          referenceNames: [],
+          summary: "Canonical registry",
+          vendorableAdapterCount: 2,
+          vendorableAdapterNames: ["iflytek/skillhub", "Panniantong/Agent-Reach"],
+          version: 1,
+        },
+      },
+      treasury: {
+        reserveFloorSol: 0.6942,
+        reserveSol: 0.9,
+      },
+    });
+
+    const response = await GET();
+    const payload = (await response.json()) as {
+      tooling?: {
+        skillHub?: {
+          available?: boolean;
+          vendorableAdapterNames?: string[];
+        };
+      };
+    };
+
+    expect(response.status).toBe(200);
+    expect(payload.tooling?.skillHub?.available).toBe(true);
+    expect(payload.tooling?.skillHub?.vendorableAdapterNames).toEqual([
+      "iflytek/skillhub",
+      "Panniantong/Agent-Reach",
+    ]);
+  });
 });

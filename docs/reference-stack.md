@@ -87,6 +87,10 @@ The current doctrine borrows one framing directly from the founder-provided Hype
   - Source: `https://hyperliquid.gitbook.io/hyperliquid-docs`
   - Purpose: primary reference for the shared Hyperliquid perp market adapter in `lib/server/hyperliquid-agent.ts`.
 
+- Tianshi Skill Hub
+  - Source: `services/tianshi-automaton/vendor/skill-hub/registry.json`
+  - Purpose: canonical registry for vendorable adapters, optional sidecars, documentation-only references, and exclusions.
+
 - Tianshi control-plane registry:
   - Purpose: locked risk-control plane for position sizing, drawdown tiers, slippage/liquidity guards, mutation lock, and evidence/replay requirements.
   - Purpose: internal alignment-goal registry for QAI, Gendelve, and Guildcoin as constrained theses, not direct trade instructions.

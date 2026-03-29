@@ -13,7 +13,7 @@ import { LivestreamTier } from "@/lib/types";
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "livestream-request",
       max: 6,
       request,

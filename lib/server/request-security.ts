@@ -3,16 +3,19 @@ import { isIP } from "net";
 
 import { getServerEnv } from "@/lib/env";
 import {
-  getPersistedRateLimitEntry,
-  setPersistedRateLimitEntry,
+  consumePersistedRateLimitEntry,
 } from "@/lib/server/policy-runtime-store";
 
+function getHeaderChain(rawHeader: string | null) {
+  return rawHeader?.split(",").map((value) => value.trim()).filter(Boolean) ?? [];
+}
+
 function getRequestFingerprint(request: Request, discriminator?: string) {
-  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const realIp = request.headers.get("x-real-ip")?.trim();
+  const realIp = getHeaderChain(request.headers.get("x-real-ip"))[0];
+  const forwardedFor = getHeaderChain(request.headers.get("x-forwarded-for")).at(-1);
   const userAgent = request.headers.get("user-agent")?.trim() || "unknown-ua";
 
-  return [forwardedFor || realIp || "unknown-ip", discriminator || "anonymous", userAgent]
+  return [realIp || forwardedFor || "unknown-ip", discriminator || "anonymous", userAgent]
     .filter(Boolean)
     .join(":");
 }
@@ -30,8 +33,11 @@ function normalizeOriginValue(rawOrigin: string) {
   }
 }
 
-function getFirstForwardedValue(rawValue: string | null) {
-  return rawValue?.split(",")[0]?.trim() || null;
+function getConfiguredMutationOrigins() {
+  return getServerEnv().TIANEZHA_ALLOWED_MUTATION_ORIGINS
+    .split(",")
+    .map((value) => normalizeOriginValue(value))
+    .filter((value): value is string => Boolean(value));
 }
 
 function getAllowedMutationOrigins(request: Request) {
@@ -42,18 +48,8 @@ function getAllowedMutationOrigins(request: Request) {
     allowedOrigins.add(directOrigin);
   }
 
-  const forwardedHost = getFirstForwardedValue(request.headers.get("x-forwarded-host"));
-  const forwardedProto =
-    getFirstForwardedValue(request.headers.get("x-forwarded-proto")) ||
-    requestUrl.protocol.replace(/:$/, "");
-
-  if (forwardedHost && forwardedProto) {
-    const forwardedOrigin = normalizeOriginValue(
-      `${forwardedProto}://${forwardedHost}`,
-    );
-    if (forwardedOrigin) {
-      allowedOrigins.add(forwardedOrigin);
-    }
+  for (const configuredOrigin of getConfiguredMutationOrigins()) {
+    allowedOrigins.add(configuredOrigin);
   }
 
   return allowedOrigins;
@@ -213,7 +209,7 @@ export async function assertSafeRestEndpointUrl(rawUrl: string) {
   });
 }
 
-export function enforceRequestRateLimit(args: {
+export async function enforceRequestRateLimit(args: {
   request: Request;
   scope: string;
   max: number;
@@ -222,24 +218,17 @@ export function enforceRequestRateLimit(args: {
 }) {
   const now = Date.now();
   const key = `${args.scope}:${getRequestFingerprint(args.request, args.discriminator)}`;
-  const current = getPersistedRateLimitEntry(key, now);
+  const result = await consumePersistedRateLimitEntry({
+    key,
+    max: args.max,
+    nowMs: now,
+    windowMs: args.windowMs,
+  });
 
-  if (!current || current.resetAt <= now) {
-    setPersistedRateLimitEntry(
-      key,
-      {
-        count: 1,
-        resetAt: now + args.windowMs,
-      },
-      now,
-    );
-    return;
-  }
-
-  if (current.count >= args.max) {
+  if (!result.allowed) {
     const retryAfterSeconds = Math.max(
       1,
-      Math.ceil((current.resetAt - now) / 1000),
+      result.retryAfterSeconds,
     );
     const error = new Error(
       `Too many requests. Try again in ${retryAfterSeconds} seconds.`,
@@ -248,15 +237,6 @@ export function enforceRequestRateLimit(args: {
       retryAfterSeconds;
     throw error;
   }
-
-  setPersistedRateLimitEntry(
-    key,
-    {
-      count: current.count + 1,
-      resetAt: current.resetAt,
-    },
-    now,
-  );
 }
 
 export function getRateLimitRetryAfterSeconds(error: unknown) {

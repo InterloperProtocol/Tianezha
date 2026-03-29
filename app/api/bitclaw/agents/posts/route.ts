@@ -22,7 +22,7 @@ function getBearerToken(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "bitclaw-agent-post",
       max: 20,
       request,

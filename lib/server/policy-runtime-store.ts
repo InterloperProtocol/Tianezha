@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import {
   existsSync,
   mkdirSync,
@@ -7,6 +8,8 @@ import {
 } from "fs";
 import path from "path";
 
+import { getScopedFirestoreCollection } from "@/lib/server/data-namespace";
+import { getConfiguredFirestore } from "@/lib/server/firestore-admin";
 import type { AuditEvent } from "@/lib/types/constitution";
 
 export type PersistedRateLimitEntry = {
@@ -32,6 +35,7 @@ declare global {
 const DATA_DIR = path.join(process.cwd(), ".data");
 const STORE_PATH = path.join(DATA_DIR, "tianshi-policy-runtime.json");
 const MAX_AUDIT_EVENTS = 2_000;
+const RATE_LIMITS_COLLECTION = "policyRuntimeRateLimits";
 
 function ensureDataDir() {
   if (!existsSync(DATA_DIR)) {
@@ -106,6 +110,10 @@ function pruneExpiringEntries(
   return changed;
 }
 
+function buildPolicyRuntimeDocId(key: string) {
+  return createHash("sha256").update(key).digest("hex");
+}
+
 export function getPersistedRateLimitEntry(key: string, nowMs = Date.now()) {
   const state = getState();
   let changed = false;
@@ -139,6 +147,125 @@ export function setPersistedRateLimitEntry(
 
   state.rateLimits[key] = entry;
   persistState(state);
+}
+
+export async function consumePersistedRateLimitEntry(args: {
+  key: string;
+  max: number;
+  windowMs: number;
+  nowMs?: number;
+}) {
+  const nowMs = args.nowMs ?? Date.now();
+  const db = getConfiguredFirestore();
+
+  if (!db) {
+    const current = getPersistedRateLimitEntry(args.key, nowMs);
+
+    if (!current || current.resetAt <= nowMs) {
+      setPersistedRateLimitEntry(
+        args.key,
+        {
+          count: 1,
+          resetAt: nowMs + args.windowMs,
+        },
+        nowMs,
+      );
+      return {
+        allowed: true as const,
+      };
+    }
+
+    if (current.count >= args.max) {
+      return {
+        allowed: false as const,
+        retryAfterSeconds: Math.max(
+          1,
+          Math.ceil((current.resetAt - nowMs) / 1000),
+        ),
+      };
+    }
+
+    setPersistedRateLimitEntry(
+      args.key,
+      {
+        count: current.count + 1,
+        resetAt: current.resetAt,
+      },
+      nowMs,
+    );
+
+    return {
+      allowed: true as const,
+    };
+  }
+
+  const docRef = getScopedFirestoreCollection(db, RATE_LIMITS_COLLECTION).doc(
+    buildPolicyRuntimeDocId(args.key),
+  );
+  let result:
+    | { allowed: true }
+    | { allowed: false; retryAfterSeconds: number } = { allowed: true };
+
+  await db.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(docRef);
+
+    if (!snapshot.exists) {
+      transaction.set(docRef, {
+        count: 1,
+        key: args.key,
+        resetAt: nowMs + args.windowMs,
+        updatedAtMs: nowMs,
+      });
+      result = { allowed: true };
+      return;
+    }
+
+    const data = snapshot.data();
+    const currentCount =
+      typeof data?.count === "number" && Number.isFinite(data.count)
+        ? data.count
+        : 0;
+    const currentResetAt =
+      typeof data?.resetAt === "number" && Number.isFinite(data.resetAt)
+        ? data.resetAt
+        : 0;
+
+    if (currentResetAt <= nowMs) {
+      transaction.set(docRef, {
+        count: 1,
+        key: args.key,
+        resetAt: nowMs + args.windowMs,
+        updatedAtMs: nowMs,
+      });
+      result = { allowed: true };
+      return;
+    }
+
+    if (currentCount >= args.max) {
+      result = {
+        allowed: false,
+        retryAfterSeconds: Math.max(
+          1,
+          Math.ceil((currentResetAt - nowMs) / 1000),
+        ),
+      };
+      return;
+    }
+
+    transaction.set(
+      docRef,
+      {
+        count: currentCount + 1,
+        key: args.key,
+        resetAt: currentResetAt,
+        updatedAtMs: nowMs,
+      },
+      { merge: true },
+    );
+    result = { allowed: true };
+  });
+
+  return result;
 }
 
 export function getPersistedIdempotencyEntry(key: string, nowMs = Date.now()) {

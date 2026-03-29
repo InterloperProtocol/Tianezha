@@ -21,6 +21,7 @@ const rawServerEnvSchema = z.object({
   PAYLOAD_DATABASE_URL: z.string().optional(),
   TIANEZHA_DATA_NAMESPACE: z.string().optional(),
   TIANEZHA_FIRESTORE_ROOT_COLLECTION: z.string().optional(),
+  TIANEZHA_ALLOWED_MUTATION_ORIGINS: z.string().optional(),
   INTERNAL_ADMIN_LOGIN: z.string().optional(),
   INTERNAL_ADMIN_PASSWORD: z.string().optional(),
   SOLANA_NETWORK: z.enum(["devnet", "mainnet-beta"]).optional(),
@@ -159,6 +160,7 @@ const resolvedServerEnvSchema = z.object({
   PAYLOAD_DATABASE_URL: z.string().min(1),
   TIANEZHA_DATA_NAMESPACE: z.string().min(1),
   TIANEZHA_FIRESTORE_ROOT_COLLECTION: z.string().min(1),
+  TIANEZHA_ALLOWED_MUTATION_ORIGINS: z.string(),
   INTERNAL_ADMIN_LOGIN: z.string().min(1),
   INTERNAL_ADMIN_PASSWORD: z.string(),
   SOLANA_NETWORK: z.enum(["devnet", "mainnet-beta"]),
@@ -463,6 +465,8 @@ function resolveServerEnv(raw: z.infer<typeof rawServerEnvSchema>) {
     })(),
     TIANEZHA_DATA_NAMESPACE: dataNamespace,
     TIANEZHA_FIRESTORE_ROOT_COLLECTION: firestoreRootCollection,
+    TIANEZHA_ALLOWED_MUTATION_ORIGINS:
+      raw.TIANEZHA_ALLOWED_MUTATION_ORIGINS?.trim() || "",
     INTERNAL_ADMIN_LOGIN: raw.INTERNAL_ADMIN_LOGIN?.trim() || "admin",
     INTERNAL_ADMIN_PASSWORD: raw.INTERNAL_ADMIN_PASSWORD?.trim() || "",
     SOLANA_NETWORK: raw.SOLANA_NETWORK ?? "mainnet-beta",
@@ -735,6 +739,10 @@ export function getServerEnv(): ServerEnv {
   }
 
   return cachedServerEnv;
+}
+
+export function resetServerEnvForTests() {
+  cachedServerEnv = null;
 }
 
 export function getPublicEnv(): PublicEnv {

@@ -49,6 +49,7 @@ At minimum, production needs:
 - `DEVICE_CREDENTIALS_AES_KEY`
 - `WORKER_TOKEN`
 - `INTERNAL_ADMIN_PASSWORD`
+- `TIANEZHA_ALLOWED_MUTATION_ORIGINS` when App Hosting serves a public origin that differs from the request URL observed inside the runtime
 
 Depending on enabled features, you may also need:
 
@@ -78,6 +79,7 @@ npm run build
 - `apphosting.yaml` defines runtime env values and secret bindings
 - `firebase.json` defines App Hosting backends and ignore patterns
 - the repo already assumes App Hosting is the intended production path
+- keep `TIANEZHA_ALLOWED_MUTATION_ORIGINS` aligned with the public hosted domain or custom domain that browsers use for state-changing requests
 
 ## Recommended Deploy Flow
 

@@ -24,7 +24,7 @@ type SocialAction =
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "bitclaw-social",
       max: 20,
       request,

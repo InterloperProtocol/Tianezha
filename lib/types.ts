@@ -794,6 +794,22 @@ export interface AutonomousTradeGuardrails {
   notes: string;
 }
 
+export interface AutonomousSkillHubStatus {
+  available: boolean;
+  entryCount: number;
+  name: string;
+  optionalAdapterCount: number;
+  optionalAdapterNames: string[];
+  outOfScopeCount: number;
+  outOfScopeNames: string[];
+  referenceCount: number;
+  referenceNames: string[];
+  summary: string;
+  vendorableAdapterCount: number;
+  vendorableAdapterNames: string[];
+  version: number | null;
+}
+
 export interface AutonomousToolingStatus {
   agfundActionNames: string[];
   agfundApiReady: boolean;
@@ -861,6 +877,7 @@ export interface AutonomousToolingStatus {
   availableActions: string[];
   blockedActionNames: string[];
   configuredMcpServerNames: string[];
+  skillHub: AutonomousSkillHubStatus;
   vendoredSkillNames: string[];
   codexSkillNames: string[];
 }

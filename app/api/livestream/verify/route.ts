@@ -15,7 +15,7 @@ import {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "livestream-verify",
       max: 10,
       request,

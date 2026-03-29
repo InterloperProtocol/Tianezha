@@ -56,6 +56,13 @@ type DashboardPayload = {
     moderationReason: string | null;
     slug: string;
   }>;
+  fundingWallets: Array<{
+    address: string | null;
+    balanceSol: number | null;
+    label: string;
+    note: string;
+    usdcBalance?: number | null;
+  }>;
   runtimeSummary: AutonomousRuntimeSummary;
   users: Array<{
     defaultContractAddress: string | null;
@@ -87,6 +94,14 @@ function formatTimestamp(value?: string | null) {
 
 function toneLabel(enabled: boolean, positive: string, negative: string) {
   return enabled ? positive : negative;
+}
+
+function formatSolBalance(value?: number | null) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "Waiting";
+  }
+
+  return `${value.toFixed(6)} SOL`;
 }
 
 export function InternalAdminDashboard({
@@ -585,6 +600,34 @@ export function InternalAdminDashboard({
                 </strong>
               </div>
             </div>
+          </div>
+
+          <div className="panel-header" style={{ marginTop: "1rem" }}>
+            <div>
+              <p className="eyebrow">Funding wallets</p>
+              <h2>Top-up targets for the runtime</h2>
+            </div>
+          </div>
+
+          <div className="history-list">
+            {dashboard.fundingWallets.map((wallet) => (
+              <div key={wallet.label} className="history-item">
+                <div style={{ minWidth: 0 }}>
+                  <span>{wallet.label}</span>
+                  <strong style={{ overflowWrap: "anywhere" }}>
+                    {wallet.address || "Not configured"}
+                  </strong>
+                  <p className="inline-note">{wallet.note}</p>
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <span>Native balance</span>
+                  <strong>{formatSolBalance(wallet.balanceSol)}</strong>
+                  {wallet.usdcBalance !== null && wallet.usdcBalance !== undefined ? (
+                    <p className="inline-note">USDC reserve {wallet.usdcBalance.toFixed(2)}</p>
+                  ) : null}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

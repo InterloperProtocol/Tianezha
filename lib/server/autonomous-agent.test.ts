@@ -213,6 +213,20 @@ describe("autonomous agent policy", () => {
     expect(status.tooling.fourMemeEnabled).toBe(true);
     expect(status.tooling.hyperliquidEnabled).toBe(true);
     expect(status.tooling.hyperliquidApiUrl).toBe("https://api.hyperliquid.xyz");
+    expect(status.tooling.skillHub.available).toBe(true);
+    expect(status.tooling.skillHub.vendorableAdapterNames).toEqual(
+      expect.arrayContaining([
+        "Panniantong/Agent-Reach",
+        "feuersteiner/contextrie",
+        "iflytek/skillhub",
+      ]),
+    );
+    expect(status.tooling.skillHub.referenceNames).toEqual(
+      expect.arrayContaining([
+        "mtdvio/every-programmer-should-know",
+        "YouMind-OpenLab/awesome-nano-banana-pro-prompts",
+      ]),
+    );
     expect(status.tooling.solanaDeveloperMcpConfigured).toBe(true);
     expect(status.tooling.sendaifunSolanaMcpConfigured).toBe(true);
     expect(status.tooling.configuredMcpServerNames).toEqual(

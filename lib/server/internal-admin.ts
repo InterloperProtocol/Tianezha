@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { getServerEnv } from "@/lib/env";
 import {
   getAutonomousRuntimeSummary,
+  getAutonomousStatusWithLiveReserve,
 } from "@/lib/server/autonomous-agent";
 import { getPayloadClient } from "@/lib/server/payload";
 import {
@@ -15,7 +16,9 @@ import {
   upsertPublicStreamProfile,
 } from "@/lib/server/repository";
 import { dispatchSessionStop } from "@/lib/server/worker-client";
+import { getWalletSolBalance } from "@/lib/server/solana";
 import {
+  AutonomousAgentStatus,
   AutonomousRuntimeSummary,
   BitClawPostRecord,
   SessionRecord,
@@ -84,6 +87,14 @@ type DashboardBolClawProfile = {
 type DashboardBitClawPost = BitClawPostRecord & {
   displayName: string;
   handle: string;
+};
+
+type DashboardFundingWallet = {
+  address: string | null;
+  balanceSol: number | null;
+  label: string;
+  note: string;
+  usdcBalance?: number | null;
 };
 
 function getConfiguredInternalAdmin() {
@@ -223,7 +234,7 @@ export async function ensureSeededInternalAdmin() {
       existing.docs.find((doc) => {
         const record = asRecord(doc);
         return record?.username === username;
-      }) ?? existing.docs[0];
+      }) ?? null;
 
     if (matchingAdmin) {
       const updated = await payload.update({
@@ -572,8 +583,36 @@ function getProfileHandle(profileId?: string, agentId?: string) {
     : { displayName: normalized, handle: normalized };
 }
 
-function buildRuntimeSummary(): AutonomousRuntimeSummary {
-  return getAutonomousRuntimeSummary();
+function buildRuntimeSummary(
+  status?: AutonomousAgentStatus,
+): AutonomousRuntimeSummary {
+  if (!status) {
+    return getAutonomousRuntimeSummary();
+  }
+
+  return {
+    heartbeatAt: status.heartbeatAt,
+    lastAction: status.control.lastAction,
+    lastActionAt: status.control.lastActionAt,
+    latestPolicyDecision: status.latestPolicyDecision,
+    pauseReason: status.control.pauseReason,
+    paused: status.control.paused,
+    pendingSelfModification: status.selfModification.pendingProposal || null,
+    queuedSettlements: status.settlements.filter(
+      (settlement) => settlement.status === "queued",
+    ).length,
+    queuedTradeDirectives: status.tradeDirectives.filter(
+      (directive) => directive.status === "queued",
+    ).length,
+    replicationChildCount: status.replication.childCount,
+    replicationEnabled: status.replication.enabled,
+    reportSaleWindowSeconds: status.reportCommerce.purchaseWindowSeconds,
+    reportTradeDelaySeconds: status.reportCommerce.postPurchaseTradeDelaySeconds,
+    reserveFloorSol: status.treasury.reserveFloorSol,
+    reserveHealthy: status.treasury.reserveHealthy,
+    reserveSol: status.treasury.reserveSol,
+    runtimePhase: status.runtimePhase,
+  };
 }
 
 async function getPublicStreamProfileOrThrow(guestId: string) {
@@ -596,16 +635,35 @@ export async function stopSessionFromAdmin(sessionId: string) {
 }
 
 export async function getInternalAdminDashboardData() {
-  const [controls, publicProfiles, recoverableSessions, bitClawPosts] =
+  const [controls, publicProfiles, recoverableSessions, bitClawPosts, status] =
     await Promise.all([
-    listStreamerControls(),
-    listPublicStreamProfiles(),
-    listRecoverableSessions(),
-    listBitClawPosts(24, { includeHidden: true }),
-  ]);
+      listStreamerControls(),
+      listPublicStreamProfiles(),
+      listRecoverableSessions(),
+      listBitClawPosts(24, { includeHidden: true }),
+      getAutonomousStatusWithLiveReserve(),
+    ]);
 
   const controlMap = new Map(controls.map((item) => [item.guestId, item]));
   const profileMap = new Map(publicProfiles.map((item) => [item.guestId, item]));
+  const agentWalletBalance = status.tooling.agentWalletAddress
+    ? await getWalletSolBalance(status.tooling.agentWalletAddress)
+    : null;
+  const fundingWallets: DashboardFundingWallet[] = [
+    {
+      address: status.tooling.agentWalletAddress,
+      balanceSol: agentWalletBalance,
+      label: "Agent wallet",
+      note: "Operational signer for Tianshi. Fund this wallet for runtime gas and upkeep.",
+    },
+    {
+      address: status.treasury.treasuryWallet,
+      balanceSol: status.treasury.reserveSol,
+      label: "Treasury wallet",
+      note: "Reserve and settlement wallet. This is the main funding path for the runtime.",
+      usdcBalance: status.treasury.usdcBalance,
+    },
+  ];
 
   const activeSessions: DashboardSession[] = recoverableSessions.map((session) => {
     const control = controlMap.get(session.wallet);
@@ -694,7 +752,8 @@ export async function getInternalAdminDashboardData() {
     activeSessions,
     bitClawPosts: dashboardBitClawPosts,
     bolClawProfiles,
-    runtimeSummary: buildRuntimeSummary(),
+    fundingWallets,
+    runtimeSummary: buildRuntimeSummary(status),
     users,
   };
 }

@@ -11,7 +11,7 @@ import {
 export async function POST(request: Request) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "hidden-admin-login",
       max: 5,
       request,

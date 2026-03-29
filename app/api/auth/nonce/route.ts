@@ -10,7 +10,7 @@ import {
 export async function POST(request: NextRequest) {
   try {
     assertSameOriginMutation(request);
-    enforceRequestRateLimit({
+    await enforceRequestRateLimit({
       discriminator: "wallet-nonce",
       max: 8,
       request,

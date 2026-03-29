@@ -19,6 +19,7 @@ import {
 import {
   getConfiguredRepoMcpServerNames,
   getInstalledLocalCodexSkillNames,
+  getTianshiSkillHubSummary,
   getVendoredTianshiSkillNames,
 } from "@/lib/server/tianshi-tooling-catalog";
 import { getDexterAgentStatus } from "@/lib/server/dexter-agent";
@@ -2082,6 +2083,7 @@ export function getAutonomousStatus() {
   );
   const codexSkillNames = getInstalledLocalCodexSkillNames();
   const configuredMcpServerNames = getConfiguredRepoMcpServerNames();
+  const skillHub = getTianshiSkillHubSummary();
   const skillCount = vendoredSkillNames.length;
   const dexterX402 = getDexterX402Status();
   const dexterAgent = getDexterAgentStatus();
@@ -2147,6 +2149,8 @@ export function getAutonomousStatus() {
       "Refresh market tape, smart-wallet dossiers, top X-linked snippets, and llms.txt-compatible domain docs on every heartbeat before selecting runtime candidates.",
       "Use the vendored Dexter runtime as an agent-only Pump.fun/PumpSwap intelligence and execution capability when its adapter is configured.",
       "Use G0DM0D3 as an internal multi-model cognition and ULTRAPLINIAN racing layer for autonomous agent work, never as a public human feature.",
+      "Use the Tianshi Skill Hub as the canonical adapter registry; Tianshi chooses the active skills while subagents read the same install map.",
+      "Keep vendorable adapters, optional sidecars, documentation-only references, and out-of-scope repos separated in the hub.",
       "Use AgFund as the publishable marketplace seam for agent deployment metadata and holder-gated cockpit provisioning.",
       "Use Four.meme agentic skills as an internal BNB execution seam while keeping live execution adapter-gated.",
       "Use Polymarket market data and agent participation plumbing as an internal prediction-market ability, with live execution gated behind explicit compliance and operator acknowledgement.",
@@ -2265,6 +2269,7 @@ export function getAutonomousStatus() {
       telegramChatConfigured: Boolean(env.TIANSHI_TELEGRAM_CHAT_ID),
       wechatBroadcastEnabled: isTianshiWechatBroadcastEnabled(),
       wechatWebhookConfigured: Boolean(env.TIANSHI_WECHAT_WEBHOOK_URL),
+      skillHub,
       vendoredSkillNames,
       vertexOnly:
         env.AGENT_MODEL_PROVIDER === "vertex-ai-gemini" &&

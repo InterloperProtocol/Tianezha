@@ -24,6 +24,7 @@ If you want product and world-design documentation, start in `tianezha_master_pa
 - `ECONOMIC_POLICY.md`
 - `IMPLEMENTATION_NOTES.md`
 - `reference-stack.md`
+- `skill-hub.md`
 - `computeMarket.md`
 - `vendorMarket.md`
 - `payments.md`

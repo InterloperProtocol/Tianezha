@@ -34,6 +34,23 @@ function sanitizePublicTooling(tooling?: Partial<AutonomousToolingStatus>) {
       name !== "godmode-agent" &&
       name !== "polymarket-agent",
   );
+  const skillHub =
+    tooling?.skillHub ?? {
+      available: false,
+      entryCount: 0,
+      name: "Tianshi Skill Hub",
+      optionalAdapterCount: 0,
+      optionalAdapterNames: [],
+      outOfScopeCount: 0,
+      outOfScopeNames: [],
+      referenceCount: 0,
+      referenceNames: [],
+      summary:
+        "Canonical repo registry for vendorable adapters, optional sidecars, and reference-only research material.",
+      vendorableAdapterCount: 0,
+      vendorableAdapterNames: [],
+      version: null,
+    };
 
   return {
     agfundActionNames: [],
@@ -87,6 +104,7 @@ function sanitizePublicTooling(tooling?: Partial<AutonomousToolingStatus>) {
     telegramChatConfigured: tooling?.telegramChatConfigured ?? false,
     wechatBroadcastEnabled: tooling?.wechatBroadcastEnabled ?? false,
     wechatWebhookConfigured: tooling?.wechatWebhookConfigured ?? false,
+    skillHub,
     vendoredSkillNames,
     vertexOnly: tooling?.vertexOnly ?? false,
   };

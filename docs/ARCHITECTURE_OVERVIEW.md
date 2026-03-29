@@ -100,6 +100,7 @@ Responsibilities:
 - external-agent tooling references
 - MCP config manifests
 - vendored skills and upstream integration packages
+- the shared Tianshi Skill Hub registry for adapter/reference decisions
 
 This directory is closer to an operator/runtime package than a normal frontend folder. It materially affects public status and internal controls.
 
